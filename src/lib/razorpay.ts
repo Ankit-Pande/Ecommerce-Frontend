@@ -1,6 +1,3 @@
-// Razorpay popup, used by checkout (new order) and My Orders (pay again).
-// Payment success here is only a hint: the backend confirms the order from the webhook.
-
 import type { PaymentDetails } from "@/lib/types";
 
 export const RAZORPAY_SCRIPT = "https://checkout.razorpay.com/v1/checkout.js";
@@ -17,7 +14,7 @@ type PopupOptions = {
   display?: Record<string, unknown>;
 };
 
-/** Opens the popup. Returns false when the script or backend values are missing. */
+// Opens the Razorpay popup; the backend webhook confirms the order.
 export function openRazorpay(
   payment: PaymentDetails,
   options: PopupOptions,
@@ -41,6 +38,7 @@ export function openRazorpay(
   return true;
 }
 
+// Theme colour for the Razorpay popup.
 function readAccentColor() {
   const channels = getComputedStyle(document.documentElement)
     .getPropertyValue("--color-accent")

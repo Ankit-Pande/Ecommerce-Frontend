@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "@/store/toast-store";
 import type { Paginated } from "@/lib/types";
 
-// `load` is an API function; wrap it in useCallback so the list reloads only when its inputs change.
+// Loads a cursor-paginated list with load-more and reload.
 export function usePaginatedList<T>(
   load: (cursor?: string) => Promise<Paginated<T>>,
   enabled = true,

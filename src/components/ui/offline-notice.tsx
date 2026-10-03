@@ -3,6 +3,7 @@
 import { RefreshCw, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+// Error box with a retry button when the API does not answer.
 export function OfflineNotice({ onRetry }: { onRetry: () => void }) {
   return (
     <div className="card mx-auto mt-8 max-w-lg p-8 text-center">

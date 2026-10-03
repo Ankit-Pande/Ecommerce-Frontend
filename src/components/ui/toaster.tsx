@@ -3,6 +3,7 @@
 import { CheckCircle2, XCircle } from "lucide-react";
 import { useToastStore } from "@/store/toast-store";
 
+// Shows toast messages at the bottom of the screen.
 export function Toaster() {
   const toasts = useToastStore((state) => state.toasts);
   const remove = useToastStore((state) => state.remove);

@@ -10,6 +10,7 @@ const STOCK_CLASS: Record<StockStatus, string> = {
   OUT_OF_STOCK: "text-gray-400",
 };
 
+// Product tile with image, price, discount and rating.
 export function ProductCard({ product }: { product: Product }) {
   return (
     <Link

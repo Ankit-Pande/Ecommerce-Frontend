@@ -3,6 +3,7 @@
 import { Children, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
+// Horizontal product row with arrow buttons.
 export function ProductScroller({
   children,
   label,
@@ -12,6 +13,7 @@ export function ProductScroller({
 }) {
   const listRef = useRef<HTMLDivElement>(null);
 
+  // Scrolls the row left or right.
   function move(direction: -1 | 1) {
     const list = listRef.current;
     if (!list) return;

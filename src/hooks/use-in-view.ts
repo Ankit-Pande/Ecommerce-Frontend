@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 const ROOT_MARGIN = "300px";
 
-/** Tells a section when it first scrolls near the viewport, so it can load only then. */
+// Becomes true once the element scrolls near the screen.
 export function useInViewOnce<T extends HTMLElement>() {
   const ref = useRef<T>(null);
   const [inView, setInView] = useState(false);

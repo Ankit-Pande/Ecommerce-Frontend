@@ -7,10 +7,7 @@ import { getProfile } from "@/api/account";
 import { restoreSession } from "@/api/http";
 import { useUiSettings } from "@/store/ui-settings-store";
 
-/**
- * Client-side setup for the whole app: colour theme plus reading the saved
- * login out of localStorage after mount (see the note in auth-store).
- */
+// Sets up the theme and restores the saved login once on load.
 export function Providers({ children }: { children: React.ReactNode }) {
   const language = useUiSettings((state) => state.language);
   const color = useUiSettings((state) => state.color);
@@ -22,8 +19,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
       .then(async (loggedIn) => {
         const auth = useAuthStore.getState();
         if (!loggedIn) return auth.logout();
-        // The saved role can be old (admin removed, user blocked), so the
-        // admin panel is shown only for the role the backend returns now.
         const profile = await getProfile();
         auth.setUser(profile.phone, profile.role);
       })

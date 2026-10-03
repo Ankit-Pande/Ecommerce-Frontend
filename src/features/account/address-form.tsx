@@ -30,6 +30,7 @@ const emptyAddress: AddressInput = {
   pincode: "",
 };
 
+// Form values to the API shape.
 export function toAddressInput(address: Address): AddressInput {
   return {
     fullName: address.fullName,
@@ -49,6 +50,7 @@ type AddressFormProps = {
   onCancel: () => void;
 };
 
+// Add or edit address form.
 export function AddressForm({
   addressId,
   initial = emptyAddress,
@@ -58,15 +60,16 @@ export function AddressForm({
   const [form, setForm] = useState(initial);
   const [saving, setSaving] = useState(false);
 
+  // Updates one field.
   function update(field: keyof AddressInput, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
   }
 
+  // Saves the address.
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSaving(true);
     try {
-      // null clears line2 when an address is edited.
       const payload = { ...form, line2: form.line2.trim() || null };
       const saved = addressId
         ? await updateAddress(addressId, payload)
@@ -211,6 +214,7 @@ export function AddressForm({
   );
 }
 
+// Label with an input.
 function FormField({
   label,
   hint,

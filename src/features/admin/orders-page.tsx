@@ -13,7 +13,6 @@ import { formatDate, formatTime, inr } from "@/lib/format";
 import { toast } from "@/store/toast-store";
 import type { AdminOrder, OrderStatus, PaymentStatus } from "@/lib/types";
 
-// "REVIEW" is not a status: it lists paid orders that need a manual refund.
 const TABS = [
   { value: "", label: "All" },
   { value: "PENDING", label: "Pending" },
@@ -40,8 +39,7 @@ const PAYMENT_STYLE: Record<PaymentStatus, string> = {
   REFUNDED: "bg-deal/10 text-deal",
 };
 
-// Backend rules: admin only moves an order forward, CONFIRMED comes from the
-// payment webhook (or COD checkout), and a paid order is not cancelled here.
+// Statuses the admin can move an order to.
 function nextStatuses(order: AdminOrder): OrderStatus[] {
   const unpaid = order.paymentStatus === "PENDING";
   if (order.status === "PENDING") return unpaid ? ["CANCELLED"] : [];
@@ -51,10 +49,10 @@ function nextStatuses(order: AdminOrder): OrderStatus[] {
   return [];
 }
 
-// One row layout: a table from md up, stacked cards on phones.
 const ROW =
   "grid gap-x-4 gap-y-2 md:grid-cols-[minmax(0,2fr)_1fr_1.3fr_1fr_1.1fr_150px] md:items-center";
 
+// Orders table with status tabs and actions.
 export default function AdminOrders() {
   const [tab, setTab] = useState("");
   const [busyId, setBusyId] = useState("");
@@ -67,11 +65,11 @@ export default function AdminOrders() {
   const { items, cursor, loading, loadingMore, failed, loadMore, reload } =
     usePaginatedList<AdminOrder>(loadOrders);
 
+  // Saves the new order status.
   async function updateStatus(id: string, status: OrderStatus) {
     setBusyId(id);
     try {
       await updateOrderStatus(id, status);
-      // COD becomes paid on delivery, so reload to show the backend's values.
       reload();
       toast.success("Order status updated");
     } catch (error) {
@@ -81,7 +79,7 @@ export default function AdminOrders() {
     }
   }
 
-  // Admin refunded the customer from the Razorpay dashboard.
+  // Records a manual refund.
   async function markRefunded(id: string) {
     if (!window.confirm("Mark this payment as refunded in Razorpay?")) return;
     setBusyId(id);

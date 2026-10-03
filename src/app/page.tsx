@@ -1,12 +1,11 @@
 import { getHomeOnServer } from "@/api/catalog";
-import { fallbackCategories } from "@/lib/catalog-fallback";
 import { HomeContent } from "@/features/catalog/home-content";
 import { HomeRetry } from "@/features/catalog/home-retry";
 
-// Static page (ISR): rebuilt in the background every minute, not on every visit.
+// Home page, rebuilt every minute from the backend.
 export default async function HomePage() {
   const home = await getHomeOnServer();
-  if (!home) return <HomeRetry categories={fallbackCategories} />;
+  if (!home) return <HomeRetry />;
 
   return <HomeContent home={home} />;
 }

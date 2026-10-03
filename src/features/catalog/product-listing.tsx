@@ -18,7 +18,6 @@ import type { Product, ProductFacets } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 
 const PAGE_SIZE = 20;
-// The backend rejects a 1-letter search, so it is treated as no search.
 const MIN_SEARCH_LENGTH = 2;
 
 const SORT_OPTIONS = [
@@ -31,6 +30,7 @@ const SORT_OPTIONS = [
 
 type Sort = (typeof SORT_OPTIONS)[number]["value"];
 
+// Product list page with search, filters, sort and load more.
 export function ProductListing() {
   const urlParams = useSearchParams();
   const query = urlParams.get("q")?.trim() ?? "";
@@ -81,7 +81,6 @@ export function ProductListing() {
     setSort(readSort(requestedSort));
   }, [requestedSort]);
 
-  // Filter options depend only on the category, not on the search text.
   useEffect(() => {
     const params = new URLSearchParams();
     if (category) params.set("category", category);
@@ -111,7 +110,6 @@ export function ProductListing() {
       if (discountOnly) params.set("discount", "true");
       if (brand) params.set("brand", brand);
       if (color) params.set("color", color);
-      // The backend rejects min > max, so a half-typed range is not sent.
       const priceRangeValid =
         !debouncedMinPrice ||
         !debouncedMaxPrice ||
@@ -149,6 +147,7 @@ export function ProductListing() {
     reload,
   } = usePaginatedList<Product>(loadProducts);
 
+  // Removes all filters but keeps the search.
   function clearFilters() {
     setBrand("");
     setColor("");
@@ -264,6 +263,7 @@ export function ProductListing() {
   );
 }
 
+// Shown when no product matches.
 function EmptyProducts({
   hasFilters,
   onClear,
@@ -288,16 +288,19 @@ function EmptyProducts({
   );
 }
 
+// Reads a valid sort from the URL.
 function readSort(value: string | null): Sort {
   return SORT_OPTIONS.some((option) => option.value === value)
     ? (value as Sort)
     : "latest";
 }
 
+// Reads a price filter from the URL.
 function readPrice(value: string | null) {
   return value?.replace(/\D/g, "") ?? "";
 }
 
+// Converts rupees typed by the user to paise.
 function rupeesToPaise(value: string) {
   return String(Number(value) * 100);
 }

@@ -19,6 +19,7 @@ type ProductFiltersProps = {
   onClear: () => void;
 };
 
+// Brand, colour, price and offer filters.
 export function ProductFilters({
   facets,
   brand,
@@ -134,6 +135,7 @@ export function ProductFilters({
   );
 }
 
+// Filters in a bottom sheet on phones.
 export function MobileProductFilters({
   open,
   onClose,
@@ -187,6 +189,7 @@ export function MobileProductFilters({
   );
 }
 
+// Rupee input for the price range.
 function PriceInput({
   label,
   value,

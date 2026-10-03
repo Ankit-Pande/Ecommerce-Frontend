@@ -24,6 +24,7 @@ const colors: { value: AppColor; label: string; className: string }[] = [
   { value: "orange", label: "Orange", className: "bg-[#D65C1C]" },
 ];
 
+// Menu for theme, colour and language.
 export function HeaderSettingsMenu() {
   const [open, setOpen] = useState(false);
   const menuRef = useClickOutside<HTMLDivElement>(
@@ -141,6 +142,7 @@ export function HeaderSettingsMenu() {
   );
 }
 
+// One selectable option in the settings menu.
 function ChoiceButton({
   active,
   onClick,

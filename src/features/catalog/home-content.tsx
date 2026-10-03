@@ -1,4 +1,3 @@
-import { fallbackCategories } from "@/lib/catalog-fallback";
 import { SectionHeader } from "@/components/ui/section-header";
 import { BannerCarousel } from "@/features/catalog/banner-carousel";
 import { CategoryShowcase } from "@/features/catalog/category-showcase";
@@ -10,14 +9,12 @@ import type { HomeData, Product } from "@/lib/types";
 
 const PRODUCTS_PER_SECTION = 8;
 
+// Home page sections.
 export function HomeContent({ home }: { home: HomeData }) {
-  const categories =
-    home.categories.length > 0 ? home.categories : fallbackCategories;
-
   return (
     <div className="pb-12">
       <BannerCarousel banners={home.banners} />
-      <CategoryShowcase categories={categories} />
+      <CategoryShowcase categories={home.categories} />
       <RecentlyViewedProducts />
 
       <ProductSection
@@ -35,7 +32,7 @@ export function HomeContent({ home }: { home: HomeData }) {
         href="/products?section=featured"
         products={home.featuredProducts}
       />
-      <LazyCategoryShelves categories={categories} />
+      <LazyCategoryShelves categories={home.categories} />
       <ProductSection
         title="New arrivals"
         href="/products?sort=latest"
@@ -45,6 +42,7 @@ export function HomeContent({ home }: { home: HomeData }) {
   );
 }
 
+// One titled shelf of products.
 function ProductSection({
   title,
   href,

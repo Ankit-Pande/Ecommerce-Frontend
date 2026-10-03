@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 
+// Loads the next page of a list.
 export function LoadMoreButton({
   onClick,
   loading,

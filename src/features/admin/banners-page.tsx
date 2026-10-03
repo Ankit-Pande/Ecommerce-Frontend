@@ -13,6 +13,7 @@ import { safeHttpUrl } from "@/lib/sanitize";
 import { toast } from "@/store/toast-store";
 import { Button } from "@/components/ui/button";
 
+// Admin banners list and add form.
 export default function AdminBanners() {
   const { data, setData, loading, failed, load } = useAdminData(listBanners);
   const banners = data ?? [];
@@ -23,6 +24,7 @@ export default function AdminBanners() {
   const [busyId, setBusyId] = useState("");
   const fileInput = useRef<HTMLInputElement>(null);
 
+  // Saves a new banner.
   async function create(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!image) {
@@ -51,6 +53,7 @@ export default function AdminBanners() {
     }
   }
 
+  // Deletes a banner.
   async function remove(id: string) {
     if (!window.confirm("Delete this home banner?")) return;
 

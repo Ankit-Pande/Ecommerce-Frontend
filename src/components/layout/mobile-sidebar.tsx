@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { SafeImage } from "@/components/ui/safe-image";
 import { Wordmark } from "@/components/ui/wordmark";
-import { catalogHref } from "@/lib/catalog-fallback";
+import { catalogHref } from "@/lib/format";
 import { uiText, type UiTextKey } from "@/lib/ui-text";
 import { isAdmin, useAuthStore } from "@/store/auth-store";
 import { useUiSettings } from "@/store/ui-settings-store";
@@ -29,6 +29,7 @@ type MobileSidebarProps = {
 const primaryLink =
   "flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-bold text-gray-700 transition hover:bg-mist hover:text-accent dark:text-gray-200 dark:hover:bg-white/10";
 
+// Slide-in menu with categories on phones.
 export function MobileSidebar({
   open,
   onClose,
@@ -44,6 +45,7 @@ export function MobileSidebar({
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
+    // Closes the menu on the Escape key.
     function closeOnEscape(event: KeyboardEvent) {
       if (event.key === "Escape") onClose();
     }

@@ -28,8 +28,7 @@ import { OfflineNotice } from "@/components/ui/offline-notice";
 import { ListSkeleton } from "@/components/ui/skeletons";
 import type { Order, OrderStatus } from "@/lib/types";
 
-// Backend rules: only an unshipped order without a payment can be cancelled
-// (refunds are manual), and an unpaid online order can be paid until its deadline.
+// Only an unshipped, unpaid order can be cancelled.
 function canCancel(order: Order) {
   return (
     (order.status === "PENDING" || order.status === "CONFIRMED") &&
@@ -37,6 +36,7 @@ function canCancel(order: Order) {
   );
 }
 
+// An unpaid online order can be paid until its deadline.
 function canPay(order: Order) {
   return (
     order.paymentMethod === "ONLINE" &&
@@ -82,7 +82,6 @@ const STATUS: Record<
   },
 };
 
-// The webhook confirms a paid order a few seconds after the popup closes.
 const CONFIRM_WAIT_MS = 5000;
 
 type PlacedResult = "cod" | "paid" | "pending";
@@ -103,6 +102,7 @@ const PLACED_BANNER: Record<PlacedResult, { text: string; warning: boolean }> =
     },
   };
 
+// My orders with cancel and pay again.
 export function OrdersPage() {
   const { ready } = useAuthGuard();
   const params = useSearchParams();
@@ -121,13 +121,13 @@ export function OrdersPage() {
   } = usePaginatedList<Order>(listOrders, ready);
   const placed = params.get("placed") as PlacedResult | null;
 
-  // Read the list again once the webhook has had time to confirm the payment.
   useEffect(() => {
     if (placed !== "paid") return;
     const timer = setTimeout(reload, CONFIRM_WAIT_MS);
     return () => clearTimeout(timer);
   }, [placed, reload]);
 
+  // Cancels an order.
   async function handleCancel(id: string) {
     if (!window.confirm("Cancel this order? This action cannot be undone."))
       return;
@@ -147,6 +147,7 @@ export function OrdersPage() {
     }
   }
 
+  // Opens Razorpay again for an unpaid order.
   async function handlePay(id: string) {
     setPayingId(id);
     try {
@@ -224,6 +225,7 @@ export function OrdersPage() {
   );
 }
 
+// Page title and result banner around the orders list.
 function OrdersShell({
   children,
   banner,
@@ -257,6 +259,7 @@ function OrdersShell({
   );
 }
 
+// One order with items, status and actions.
 function OrderCard({
   order,
   cancelling,

@@ -15,6 +15,7 @@ import { useAuthStore } from "@/store/auth-store";
 import { toast } from "@/store/toast-store";
 import { Button } from "@/components/ui/button";
 
+// Pill colour for a role.
 function roleStyle(role: UserRole) {
   if (role === "SUPER_ADMIN") {
     return "bg-purple-100 text-purple-700 dark:bg-purple-400/10 dark:text-purple-300";
@@ -25,6 +26,7 @@ function roleStyle(role: UserRole) {
   return "bg-gray-100 text-gray-500 dark:bg-white/10";
 }
 
+// Customer list with block and role actions.
 export default function AdminUsers() {
   const [search, setSearch] = useState("");
   const [busyId, setBusyId] = useState("");
@@ -47,6 +49,7 @@ export default function AdminUsers() {
     reload,
   } = usePaginatedList<AdminUser>(loadUsers);
 
+  // Blocks or unblocks a user.
   async function toggleBlock(user: AdminUser) {
     const willBlock = !user.isBlocked;
     const action = willBlock ? "Block" : "Unblock";
@@ -70,6 +73,7 @@ export default function AdminUsers() {
     }
   }
 
+  // Makes a user admin or customer.
   async function toggleAdmin(user: AdminUser) {
     const nextRole = user.role === "ADMIN" ? "USER" : "ADMIN";
     const action = nextRole === "ADMIN" ? "Grant" : "Remove";

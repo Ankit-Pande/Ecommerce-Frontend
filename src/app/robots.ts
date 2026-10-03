@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/site";
 
-// Private pages are kept out of search results.
+// Keeps private pages out of search engines.
 export default function robots(): MetadataRoute.Robots {
   return {
     sitemap: `${SITE_URL}/sitemap.xml`,

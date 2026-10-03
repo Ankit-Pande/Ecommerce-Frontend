@@ -17,8 +17,8 @@ import { slugify } from "@/lib/format";
 import { toast } from "@/store/toast-store";
 import { Button } from "@/components/ui/button";
 
+// Admin category tree and add form.
 export default function AdminCategories() {
-  // Admin list includes hidden categories.
   const { data, loading, failed, load } = useAdminData(listCategories);
   const categories = data ?? [];
   const [name, setName] = useState("");
@@ -28,6 +28,7 @@ export default function AdminCategories() {
   const [busyId, setBusyId] = useState("");
   const fileInput = useRef<HTMLInputElement>(null);
 
+  // Saves a new category.
   async function create(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSaving(true);
@@ -53,6 +54,7 @@ export default function AdminCategories() {
     }
   }
 
+  // Deletes a category.
   async function remove(id: string, label: string) {
     if (!window.confirm(`Delete "${label}"?`)) return;
 
@@ -68,7 +70,7 @@ export default function AdminCategories() {
     }
   }
 
-  // Hiding a parent also hides its subcategories and their products on the store.
+  // Hides or shows a category with its products.
   async function toggleVisible(id: string, isActive: boolean) {
     setBusyId(id);
     try {

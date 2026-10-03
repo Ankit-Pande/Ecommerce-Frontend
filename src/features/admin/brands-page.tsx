@@ -14,6 +14,7 @@ import type { AdminBrand } from "@/lib/types";
 import { toast } from "@/store/toast-store";
 import { Button } from "@/components/ui/button";
 
+// Admin brands list and add form.
 export default function AdminBrands() {
   const { data, setData, loading, failed, load } = useAdminData(listBrands);
   const brands = data ?? [];
@@ -23,6 +24,7 @@ export default function AdminBrands() {
   const [busyId, setBusyId] = useState("");
   const fileInput = useRef<HTMLInputElement>(null);
 
+  // Saves a new brand.
   async function create(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSaving(true);
@@ -46,6 +48,7 @@ export default function AdminBrands() {
     }
   }
 
+  // Deletes a brand.
   async function remove(brand: AdminBrand) {
     if (!window.confirm(`Delete "${brand.name}"?`)) return;
 

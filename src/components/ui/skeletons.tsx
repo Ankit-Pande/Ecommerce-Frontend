@@ -1,3 +1,4 @@
+// Grey placeholder for one product card.
 export function CardSkeleton() {
   return (
     <div className="card animate-pulse overflow-hidden">
@@ -11,6 +12,7 @@ export function CardSkeleton() {
   );
 }
 
+// Placeholder grid while a product list loads.
 export function GridSkeleton({ count = 8 }: { count?: number }) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
@@ -21,6 +23,7 @@ export function GridSkeleton({ count = 8 }: { count?: number }) {
   );
 }
 
+// Placeholder rows while a page loads.
 export function ListSkeleton({ count = 4 }: { count?: number }) {
   return (
     <div className="space-y-3">

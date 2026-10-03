@@ -9,6 +9,7 @@ import type { Banner } from "@/lib/types";
 
 const SLIDE_INTERVAL_MS = 3_000;
 
+// Sliding home banners.
 export function BannerCarousel({ banners }: { banners: Banner[] }) {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -24,6 +25,7 @@ export function BannerCarousel({ banners }: { banners: Banner[] }) {
 
   if (banners.length === 0) return null;
 
+  // Goes to the next or previous banner.
   function move(direction: -1 | 1) {
     setIndex(
       (current) => (current + direction + banners.length) % banners.length,

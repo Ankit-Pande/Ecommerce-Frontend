@@ -1,6 +1,6 @@
 import { ShoppingBag } from "lucide-react";
 
-// Logo mark + app name. The mark alone stays visible when space is tight.
+// ApnaKart logo and name.
 export function Wordmark({
   onDark = false,
   className = "",

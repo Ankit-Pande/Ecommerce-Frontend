@@ -7,13 +7,11 @@ import { getCatalog } from "@/api/catalog";
 import { Spinner } from "@/components/ui/spinner";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 
-// The backend needs 2+ letters; suggestions wait until typing pauses.
 const MIN_SEARCH_LENGTH = 2;
 const SUGGESTION_LIMIT = "8";
 const MAX_SUGGESTIONS = 6;
 
-// Like big stores: typing shows only text suggestions. Products appear on the
-// results page after Enter, the search button or a click on a suggestion.
+// Search input with text suggestions; results open on Enter or click.
 export function SearchBox({
   label,
   placeholder,
@@ -57,6 +55,7 @@ export function SearchBox({
     };
   }, [term]);
 
+  // Opens the product list for the search text and clears the box.
   function openResults(text: string) {
     const query = text.trim();
     setOpen(false);
@@ -86,7 +85,6 @@ export function SearchBox({
           setOpen(true);
         }}
         onFocus={() => setOpen(true)}
-        // Delay so a click on a suggestion lands before the list closes.
         onBlur={() => setTimeout(() => setOpen(false), 150)}
         onKeyDown={(event) => event.key === "Escape" && setOpen(false)}
         aria-label={label}

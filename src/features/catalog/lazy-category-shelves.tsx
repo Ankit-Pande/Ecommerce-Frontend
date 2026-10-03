@@ -7,7 +7,7 @@ import { getCatalog } from "@/api/catalog";
 import { SectionHeader } from "@/components/ui/section-header";
 import { CardSkeleton } from "@/components/ui/skeletons";
 import { useInViewOnce } from "@/hooks/use-in-view";
-import { catalogHref, catalogQuery } from "@/lib/catalog-fallback";
+import { catalogHref } from "@/lib/format";
 import { ProductCard } from "./product-card";
 import { ProductScroller } from "./product-scroller";
 import type { Category, Product } from "@/lib/types";
@@ -16,8 +16,7 @@ const PRODUCTS_PER_SHELF = 10;
 
 type Subcategory = Category["children"][number];
 
-// One block per category, one scrolling shelf per subcategory inside it.
-// Each shelf asks the backend only when it scrolls near the screen.
+// One block per category with a shelf per subcategory.
 export function LazyCategoryShelves({
   categories,
 }: {
@@ -40,6 +39,7 @@ export function LazyCategoryShelves({
     ));
 }
 
+// Loads its products only when scrolled near.
 function SubcategoryShelf({ subcategory }: { subcategory: Subcategory }) {
   const { ref, inView } = useInViewOnce<HTMLDivElement>();
   const [products, setProducts] = useState<Product[] | null>(null);
@@ -51,9 +51,7 @@ function SubcategoryShelf({ subcategory }: { subcategory: Subcategory }) {
     let active = true;
     setFailed(false);
 
-    const params = new URLSearchParams(
-      catalogQuery(subcategory, "subcategory"),
-    );
+    const params = new URLSearchParams({ subcategory: subcategory.slug });
     params.set("limit", String(PRODUCTS_PER_SHELF));
     getCatalog(params)
       .then((response) => {
@@ -68,7 +66,6 @@ function SubcategoryShelf({ subcategory }: { subcategory: Subcategory }) {
     };
   }, [subcategory, reloadKey, inView]);
 
-  // A subcategory with no products is simply left out of the home page.
   if (products?.length === 0) return null;
 
   return (

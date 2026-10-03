@@ -1,6 +1,6 @@
 import { Star } from "lucide-react";
 
-// Green "4.3 ★" chip with the review count. Nothing is shown before the first review.
+// Green rating chip; hidden before the first review.
 export function RatingBadge({
   rating,
 }: {

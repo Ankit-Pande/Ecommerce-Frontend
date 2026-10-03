@@ -12,7 +12,7 @@ type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   loading?: boolean;
 };
 
-/** One button for the whole app. While loading it shows a spinner and blocks a double click. */
+// Shared button; shows a spinner and blocks clicks while loading.
 export function Button({
   variant = "primary",
   loading = false,

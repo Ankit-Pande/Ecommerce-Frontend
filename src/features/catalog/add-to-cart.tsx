@@ -11,6 +11,7 @@ import { useAuthStore } from "@/store/auth-store";
 import { useCartStore } from "@/store/cart-store";
 import { toast } from "@/store/toast-store";
 
+// Add to cart and Buy now buttons; Buy now skips the cart.
 export function AddToCart({
   productId,
   slug,
@@ -24,17 +25,15 @@ export function AddToCart({
   const [added, setAdded] = useState(false);
   const router = useRouter();
   const loggedIn = useAuthStore((state) => Boolean(state.accessToken));
-  // Until the saved session is restored a logged-in user looks like a guest.
   const hydrated = useAuthStore((state) => state.hydrated);
   const setCount = useCartStore((state) => state.setCount);
 
-  // Buy now skips the cart: checkout orders just this product.
-  // A guest goes to login first and comes back to the same place.
   const buyNowPage = `/checkout?buy=${encodeURIComponent(slug)}`;
   const buyNowHref = loggedIn
     ? buyNowPage
     : `/login?next=${encodeURIComponent(buyNowPage)}`;
 
+  // Adds one item to the cart, or sends a guest to login.
   async function add() {
     if (!loggedIn) {
       const here = `${window.location.pathname}${window.location.search}`;

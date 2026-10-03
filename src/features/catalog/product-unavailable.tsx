@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { OfflineNotice } from "@/components/ui/offline-notice";
 
-/** Shown when the product API does not answer in time, so the URL is not treated as a 404. */
+// Shown when the product API does not answer.
 export function ProductUnavailable() {
   const router = useRouter();
   const [, startChecking] = useTransition();

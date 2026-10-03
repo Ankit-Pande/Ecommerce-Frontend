@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
+// Section title with an optional "View all" link.
 export function SectionHeader({
   title,
   href,

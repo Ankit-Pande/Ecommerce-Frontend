@@ -1,5 +1,6 @@
 import { GridSkeleton } from "@/components/ui/skeletons";
 
+// Loading screen for the home page.
 export default function HomeLoading() {
   return (
     <div>

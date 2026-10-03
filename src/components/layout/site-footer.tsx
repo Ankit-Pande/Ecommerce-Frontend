@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Mail, Phone } from "lucide-react";
 import { Wordmark } from "@/components/ui/wordmark";
-import { catalogHref } from "@/lib/catalog-fallback";
+import { catalogHref } from "@/lib/format";
 import type { Category } from "@/lib/types";
 
 const SUPPORT_EMAIL = "support@apnakart.in";
@@ -21,6 +21,7 @@ const ACCOUNT_LINKS = [
   { href: "/cart", label: "Shopping cart" },
 ];
 
+// Footer with category, shop and account links.
 export function SiteFooter({ categories }: { categories: Category[] }) {
   const categoryLinks = categories.map((category) => ({
     href: catalogHref(category),
@@ -65,6 +66,7 @@ export function SiteFooter({ categories }: { categories: Category[] }) {
   );
 }
 
+// One titled column of footer links.
 function FooterLinks({
   title,
   links,

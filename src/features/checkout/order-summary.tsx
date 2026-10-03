@@ -6,8 +6,7 @@ export type SummaryLine = {
   quantity: number;
 };
 
-// Price card shared by cart and checkout. Prices come from the backend; this
-// only adds them up. The action button (or a message) is passed as children.
+// Price card for cart and checkout.
 export function OrderSummary({
   lines,
   children,
@@ -62,6 +61,7 @@ export function OrderSummary({
   );
 }
 
+// One label and amount row.
 function Row({
   label,
   children,

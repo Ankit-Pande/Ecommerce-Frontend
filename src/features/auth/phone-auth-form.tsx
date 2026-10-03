@@ -11,11 +11,11 @@ import { Wordmark } from "@/components/ui/wordmark";
 
 const OTP_LENGTH = 6;
 const PHONE_LENGTH = 10;
-// Same as the backend: an OTP lives 2 minutes, a new one can be sent after 60 seconds.
 const OTP_VALID_SECONDS = 120;
 const RESEND_AFTER_SECONDS = 60;
 const INDIAN_MOBILE = /^[6-9]\d{9}$/;
 
+// Phone and OTP login form.
 export function PhoneAuthForm() {
   const [step, setStep] = useState<"phone" | "otp">("phone");
   const [phone, setPhone] = useState("");
@@ -32,7 +32,6 @@ export function PhoneAuthForm() {
   const setAccessToken = useAuthStore((state) => state.setAccessToken);
   const setUser = useAuthStore((state) => state.setUser);
   const requestedPath = params.get("next");
-  // Only same-site paths, so ?next= cannot send the user to another domain.
   const nextPath =
     requestedPath?.startsWith("/") && !requestedPath.startsWith("//")
       ? requestedPath
@@ -56,6 +55,7 @@ export function PhoneAuthForm() {
     expiresIn - (OTP_VALID_SECONDS - RESEND_AFTER_SECONDS),
   );
 
+  // Sends the OTP and starts the timers.
   async function handleSendOtp() {
     if (!INDIAN_MOBILE.test(phone) || busy) {
       setError("Enter a valid 10-digit mobile number.");
@@ -77,6 +77,7 @@ export function PhoneAuthForm() {
     }
   }
 
+  // Checks the OTP and logs in.
   async function handleVerifyOtp(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const code = otp.join("");
@@ -98,6 +99,7 @@ export function PhoneAuthForm() {
     }
   }
 
+  // Updates one OTP digit and moves focus.
   function updateOtp(index: number, rawValue: string) {
     const digit = rawValue.replace(/\D/g, "").slice(-1);
     setOtp((current) =>
@@ -106,6 +108,7 @@ export function PhoneAuthForm() {
     if (digit && index < OTP_LENGTH - 1) otpInputs.current[index + 1]?.focus();
   }
 
+  // Backspace moves to the previous box.
   function handleOtpKeyDown(
     index: number,
     event: React.KeyboardEvent<HTMLInputElement>,
@@ -118,6 +121,7 @@ export function PhoneAuthForm() {
       otpInputs.current[index + 1]?.focus();
   }
 
+  // Fills all boxes from a pasted code.
   function pasteOtp(event: React.ClipboardEvent<HTMLInputElement>) {
     const pasted = event.clipboardData
       .getData("text")
@@ -292,6 +296,7 @@ export function PhoneAuthForm() {
   );
 }
 
+// Red error message.
 function ErrorText({ message }: { message: string }) {
   return (
     <p
@@ -303,7 +308,7 @@ function ErrorText({ message }: { message: string }) {
   );
 }
 
-// 119 -> "1:59"
+// 119 to "1:59".
 function formatSeconds(total: number) {
   const seconds = String(total % 60).padStart(2, "0");
   return `${Math.floor(total / 60)}:${seconds}`;

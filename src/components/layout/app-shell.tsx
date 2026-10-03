@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/toaster";
 
 import type { Category } from "@/lib/types";
 
+// Store layout with header and footer; admin pages get their own layout.
 export function AppShell({
   categories,
   children,

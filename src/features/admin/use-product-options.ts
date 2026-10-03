@@ -3,6 +3,7 @@
 import { listBrands, listCategories } from "@/api/admin";
 import { useAdminData } from "@/features/admin/use-admin-data";
 
+// Categories and brands for the product form.
 export function useProductOptions() {
   const categoryState = useAdminData(listCategories);
   const brandState = useAdminData(listBrands);

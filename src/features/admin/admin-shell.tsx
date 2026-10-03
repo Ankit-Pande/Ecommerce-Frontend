@@ -13,7 +13,7 @@ import {
   isActiveAdminLink,
 } from "@/features/admin/admin-nav";
 
-// Laptop/desktop: grouped sidebar + content card. Phone/tablet: scrollable tabs.
+// Admin layout: sidebar on desktop, tabs on phones.
 export function AdminShell({
   children,
 }: Readonly<{ children: React.ReactNode }>) {

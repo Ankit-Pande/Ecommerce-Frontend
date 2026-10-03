@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { isAdmin, useAuthStore } from "@/store/auth-store";
 
-// Protected pages wait for the saved session before loading their data.
+// Sends guests to login and tells the page when it can load data.
 export function useAuthGuard() {
   const router = useRouter();
   const accessToken = useAuthStore((s) => s.accessToken);
@@ -20,6 +20,7 @@ export function useAuthGuard() {
   return { ready: hydrated && !!accessToken };
 }
 
+// Same as useAuthGuard, and sends non-admins to the home page.
 export function useAdminGuard() {
   const router = useRouter();
   const accessToken = useAuthStore((s) => s.accessToken);

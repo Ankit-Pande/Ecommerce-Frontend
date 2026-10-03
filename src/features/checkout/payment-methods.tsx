@@ -23,6 +23,7 @@ const choices = [
   },
 ] as const;
 
+// UPI, card and COD choices.
 export function PaymentMethods({
   value,
   onChange,

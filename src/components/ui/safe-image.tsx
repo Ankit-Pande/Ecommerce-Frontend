@@ -12,6 +12,7 @@ type SafeImageProps = {
   priority?: boolean;
 };
 
+// Image that falls back to an icon when the URL is missing or broken.
 export function SafeImage({
   src,
   alt,
@@ -22,7 +23,6 @@ export function SafeImage({
   const [failed, setFailed] = useState(false);
   const imageRef = useRef<HTMLImageElement>(null);
 
-  // An image that failed before React loaded never fires onError, so check it once here.
   useEffect(() => {
     const image = imageRef.current;
     setFailed(Boolean(image?.complete && image.naturalWidth === 0));

@@ -17,8 +17,7 @@ import { MobileSidebar } from "./mobile-sidebar";
 import { SearchBox } from "./search-box";
 import type { Category } from "@/lib/types";
 
-// Order: menu (phone) → logo → search → account → cart → settings.
-// Categories come from the server layout, so the links are in the first HTML (SEO).
+// Top bar: menu, logo, search, account, cart and settings.
 export function SiteHeader({ categories }: { categories: Category[] }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
@@ -90,7 +89,6 @@ export function SiteHeader({ categories }: { categories: Category[] }) {
         <div className="px-3 pb-3 md:hidden">{searchBox}</div>
       </header>
 
-      {/* Not sticky: it scrolls away so products get the screen space. */}
       <CategoryBar categories={categories} />
 
       <MobileSidebar

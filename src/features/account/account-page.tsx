@@ -34,6 +34,7 @@ import { Button } from "@/components/ui/button";
 
 type EditingAddress = { id: string; values: AddressInput } | null;
 
+// Profile and saved addresses.
 export function AccountPage() {
   const { ready } = useAuthGuard();
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -63,14 +64,13 @@ export function AccountPage() {
       .finally(() => setLoading(false));
   }, [ready, reloadKey]);
 
-  // "Saved addresses" in the account menu links to #addresses; the section
-  // exists only after loading, so the browser cannot scroll there by itself.
   useEffect(() => {
     if (!loading && window.location.hash === "#addresses") {
       document.getElementById("addresses")?.scrollIntoView();
     }
   }, [loading]);
 
+  // Saves name and email.
   async function saveProfile(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSaving(true);
@@ -87,6 +87,7 @@ export function AccountPage() {
     }
   }
 
+  // Opens the form to add or edit an address.
   function openAddressForm(address?: Address) {
     setEditing(
       address ? { id: address.id, values: toAddressInput(address) } : null,
@@ -94,7 +95,7 @@ export function AccountPage() {
     setShowAddressForm(true);
   }
 
-  // A new default address turns the old default off, so update the rest too.
+  // Puts the saved address in the list.
   function handleAddressSaved(saved: Address) {
     setAddresses((current) => {
       const rest = current.map((address) =>
@@ -110,12 +111,12 @@ export function AccountPage() {
     setEditing(null);
   }
 
+  // Deletes an address and reloads the list.
   async function removeAddress(id: string) {
     if (!window.confirm("Delete this saved address?")) return;
     setBusyAddressId(id);
     try {
       await deleteAddress(id);
-      // The backend may pick a new default, so read the list again.
       setAddresses(await listAddresses());
       toast.success("Address deleted");
     } catch (error) {
@@ -125,6 +126,7 @@ export function AccountPage() {
     }
   }
 
+  // Sets the default address.
   async function makeDefault(id: string) {
     setBusyAddressId(id);
     try {
@@ -142,6 +144,7 @@ export function AccountPage() {
     }
   }
 
+  // Logs out from this device.
   function handleLogout() {
     void logoutSession();
   }
@@ -326,6 +329,7 @@ export function AccountPage() {
   );
 }
 
+// Page title around the account page.
 function AccountShell({
   children,
   onLogout,

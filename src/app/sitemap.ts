@@ -2,8 +2,7 @@ import type { MetadataRoute } from "next";
 import { getHomeOnServer } from "@/api/catalog";
 import { SITE_URL } from "@/lib/site";
 
-// Lakhs of products cannot fit one sitemap; categories and home products are
-// listed here and Google finds the rest through the category pages.
+// Sitemap with home, categories and home page products.
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const home = await getHomeOnServer();
   const pages = ["/", "/products"];

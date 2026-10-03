@@ -25,7 +25,6 @@ import { CheckoutSteps } from "./checkout-steps";
 import { OrderSummary } from "./order-summary";
 import { PaymentMethods, type PaymentChoice } from "./payment-methods";
 
-// Same cap as the cart and the backend.
 const MAX_QUANTITY = 10;
 
 type Line = {
@@ -39,8 +38,7 @@ type Line = {
   available: boolean;
 };
 
-// Two ways in: from the cart, or "Buy now" (?buy=<slug>) with one product
-// that never goes into the cart.
+// Checkout for the cart, or one product with ?buy=.
 export function CheckoutPage() {
   const { ready } = useAuthGuard();
   const router = useRouter();
@@ -55,8 +53,6 @@ export function CheckoutPage() {
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [paymentChoice, setPaymentChoice] = useState<PaymentChoice>("UPI");
   const [paying, setPaying] = useState(false);
-  // Same key for every click on this page: a double click or retry returns the
-  // same order from the backend instead of creating a second one.
   const [idempotencyKey] = useState(() => crypto.randomUUID());
 
   useEffect(() => {
@@ -77,21 +73,24 @@ export function CheckoutPage() {
       .finally(() => setLoading(false));
   }, [ready, reloadKey, buySlug]);
 
+  // Adds and selects a new address.
   function handleAddressSaved(address: Address) {
     setAddresses((current) => [...current, address]);
     setSelectedId(address.id);
     setShowAddressForm(false);
   }
 
+  // Changes the Buy now quantity.
   function changeBuyQuantity(quantity: number) {
     setLines((current) => current.map((line) => ({ ...line, quantity })));
   }
 
-  // My Orders shows a banner for each result: cod, paid or pending.
+  // Opens My orders with the result banner.
   function openOrders(placed: "cod" | "paid" | "pending") {
     router.push(`/orders?placed=${placed}`);
   }
 
+  // Places the order, then opens Razorpay for online payment.
   async function placeOrder() {
     if (!selectedId || lines.length === 0) return;
     setPaying(true);
@@ -111,7 +110,6 @@ export function CheckoutPage() {
         }),
       });
 
-      // A cart order empties the cart; buy now leaves it as it was.
       if (!buySlug) setCount(0);
       if (payment.paymentMethod === "COD") {
         openOrders("cod");
@@ -160,7 +158,6 @@ export function CheckoutPage() {
     );
   }
 
-  // The backend rejects the whole order if any item cannot be bought.
   const hasBlockedItems = lines.some((line) => !line.available);
   const selectedAddress = addresses.find(
     (address) => address.id === selectedId,
@@ -331,6 +328,7 @@ export function CheckoutPage() {
   );
 }
 
+// Order lines from the cart.
 async function cartLines(): Promise<Line[]> {
   const cart = await getCart();
   return cart.items.map(({ product, quantity }) => ({
@@ -345,6 +343,7 @@ async function cartLines(): Promise<Line[]> {
   }));
 }
 
+// One order line for Buy now.
 async function buyNowLines(slug: string): Promise<Line[]> {
   const product = await getProduct(slug);
   return [
@@ -361,6 +360,7 @@ async function buyNowLines(slug: string): Promise<Line[]> {
   ];
 }
 
+// Minus and plus quantity buttons.
 function QuantityStepper({
   value,
   onChange,
@@ -395,6 +395,7 @@ function QuantityStepper({
   );
 }
 
+// Card with an icon title.
 function Section({
   icon: Icon,
   title,
@@ -422,6 +423,7 @@ function Section({
   );
 }
 
+// Page title and steps around checkout.
 function CheckoutShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="pb-12 pt-6 sm:pt-8">
@@ -434,6 +436,7 @@ function CheckoutShell({ children }: { children: React.ReactNode }) {
   );
 }
 
+// Shows only the chosen payment type in Razorpay.
 function razorpayDisplay(choice: PaymentChoice) {
   const instruments =
     choice === "UPI"

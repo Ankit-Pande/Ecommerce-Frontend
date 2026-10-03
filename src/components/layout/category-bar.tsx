@@ -6,12 +6,12 @@ import { usePathname } from "next/navigation";
 import { ChevronDown, LayoutGrid } from "lucide-react";
 import { SafeImage } from "@/components/ui/safe-image";
 import { useClickOutside } from "@/hooks/use-click-outside";
-import { catalogHref } from "@/lib/catalog-fallback";
+import { catalogHref } from "@/lib/format";
 import { uiText } from "@/lib/ui-text";
 import { useUiSettings } from "@/store/ui-settings-store";
 import type { Category } from "@/lib/types";
 
-// Tablet and bigger only; phones use the hamburger sidebar instead.
+// Category strip under the header on tablet and desktop.
 export function CategoryBar({ categories }: { categories: Category[] }) {
   const [open, setOpen] = useState(false);
   const close = useCallback(() => setOpen(false), []);

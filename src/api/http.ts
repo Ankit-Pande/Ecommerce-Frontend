@@ -2,7 +2,6 @@ import { useAuthStore } from "@/store/auth-store";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
-// Don't let a cold or unreachable backend block server rendering.
 const SERVER_TIMEOUT_MS = 2500;
 const CLIENT_TIMEOUT_MS = 8000;
 
@@ -11,7 +10,7 @@ type ServerResult<T> = {
   status: number | null;
 };
 
-/** Server-side fetch that keeps the response status for pages that handle 404 separately. */
+// Server fetch that keeps the status code.
 export async function serverGetResult<T>(
   path: string,
   revalidateSeconds: number,
@@ -29,10 +28,7 @@ export async function serverGetResult<T>(
   }
 }
 
-/**
- * Server-side fetch for public data. Returns null instead of throwing, so the
- * page shell (navbar, footer, layout) always renders even when the API is down.
- */
+// Server fetch that returns null on any failure.
 export async function serverGet<T>(
   path: string,
   revalidateSeconds: number,
@@ -41,7 +37,7 @@ export async function serverGet<T>(
   return result.data;
 }
 
-/** Public endpoint called from the browser. No token, throws on failure. */
+// Browser fetch for public APIs.
 export async function publicGet<T>(path: string): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     signal: AbortSignal.timeout(CLIENT_TIMEOUT_MS),
@@ -50,10 +46,9 @@ export async function publicGet<T>(path: string): Promise<T> {
   return (await res.json()) as T;
 }
 
-// Only one refresh call at a time — parallel 401s share the same promise.
 let refreshInFlight: Promise<boolean> | null = null;
 
-// The refresh token lives only in the backend's httpOnly cookie, so no body is sent.
+// Gets a new access token using the refresh cookie.
 async function refreshTokens(): Promise<boolean> {
   try {
     const res = await fetch(`${API_URL}/api/auth/refresh`, {
@@ -69,6 +64,7 @@ async function refreshTokens(): Promise<boolean> {
   }
 }
 
+// Runs only one refresh at a time.
 function refreshOnce(): Promise<boolean> {
   if (!refreshInFlight) {
     refreshInFlight = refreshTokens().finally(() => {
@@ -78,12 +74,12 @@ function refreshOnce(): Promise<boolean> {
   return refreshInFlight;
 }
 
-/** Restores an in-memory access token from the backend's httpOnly cookie. */
+// Restores the login after a page reload.
 export function restoreSession(): Promise<boolean> {
   return refreshOnce();
 }
 
-/** Authenticated request. On a 401 it refreshes the token and retries once. */
+// Logged-in request; on 401 it refreshes once and retries.
 async function request<T>(
   path: string,
   options: RequestInit = {},
@@ -91,7 +87,6 @@ async function request<T>(
 ): Promise<T> {
   const { accessToken } = useAuthStore.getState();
 
-  // Never set Content-Type on FormData — the browser adds the multipart boundary.
   const isFormData = options.body instanceof FormData;
 
   const res = await fetch(`${API_URL}${path}`, {
@@ -116,6 +111,7 @@ async function request<T>(
   return json as T;
 }
 
+// Short helpers for logged-in requests.
 export const http = {
   get: <T>(path: string) => request<T>(path),
   post: <T>(path: string, body?: unknown) =>
@@ -129,15 +125,12 @@ export const http = {
     request<T>(path, { method: "PATCH", body: form }),
 };
 
-/** Turns any thrown value into a message safe to show the user. */
+// Error text that is safe to show the user.
 export function errorMessage(err: unknown, fallback: string): string {
   return err instanceof Error ? err.message : fallback;
 }
 
-/**
- * Revokes the server session, then clears local auth and reloads the home page.
- * A full reload also drops every in-memory user value (cart badge, cached pages).
- */
+// Logs out on the server, clears local login and reloads the home page.
 export async function logoutSession(): Promise<void> {
   try {
     await fetch(`${API_URL}/api/auth/logout`, {
@@ -145,9 +138,7 @@ export async function logoutSession(): Promise<void> {
       credentials: "include",
       signal: AbortSignal.timeout(CLIENT_TIMEOUT_MS),
     });
-  } catch {
-    // A network failure must not trap the user; the local logout still happens.
-  }
+  } catch {}
   useAuthStore.getState().logout();
   window.location.assign("/");
 }

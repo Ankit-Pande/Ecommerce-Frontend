@@ -3,7 +3,6 @@ import { DM_Sans, Poppins } from "next/font/google";
 import { AppShell } from "@/components/layout/app-shell";
 import { Providers } from "@/components/layout/providers";
 import { getHomeOnServer } from "@/api/catalog";
-import { fallbackCategories } from "@/lib/catalog-fallback";
 import "./globals.css";
 import { SITE_URL } from "@/lib/site";
 
@@ -49,18 +48,14 @@ export const metadata: Metadata = {
 
 const MAX_MENU_CATEGORIES = 8;
 
-// Static pages rebuild at most every minute. Without this, a page built while
-// the backend was down would keep its fallback content forever.
 export const revalidate = 60;
 
+// Root layout; loads categories for the menu.
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  // Same cached request as the home page, so the menu costs no extra backend call.
   const home = await getHomeOnServer();
-  const categories = home?.categories.length
-    ? home.categories.slice(0, MAX_MENU_CATEGORIES)
-    : fallbackCategories;
+  const categories = home?.categories.slice(0, MAX_MENU_CATEGORIES) ?? [];
 
   return (
     <html lang="en" suppressHydrationWarning>

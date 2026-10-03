@@ -8,7 +8,6 @@ import {
   UsersRound,
 } from "lucide-react";
 
-// Sidebar sections, like the order of daily admin work.
 export const adminNavGroups = [
   {
     title: "Store",
@@ -34,6 +33,7 @@ export const adminNavGroups = [
 
 export const adminNav = adminNavGroups.flatMap((group) => group.items);
 
+// True when the link matches the current admin page.
 export function isActiveAdminLink(pathname: string, href: string) {
   return (
     pathname === href || (href !== "/admin" && pathname.startsWith(`${href}/`))

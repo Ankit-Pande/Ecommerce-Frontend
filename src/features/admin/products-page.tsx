@@ -24,6 +24,7 @@ import { inr } from "@/lib/format";
 import type { AdminProduct } from "@/lib/types";
 import { toast } from "@/store/toast-store";
 
+// Admin product list.
 export default function AdminProducts() {
   const [search, setSearch] = useState("");
   const [busyId, setBusyId] = useState("");
@@ -45,6 +46,7 @@ export default function AdminProducts() {
     reload,
   } = usePaginatedList<AdminProduct>(loadProducts);
 
+  // Hides or shows a product.
   async function toggleActive(product: AdminProduct) {
     setBusyId(product.id);
 

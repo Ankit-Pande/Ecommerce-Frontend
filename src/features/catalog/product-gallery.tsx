@@ -6,6 +6,7 @@ import { SafeImage } from "@/components/ui/safe-image";
 
 const MAX_THUMBNAILS = 6;
 
+// Main image with thumbnails.
 export function ProductGallery({
   images,
   name,
@@ -18,6 +19,7 @@ export function ProductGallery({
   const [previewOpen, setPreviewOpen] = useState(false);
   const activeImage = visibleImages[activeIndex] ?? "";
 
+  // Shows the next or previous image.
   function move(direction: -1 | 1) {
     setActiveIndex(
       (index) =>
@@ -86,7 +88,7 @@ export function ProductGallery({
   );
 }
 
-// Full-screen view: arrows or ←/→ to change image, Esc or ✕ to close.
+// Full-screen image view with arrows and Esc to close.
 function ImagePreview({
   image,
   name,
@@ -101,6 +103,7 @@ function ImagePreview({
   onClose: () => void;
 }) {
   useEffect(() => {
+    // Arrow keys change the image, Esc closes.
     function onKey(event: KeyboardEvent) {
       if (event.key === "Escape") onClose();
       if (event.key === "ArrowLeft") onMove(-1);

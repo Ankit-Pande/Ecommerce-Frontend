@@ -21,7 +21,7 @@ import { useUiSettings } from "@/store/ui-settings-store";
 const itemClass =
   "flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-bold text-gray-600 transition hover:bg-mist hover:text-ink dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white";
 
-// Guest sees a login link; a logged-in user gets a menu with every account page.
+// Login link for guests, account dropdown for logged-in users.
 export function AccountMenu() {
   const [open, setOpen] = useState(false);
   const close = useCallback(() => setOpen(false), []);

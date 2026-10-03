@@ -17,6 +17,7 @@ import { OrderSummary } from "@/features/checkout/order-summary";
 import { SafeImage } from "@/components/ui/safe-image";
 import type { Cart } from "@/lib/types";
 
+// Cart items with quantity controls and summary.
 export function CartPage() {
   const { ready } = useAuthGuard();
   const [cart, setCart] = useState<Cart | null>(null);
@@ -40,6 +41,7 @@ export function CartPage() {
       .finally(() => setLoading(false));
   }, [ready, reloadKey, setCount]);
 
+  // Updates or removes an item.
   async function changeQuantity(productId: string, quantity: number) {
     setBusyProductId(productId);
     try {
@@ -92,8 +94,6 @@ export function CartPage() {
     );
   }
 
-  // The backend total skips unavailable items and checkout rejects the cart
-  // while any of them is still in it, so they are counted the same way here.
   const orderable = cart.items.filter(
     ({ product, quantity }) =>
       product.isAvailable && quantity <= product.maxQuantity,
@@ -221,6 +221,7 @@ export function CartPage() {
   );
 }
 
+// Page title and steps around the cart.
 function CartShell({
   children,
   itemCount,

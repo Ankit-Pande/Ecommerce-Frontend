@@ -1,3 +1,4 @@
+// Small loading circle.
 export function Spinner() {
   return (
     <span

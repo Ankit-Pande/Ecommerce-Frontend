@@ -13,6 +13,7 @@ import { useAdminData } from "@/features/admin/use-admin-data";
 import { getProduct } from "@/api/admin";
 import type { AdminProductDetail } from "@/lib/types";
 
+// Turns a product into form values.
 function formValues(product: AdminProductDetail): ProductFormValues {
   return {
     name: product.name,
@@ -33,7 +34,7 @@ function formValues(product: AdminProductDetail): ProductFormValues {
   };
 }
 
-// ISO time -> "YYYY-MM-DDTHH:mm" in the admin's own timezone, for datetime-local.
+// ISO time to a datetime-local value.
 function toLocalInput(iso: string) {
   const date = new Date(iso);
   return new Date(date.getTime() - date.getTimezoneOffset() * 60_000)
@@ -41,6 +42,7 @@ function toLocalInput(iso: string) {
     .slice(0, 16);
 }
 
+// Loads a product and shows the edit form.
 export default function EditProductPage({ productId }: { productId: string }) {
   const fetchProduct = useCallback(() => getProduct(productId), [productId]);
 

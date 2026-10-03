@@ -29,6 +29,7 @@ type Row = {
   uploading: boolean;
 };
 
+// Blank row for the bulk form.
 function emptyRow(): Row {
   return {
     name: "",
@@ -44,6 +45,7 @@ function emptyRow(): Row {
   };
 }
 
+// Add many products at once.
 export default function BulkUpload() {
   const [rows, setRows] = useState<Row[]>(() =>
     Array.from({ length: STARTING_ROWS }, emptyRow),
@@ -62,12 +64,14 @@ export default function BulkUpload() {
   const router = useRouter();
   const anyUploading = rows.some((row) => row.uploading);
 
+  // Changes one field of a row.
   function updateRow(index: number, patch: Partial<Row>) {
     setRows((prev) =>
       prev.map((row, i) => (i === index ? { ...row, ...patch } : row)),
     );
   }
 
+  // Uploads the images of one row.
   async function uploadRowImages(index: number, files: FileList | null) {
     if (!files?.length) return;
     updateRow(index, { uploading: true });
@@ -86,6 +90,7 @@ export default function BulkUpload() {
     }
   }
 
+  // Uploads images, then creates all products.
   async function createAll() {
     if (anyUploading) {
       toast.error("Wait for image uploads to finish");

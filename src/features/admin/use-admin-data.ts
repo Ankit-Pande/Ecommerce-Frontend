@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+// Loads admin data with loading, error and reload.
 export function useAdminData<T>(fetchData: () => Promise<T>) {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);

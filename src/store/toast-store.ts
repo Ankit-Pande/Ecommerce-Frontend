@@ -25,6 +25,7 @@ export const useToastStore = create<ToastState>((set) => ({
   remove: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
 }));
 
+// Shows a success or error toast.
 export const toast = {
   success: (message: string) =>
     useToastStore.getState().push(message, "success"),

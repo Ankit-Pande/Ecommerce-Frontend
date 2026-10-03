@@ -15,6 +15,7 @@ import { useAdminData } from "@/features/admin/use-admin-data";
 import { adminNav } from "@/features/admin/admin-nav";
 import { inr } from "@/lib/format";
 
+// Dashboard with today's numbers and quick links.
 export default function AdminHome() {
   const { data: stats, loading, failed, load } = useAdminData(getStats);
 

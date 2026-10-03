@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { CircleAlert, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+// Shown when a page crashes.
 export default function ErrorPage({
   error,
   reset,

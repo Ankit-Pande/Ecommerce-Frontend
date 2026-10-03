@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     "Browse all products with filters — brand, colour, price and more.",
 };
 
-// The filters read the URL, so the listing has to be a client component.
+// Product list with search and filters.
 export default function ProductsPage() {
   return (
     <Suspense

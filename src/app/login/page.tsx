@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { PhoneAuthForm } from "@/features/auth/phone-auth-form";
 import { ListSkeleton } from "@/components/ui/skeletons";
 
+// Login page.
 export default function LoginRoute() {
   return (
     <Suspense

@@ -2,13 +2,16 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { SafeImage } from "@/components/ui/safe-image";
 import { SectionHeader } from "@/components/ui/section-header";
-import { catalogHref } from "@/lib/catalog-fallback";
+import { catalogHref } from "@/lib/format";
 import type { Category } from "@/lib/types";
 
 const MAX_CATEGORIES = 8;
 const MAX_SUBCATEGORIES = 3;
 
+// Category cards on the home page.
 export function CategoryShowcase({ categories }: { categories: Category[] }) {
+  if (categories.length === 0) return null;
+
   return (
     <section>
       <SectionHeader title="Shop by category" href="/products" />

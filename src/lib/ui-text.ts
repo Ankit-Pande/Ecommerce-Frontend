@@ -53,6 +53,7 @@ const words = {
 
 export type UiTextKey = keyof (typeof words)["en"];
 
+// Text in the chosen language.
 export function uiText(language: AppLanguage, key: UiTextKey): string {
   return words[language][key];
 }

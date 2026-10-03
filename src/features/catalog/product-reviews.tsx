@@ -19,8 +19,7 @@ import { RatingBadge } from "./rating-badge";
 
 const RATINGS = [1, 2, 3, 4, 5];
 
-// Loads only when scrolled near. Anyone can read; a buyer whose order was
-// delivered can write (the backend checks that and answers with a message).
+// Reviews list; a buyer with a delivered order can write one.
 export function ProductReviews({
   slug,
   rating,
@@ -49,6 +48,7 @@ export function ProductReviews({
     reload,
   } = usePaginatedList<Review>(loadReviews, inView);
 
+  // Admin removes a review.
   async function removeReview(id: string) {
     if (!window.confirm("Remove this review?")) return;
     setRemovingId(id);
@@ -159,11 +159,13 @@ export function ProductReviews({
   );
 }
 
+// Form to write or edit a review.
 function ReviewForm({ slug, onSaved }: { slug: string; onSaved: () => void }) {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [saving, setSaving] = useState(false);
 
+  // Saves the review.
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSaving(true);
@@ -216,7 +218,6 @@ function ReviewForm({ slug, onSaved }: { slug: string; onSaved: () => void }) {
       <Button
         type="submit"
         loading={saving}
-        // The backend needs 3+ letters when a comment is written.
         disabled={
           rating === 0 ||
           (comment.trim().length > 0 && comment.trim().length < 3)
@@ -229,6 +230,7 @@ function ReviewForm({ slug, onSaved }: { slug: string; onSaved: () => void }) {
   );
 }
 
+// Clickable 1 to 5 star picker.
 function Stars({ value }: { value: number }) {
   return (
     <span className="flex text-gold" aria-label={`${value} out of 5 stars`}>

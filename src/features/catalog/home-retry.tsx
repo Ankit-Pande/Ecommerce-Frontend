@@ -3,15 +3,13 @@
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { RefreshCw } from "lucide-react";
-import { CategoryShowcase } from "./category-showcase";
 import { ProductScroller } from "./product-scroller";
 import { CardSkeleton } from "@/components/ui/skeletons";
-import type { Category } from "@/lib/types";
 
 const SHELVES = ["Trending now", "Discount offers", "New arrivals"];
 
-/** Shown when the store API does not answer in time, so the page still renders. */
-export function HomeRetry({ categories }: { categories: Category[] }) {
+// Shown when the home API does not answer.
+export function HomeRetry() {
   const router = useRouter();
   const [checking, startChecking] = useTransition();
 
@@ -31,8 +29,6 @@ export function HomeRetry({ categories }: { categories: Category[] }) {
           {checking ? "Checking..." : "Try again"}
         </button>
       </div>
-
-      {categories.length > 0 && <CategoryShowcase categories={categories} />}
 
       {SHELVES.map((title) => (
         <section key={title} className="mt-9 sm:mt-12">

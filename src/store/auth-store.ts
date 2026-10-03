@@ -4,8 +4,6 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { UserRole } from "@/lib/types";
 
-// Only display data is saved. The access token stays in memory; the refresh
-// token is an httpOnly cookie the browser sends by itself.
 type AuthState = {
   accessToken: string | null;
   phone: string | null;
@@ -48,6 +46,7 @@ export const useAuthStore = create<AuthState>()(
   ),
 );
 
+// True for admin and super admin.
 export function isAdmin(role: UserRole | null): boolean {
   return role === "ADMIN" || role === "SUPER_ADMIN";
 }

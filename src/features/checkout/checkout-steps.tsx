@@ -2,6 +2,7 @@ import { Check } from "lucide-react";
 
 const STEPS = ["Cart", "Address & payment", "Confirmation"];
 
+// Cart, address and confirmation steps.
 export function CheckoutSteps({ current }: { current: 1 | 2 }) {
   return (
     <ol className="mb-6 flex items-center" aria-label="Checkout progress">

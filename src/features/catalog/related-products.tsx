@@ -12,7 +12,7 @@ import type { Product } from "@/lib/types";
 
 const PRODUCT_LIMIT = 8;
 
-// The backend returns up to 8 products from the same category, without this one.
+// Similar products shown on the product page.
 export function RelatedProducts({
   slug,
   categoryLink,

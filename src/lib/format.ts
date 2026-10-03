@@ -1,8 +1,6 @@
-// The backend stores money as integer paise, so all formatting happens here.
-
 import type { Address, StockStatus } from "@/lib/types";
 
-// 49900 -> "₹499", 287960 -> "₹2,879.60" (paise shown only when there are any).
+// Paise to rupees, like 49900 to "₹499".
 export function inr(paise: number): string {
   const digits = paise % 100 === 0 ? 0 : 2;
   return (
@@ -14,14 +12,13 @@ export function inr(paise: number): string {
   );
 }
 
-// The backend sends only a stock status, never the exact count.
 export const STOCK_TEXT: Record<StockStatus, string> = {
   IN_STOCK: "In stock",
   LOW_STOCK: "Hurry, only a few left",
   OUT_OF_STOCK: "Out of stock",
 };
 
-// "Galaxy S24 5G" -> "galaxy-s24-5g"
+// "Galaxy S24" to "galaxy-s24".
 export function slugify(name: string): string {
   return name
     .toLowerCase()
@@ -31,6 +28,7 @@ export function slugify(name: string): string {
     .replace(/^-|-$/g, "");
 }
 
+// Date like "1 Oct 2026".
 export function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-IN", {
     day: "numeric",
@@ -39,7 +37,7 @@ export function formatDate(iso: string): string {
   });
 }
 
-// "3:45 pm"
+// Time like "3:45 pm".
 export function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString("en-IN", {
     hour: "numeric",
@@ -47,6 +45,7 @@ export function formatTime(iso: string): string {
   });
 }
 
+// Address in one line.
 export function formatAddress(address: Address): string {
   return [
     address.line1,
@@ -57,4 +56,12 @@ export function formatAddress(address: Address): string {
   ]
     .filter(Boolean)
     .join(", ");
+}
+
+// Product list link for a category or subcategory.
+export function catalogHref(
+  entry: { slug: string },
+  level: "category" | "subcategory" = "category",
+) {
+  return `/products?${level}=${encodeURIComponent(entry.slug)}`;
 }

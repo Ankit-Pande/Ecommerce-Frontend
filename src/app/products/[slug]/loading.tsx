@@ -1,3 +1,4 @@
+// Loading screen for a product page.
 export default function ProductLoading() {
   return (
     <div className="card mt-6 grid animate-pulse gap-7 p-5 md:grid-cols-2 md:p-7">

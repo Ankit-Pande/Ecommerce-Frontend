@@ -8,7 +8,7 @@ import { useAuthStore } from "@/store/auth-store";
 import { useCartStore } from "@/store/cart-store";
 import { useUiSettings } from "@/store/ui-settings-store";
 
-// Phone-only floating tab bar, like shopping apps. Tablets and up use the header.
+// Bottom tab bar on phones.
 export function BottomNav() {
   const pathname = usePathname();
   const language = useUiSettings((state) => state.language);

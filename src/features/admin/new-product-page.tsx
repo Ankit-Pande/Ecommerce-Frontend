@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { emptyProduct, ProductForm } from "@/features/admin/product-form";
 
+// Create product page.
 export default function NewProductPage() {
   return (
     <div>

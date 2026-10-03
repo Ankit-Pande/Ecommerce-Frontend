@@ -7,6 +7,7 @@ import type { ProductDetail } from "@/lib/types";
 
 type ProductPageProps = { params: { slug: string } };
 
+// Page title and description from the product.
 export async function generateMetadata({
   params,
 }: ProductPageProps): Promise<Metadata> {
@@ -26,7 +27,7 @@ export async function generateMetadata({
   };
 }
 
-// Google reads price, stock and rating from this and can show them in results.
+// Product data for Google (price, stock, rating).
 function productJsonLd(product: ProductDetail) {
   return {
     "@context": "https://schema.org",
@@ -56,6 +57,7 @@ function productJsonLd(product: ProductDetail) {
   };
 }
 
+// Product page; a real 404 shows not found, an API failure shows retry.
 export default async function ProductPage({ params }: ProductPageProps) {
   const { data: product, status } = await getProductOnServer(params.slug);
   if (status === 404) notFound();
@@ -65,7 +67,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
     <>
       <script
         type="application/ld+json"
-        // "<" is escaped so product text can never close the script tag.
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(productJsonLd(product)).replace(
             /</g,

@@ -1,5 +1,3 @@
-// Shapes returned by the backend API. Every component imports from here.
-
 export type ApiData<T> = { data: T };
 export type Paginated<T> = { items: T[]; nextCursor: string | null };
 
@@ -14,8 +12,6 @@ export type PaymentStatus = "PENDING" | "COMPLETED" | "REFUNDED";
 export type PaymentMethod = "COD" | "ONLINE";
 export type StockStatus = "IN_STOCK" | "LOW_STOCK" | "OUT_OF_STOCK";
 
-// The backend's product card: home, catalog, related, cart and batch all use it.
-// finalPricePaise already includes the discount; the exact stock is never sent.
 export type Product = {
   id: string;
   name: string;
@@ -60,13 +56,11 @@ export type Review = {
   user: { id: string; name: string | null };
 };
 
-// Brand and colour choices for the current category.
 export type ProductFacets = {
   brands: { id: string; name: string; slug: string }[];
   colors: string[];
 };
 
-// Everything the home page needs, in a single request.
 export type HomeData = {
   banners: Banner[];
   categories: Category[];
@@ -119,7 +113,6 @@ export type Order = {
   items: OrderItem[];
 };
 
-// Returned by checkout and "pay again"; Razorpay values are null for COD.
 export type PaymentDetails = {
   orderId: string;
   amount: number;
@@ -139,8 +132,6 @@ export type UserProfile = {
   name: string | null;
   email: string | null;
 };
-
-// Admin-only shapes — these endpoints return more fields than the public ones.
 
 type AdminCategoryItem = {
   id: string;
@@ -188,7 +179,6 @@ export type AdminProductDetail = Omit<AdminProduct, "reservedQuantity"> & {
   brandId: string | null;
 };
 
-// Dashboard numbers; "today" starts at midnight India time.
 export type AdminStats = {
   ordersToday: number;
   revenueTodayPaise: number;

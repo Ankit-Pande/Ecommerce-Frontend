@@ -10,7 +10,7 @@ import type { Product } from "@/lib/types";
 const STORAGE_KEY = "apnakart-recent-slugs";
 const MAX_PRODUCTS = 8;
 
-/** Saves the opened product's slug on this device. Private browsing may block it, so failure is ignored. */
+// Saves the opened product's slug on this device.
 export function RecentProductTracker({ slug }: { slug: string }) {
   useEffect(() => {
     try {
@@ -27,7 +27,7 @@ export function RecentProductTracker({ slug }: { slug: string }) {
   return null;
 }
 
-// Only slugs are saved, so price and stock always come fresh from the backend.
+// Shelf of recently viewed products with fresh prices.
 export function RecentlyViewedProducts() {
   const [products, setProducts] = useState<Product[]>([]);
 
@@ -63,6 +63,7 @@ export function RecentlyViewedProducts() {
   );
 }
 
+// Reads saved slugs; private browsing may block storage.
 function readSlugs(): string[] {
   try {
     const value: unknown = JSON.parse(

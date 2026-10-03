@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { inr, STOCK_TEXT } from "@/lib/format";
-import { catalogHref } from "@/lib/catalog-fallback";
+import { catalogHref } from "@/lib/format";
 import { safeColor } from "@/lib/sanitize";
 import { AddToCart } from "@/features/catalog/add-to-cart";
 import { ProductGallery } from "@/features/catalog/product-gallery";
@@ -11,11 +11,11 @@ import { RelatedProducts } from "@/features/catalog/related-products";
 import { RecentProductTracker } from "@/features/catalog/recently-viewed-products";
 import type { ProductDetail } from "@/lib/types";
 
+// Product info: price, stock, details and buttons.
 export function ProductDetails({ product }: { product: ProductDetail }) {
   const saving = product.pricePaise - product.finalPricePaise;
   const swatch = safeColor(product.color);
   const inStock = product.stockStatus !== "OUT_OF_STOCK";
-  // Products live in a subcategory; a top-level category has no parent.
   const categoryLink = product.category.parent
     ? catalogHref(product.category, "subcategory")
     : catalogHref(product.category);
@@ -156,6 +156,7 @@ export function ProductDetails({ product }: { product: ProductDetail }) {
   );
 }
 
+// One label and value row.
 function ProductFact({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0">

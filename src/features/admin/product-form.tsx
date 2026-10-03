@@ -11,7 +11,6 @@ import { toast } from "@/store/toast-store";
 import { Button } from "@/components/ui/button";
 
 const MAX_IMAGES = 6;
-// Must match GENDERS and AGE_GROUPS in the backend; the catalog filter uses them.
 const GENDERS = ["Men", "Women", "Unisex"];
 const AGE_GROUPS = ["Adult", "Kids"];
 
@@ -52,12 +51,12 @@ export const emptyProduct: ProductFormValues = {
 };
 
 type ProductFormProps = {
-  // Present when editing; a new product has no id yet.
   productId?: string;
   initial: ProductFormValues;
   existingImageCount?: number;
 };
 
+// Create and edit product form.
 export function ProductForm({
   productId,
   initial,
@@ -79,6 +78,7 @@ export function ProductForm({
   } = useProductOptions();
   const router = useRouter();
 
+  // Updates one form field.
   function setField<K extends keyof ProductFormValues>(
     field: K,
     value: ProductFormValues[K],
@@ -86,6 +86,7 @@ export function ProductForm({
     setValues((current) => ({ ...current, [field]: value }));
   }
 
+  // Updates the name and the slug together.
   function changeName(name: string) {
     setValues((current) => ({
       ...current,
@@ -94,6 +95,7 @@ export function ProductForm({
     }));
   }
 
+  // Validates and saves the product.
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -113,14 +115,12 @@ export function ProductForm({
       form.append("name", values.name.trim());
       form.append("slug", values.slug);
       form.append("description", values.description.trim());
-      // The backend stores money as integer paise.
       form.append("pricePaise", String(Math.round(Number(values.price) * 100)));
       form.append("discountPercent", values.discountPercent || "0");
       form.append("stock", values.stock || "0");
       form.append("categoryId", values.categoryId);
       form.append("isTrending", String(values.isTrending));
       form.append("isFeatured", String(values.isFeatured));
-      // An empty value clears the field on the backend, so these are always sent.
       form.append("brandId", values.brandId);
       form.append("color", values.color.trim());
       form.append("gender", values.gender);
