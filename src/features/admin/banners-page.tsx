@@ -1,16 +1,29 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Image as ImageIcon, ImageUp, Plus, Trash2 } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  Image as ImageIcon,
+  ImageUp,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import { OfflineNotice } from "@/components/ui/offline-notice";
 import { SafeImage } from "@/components/ui/safe-image";
 import { ListSkeleton } from "@/components/ui/skeletons";
 import { Spinner } from "@/components/ui/spinner";
 import { useAdminData } from "@/features/admin/use-admin-data";
-import { createBanner, deleteBanner, listBanners } from "@/api/admin";
+import {
+  createBanner,
+  deleteBanner,
+  listBanners,
+  setBannerActive,
+} from "@/api/admin";
 import { errorMessage } from "@/api/http";
 import { safeHttpUrl } from "@/lib/sanitize";
 import { toast } from "@/store/toast-store";
+import type { AdminBanner } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 
 // Admin banners list and add form.
@@ -50,6 +63,26 @@ export default function AdminBanners() {
       toast.error(errorMessage(error, "Could not publish this banner"));
     } finally {
       setSaving(false);
+    }
+  }
+
+  // Hides or shows a banner on the home page.
+  async function toggleActive(banner: AdminBanner) {
+    setBusyId(banner.id);
+    try {
+      const { data: saved } = await setBannerActive(
+        banner.id,
+        !banner.isActive,
+      );
+      setData(
+        (current) =>
+          current?.map((item) => (item.id === saved.id ? saved : item)) ?? [],
+      );
+      toast.success(saved.isActive ? "Banner visible" : "Banner hidden");
+    } catch (error) {
+      toast.error(errorMessage(error, "Could not update this banner"));
+    } finally {
+      setBusyId("");
     }
   }
 
@@ -152,7 +185,7 @@ export default function AdminBanners() {
         ) : banners.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-black/15 py-12 text-center dark:border-white/15">
             <ImageIcon className="mx-auto h-8 w-8 text-gray-300" />
-            <p className="mt-3 text-sm font-extrabold">No active banners</p>
+            <p className="mt-3 text-sm font-extrabold">No banners yet</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -170,12 +203,27 @@ export default function AdminBanners() {
                   />
                 </div>
                 <div className="flex items-center gap-3 px-4 py-3">
-                  <span className="status-pill bg-accent/10 text-accent">
-                    Live
+                  <span
+                    className={`status-pill ${banner.isActive ? "bg-accent/10 text-accent" : "bg-gray-100 text-gray-500 dark:bg-white/10"}`}
+                  >
+                    {banner.isActive ? "Live" : "Hidden"}
                   </span>
                   <span className="min-w-0 flex-1 truncate text-xs font-semibold text-gray-500">
                     {safeHttpUrl(banner.link) ?? "No destination link"}
                   </span>
+                  <button
+                    type="button"
+                    onClick={() => toggleActive(banner)}
+                    disabled={busyId === banner.id}
+                    className="icon-button text-gray-400 hover:text-accent"
+                    aria-label={banner.isActive ? "Hide banner" : "Show banner"}
+                  >
+                    {banner.isActive ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
                   <button
                     type="button"
                     onClick={() => remove(banner.id)}

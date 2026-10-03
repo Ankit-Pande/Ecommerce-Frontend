@@ -1,5 +1,6 @@
 import {
   Boxes,
+  BadgePercent,
   Image,
   LayoutDashboard,
   PackageCheck,
@@ -15,6 +16,7 @@ export const adminNavGroups = [
       { href: "/admin", label: "Overview", icon: LayoutDashboard },
       { href: "/admin/orders", label: "Orders", icon: PackageCheck },
       { href: "/admin/products", label: "Products", icon: Boxes },
+      { href: "/admin/sale", label: "Sale & offers", icon: BadgePercent },
     ],
   },
   {

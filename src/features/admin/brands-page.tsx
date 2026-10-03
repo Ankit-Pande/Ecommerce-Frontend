@@ -1,13 +1,18 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { ImageUp, Plus, Tags, Trash2 } from "lucide-react";
+import { Eye, EyeOff, ImageUp, Plus, Tags, Trash2 } from "lucide-react";
 import { OfflineNotice } from "@/components/ui/offline-notice";
 import { SafeImage } from "@/components/ui/safe-image";
 import { ListSkeleton } from "@/components/ui/skeletons";
 import { Spinner } from "@/components/ui/spinner";
 import { useAdminData } from "@/features/admin/use-admin-data";
-import { createBrand, deleteBrand, listBrands } from "@/api/admin";
+import {
+  createBrand,
+  deleteBrand,
+  listBrands,
+  setBrandActive,
+} from "@/api/admin";
 import { errorMessage } from "@/api/http";
 import { slugify } from "@/lib/format";
 import type { AdminBrand } from "@/lib/types";
@@ -45,6 +50,23 @@ export default function AdminBrands() {
       toast.error(errorMessage(error, "Could not create this brand"));
     } finally {
       setSaving(false);
+    }
+  }
+
+  // Hides or shows a brand in filters and on product pages.
+  async function toggleActive(brand: AdminBrand) {
+    setBusyId(brand.id);
+    try {
+      const { data: saved } = await setBrandActive(brand.id, !brand.isActive);
+      setData(
+        (current) =>
+          current?.map((item) => (item.id === saved.id ? saved : item)) ?? [],
+      );
+      toast.success(saved.isActive ? "Brand visible" : "Brand hidden");
+    } catch (error) {
+      toast.error(errorMessage(error, "Could not update this brand"));
+    } finally {
+      setBusyId("");
     }
   }
 
@@ -153,12 +175,30 @@ export default function AdminBrands() {
                 <div className="min-w-0 flex-1">
                   <h3 className="truncate text-sm font-extrabold">
                     {brand.name}
+                    {!brand.isActive && (
+                      <span className="ml-2 text-[10px] text-gray-400">
+                        Hidden
+                      </span>
+                    )}
                   </h3>
                   <p className="truncate text-[11px] text-gray-400">
                     /{brand.slug}
                   </p>
                 </div>
 
+                <button
+                  type="button"
+                  onClick={() => toggleActive(brand)}
+                  disabled={busyId === brand.id}
+                  className="icon-button text-gray-400 hover:text-accent"
+                  aria-label={`${brand.isActive ? "Hide" : "Show"} ${brand.name}`}
+                >
+                  {brand.isActive ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
                 <button
                   type="button"
                   onClick={() => remove(brand)}

@@ -97,6 +97,27 @@ export function createBrand(form: FormData) {
   return http.postForm("/api/admin/brands", form);
 }
 
+// Puts one discount on every product of a category (or the whole store); 0 ends the sale.
+export async function applySale(data: {
+  categoryId?: string;
+  discountPercent: number;
+  offerEndsAt?: string;
+}) {
+  return (
+    await http.post<ApiData<{ updated: number }>>(
+      "/api/admin/products/sale",
+      data,
+    )
+  ).data;
+}
+
+// Shows or hides a brand on the store.
+export function setBrandActive(id: string, isActive: boolean) {
+  return http.patch<ApiData<AdminBrand>>(`/api/admin/brands/${id}`, {
+    isActive,
+  });
+}
+
 // Deletes a brand.
 export function deleteBrand(id: string) {
   return http.delete(`/api/admin/brands/${id}`);
@@ -110,6 +131,13 @@ export async function listBanners() {
 // Creates a home banner.
 export function createBanner(form: FormData) {
   return http.postForm("/api/admin/banners", form);
+}
+
+// Shows or hides a home banner.
+export function setBannerActive(id: string, isActive: boolean) {
+  return http.patch<ApiData<AdminBanner>>(`/api/admin/banners/${id}`, {
+    isActive,
+  });
 }
 
 // Deletes a banner.
