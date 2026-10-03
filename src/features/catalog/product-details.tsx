@@ -141,7 +141,11 @@ export function ProductDetails({ product }: { product: ProductDetail }) {
           </dl>
 
           <div className="mt-7">
-            <AddToCart productId={product.id} inStock={inStock} />
+            <AddToCart
+              productId={product.id}
+              slug={product.slug}
+              inStock={inStock}
+            />
           </div>
         </div>
       </div>

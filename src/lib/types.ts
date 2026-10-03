@@ -188,6 +188,15 @@ export type AdminProductDetail = Omit<AdminProduct, "reservedQuantity"> & {
   brandId: string | null;
 };
 
+// Dashboard numbers; "today" starts at midnight India time.
+export type AdminStats = {
+  ordersToday: number;
+  revenueTodayPaise: number;
+  awaitingPayment: number;
+  toShip: number;
+  needsReview: number;
+};
+
 export type AdminOrder = {
   id: string;
   totalPaise: number;

@@ -11,6 +11,8 @@ type CheckoutInput = {
   idempotencyKey: string;
   addressId: string;
   paymentMethod: PaymentMethod;
+  // Buy now: order only this product and leave the cart as it is.
+  buyNow?: { productId: string; quantity: number };
 };
 
 export async function checkout(input: CheckoutInput) {

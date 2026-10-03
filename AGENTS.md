@@ -122,7 +122,7 @@ All admin routes use `src/app/admin/layout.tsx` and
 
 | Route                  | Feature file                                   |
 | ---------------------- | ---------------------------------------------- |
-| `/admin`               | `admin-home.tsx`                               |
+| `/admin`               | `admin-home.tsx` (stats from `GET /api/admin/stats`) |
 | `/admin/products`      | `products-page.tsx`                            |
 | `/admin/products/new`  | `new-product-page.tsx` and `product-form.tsx`  |
 | `/admin/products/[id]` | `edit-product-page.tsx` and `product-form.tsx` |
@@ -344,7 +344,8 @@ Flow:
 4. The gallery shows one large image and up to six clickable thumbnails.
 5. Category, brand and color links open a filtered product list.
 6. Price, discount, stock and description come from real data.
-7. Add to cart and buy now show a spinner while the request runs.
+7. Add to cart shows a spinner while the request runs. Buy now is a link to
+   `/checkout?buy=<slug>` (login first for guests) and never touches the cart.
 8. Related products load lazily from `GET /api/products/:slug/related`.
 9. Opening a product updates the device-only recently viewed list.
 
@@ -389,11 +390,15 @@ Main files:
 - `src/features/checkout/checkout-page.tsx`
 - `payment-methods.tsx`
 - `checkout-steps.tsx`
+- `order-summary.tsx` (price card shared with the cart page)
 - `src/features/account/address-form.tsx`
 
 Flow:
 
-1. Load `GET /api/address` and `GET /api/cart` after auth is ready.
+1. Load `GET /api/address` and `GET /api/cart` after auth is ready. With
+   `?buy=<slug>` the item list is just that product (`GET /api/products/:slug`,
+   quantity 1-10) and checkout sends `buyNow: { productId, quantity }`; the
+   cart stays as it is.
 2. The user selects or creates a delivery address. The current UI allows up to
    five saved addresses.
 3. Payment choices are UPI apps, card/netbanking or cash on delivery.
@@ -404,7 +409,7 @@ Flow:
 7. `POST /api/order/checkout` sends `idempotencyKey` (one per checkout page),
    creates the order and returns Razorpay values when online payment is required.
 8. Only backend-confirmed values are sent to Razorpay.
-9. The cart badge is cleared and My Orders opens with `?placed=cod`, `paid`
+9. The cart badge is cleared (cart orders only) and My Orders opens with `?placed=cod`, `paid`
    or `pending` (popup closed or failed); each shows its own banner. After
    `paid` the list is read again after 5 seconds, when the webhook has
    confirmed the order. A pending order shows its pay-by time.

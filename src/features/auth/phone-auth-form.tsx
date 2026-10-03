@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Check, ShieldCheck, Smartphone } from "lucide-react";
+import { ArrowLeft, Check, MessageSquareLock } from "lucide-react";
 import { sendOtp, verifyOtp } from "@/api/auth";
 import { errorMessage } from "@/api/http";
 import { Button } from "@/components/ui/button";
@@ -130,19 +130,8 @@ export function PhoneAuthForm() {
   }
 
   return (
-    <section className="mx-auto w-full max-w-md py-10 sm:py-16">
-      <div className="mb-7 text-center">
-        <Wordmark className="text-2xl" />
-      </div>
-
-      <div className="card p-5 sm:p-8">
-        <div className="mb-6 flex gap-2" aria-hidden="true">
-          <span className="h-1.5 flex-1 rounded-full bg-accent" />
-          <span
-            className={`h-1.5 flex-1 rounded-full transition ${step === "otp" ? "bg-accent" : "bg-gray-200 dark:bg-white/10"}`}
-          />
-        </div>
-
+    <section className="mx-auto w-full max-w-md py-8 sm:py-14">
+      <div className="card px-5 py-8 sm:px-9 sm:py-10">
         {step === "phone" ? (
           <form
             onSubmit={(event) => {
@@ -150,21 +139,24 @@ export function PhoneAuthForm() {
               handleSendOtp();
             }}
           >
-            <span className="grid h-12 w-12 place-items-center rounded-2xl bg-accent/10 text-accent">
-              <Smartphone className="h-5 w-5" />
-            </span>
-            <h1 className="mt-5 font-display text-2xl font-bold">
-              Login or sign up
-            </h1>
+            <div className="text-center">
+              <Wordmark className="text-2xl" />
+              <h1 className="mt-6 font-display text-2xl font-bold sm:text-3xl">
+                Welcome back
+              </h1>
+              <p className="mt-1.5 text-sm text-gray-500">
+                Login or create an account with your mobile number
+              </p>
+            </div>
 
             <label
               htmlFor="phone"
-              className="mt-6 block text-xs font-extrabold text-gray-600 dark:text-gray-300"
+              className="mt-8 block text-sm font-semibold text-gray-600 dark:text-gray-300"
             >
               Mobile number
             </label>
-            <div className="mt-1.5 flex overflow-hidden rounded-xl border border-black/10 bg-white transition focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/10 dark:border-white/15 dark:bg-white/[0.06]">
-              <span className="flex items-center border-r border-black/10 bg-mist px-3.5 text-sm font-extrabold text-gray-600 dark:border-white/10 dark:bg-white/[0.05] dark:text-gray-300">
+            <div className="mt-2 flex h-12 items-center rounded-full border border-sand bg-white px-1.5 transition focus-within:border-accent focus-within:ring-4 focus-within:ring-accent/10 dark:border-white/15 dark:bg-white/[0.06]">
+              <span className="grid h-9 place-items-center rounded-full bg-mist px-3 text-sm font-bold text-gray-600 dark:bg-white/10 dark:text-gray-300">
                 +91
               </span>
               <input
@@ -183,57 +175,58 @@ export function PhoneAuthForm() {
                   setError("");
                 }}
                 placeholder="98765 43210"
-                className="min-h-12 min-w-0 flex-1 bg-transparent px-3.5 text-sm font-extrabold tracking-wide outline-none placeholder:font-medium placeholder:tracking-normal placeholder:text-gray-300"
+                className="min-w-0 flex-1 bg-transparent px-3 text-base font-semibold tracking-wide outline-none placeholder:font-normal placeholder:tracking-normal placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0"
               />
               {INDIAN_MOBILE.test(phone) && (
-                <Check className="mr-3 h-4 w-4 self-center text-accent" />
+                <Check className="mr-3 h-4 w-4 text-leaf" />
               )}
             </div>
 
-            {error && (
-              <p
-                role="alert"
-                className="mt-3 rounded-xl bg-deal/10 px-3 py-2.5 text-xs font-bold text-deal"
-              >
-                {error}
-              </p>
-            )}
+            {error && <ErrorText message={error} />}
             <Button
               type="submit"
               loading={busy}
               disabled={phone.length !== PHONE_LENGTH}
-              className="mt-6 w-full"
+              className="mt-7 h-12 w-full text-base"
             >
-              Continue with OTP
+              Get OTP
             </Button>
+            <p className="mt-5 text-center text-xs text-gray-500">
+              New here? An account is created after OTP verification.
+            </p>
           </form>
         ) : (
           <form onSubmit={handleVerifyOtp}>
-            <Button
-              variant="ghost"
+            <button
+              type="button"
               onClick={() => {
                 setStep("phone");
                 setError("");
               }}
-              className="-ml-3 mb-3"
+              aria-label="Change number"
+              className="icon-button -ml-2 -mt-2 bg-mist dark:bg-white/10"
             >
-              <ArrowLeft className="h-4 w-4" /> Change number
-            </Button>
-            <span className="grid h-12 w-12 place-items-center rounded-2xl bg-accent/10 text-accent">
-              <ShieldCheck className="h-5 w-5" />
-            </span>
-            <h1 className="mt-5 font-display text-2xl font-bold">
-              Verify your number
-            </h1>
-            <p className="mt-2 text-sm leading-6 text-gray-500">
-              Enter the 6-digit OTP sent to{" "}
-              <strong className="text-gray-700 dark:text-gray-200">
-                +91 {phone}
-              </strong>
-              .
-            </p>
+              <ArrowLeft className="h-4 w-4" />
+            </button>
 
-            <div className="mt-6 grid grid-cols-6 gap-2">
+            <div className="text-center">
+              <span className="mx-auto grid h-24 w-24 place-items-center rounded-full bg-accent/15">
+                <span className="grid h-16 w-16 place-items-center rounded-full bg-accent text-white">
+                  <MessageSquareLock className="h-7 w-7" />
+                </span>
+              </span>
+              <h1 className="mt-6 font-display text-2xl font-bold">
+                Verification code
+              </h1>
+              <p className="mt-2 text-sm leading-6 text-gray-500">
+                Enter the 6-digit code sent to{" "}
+                <strong className="text-ink dark:text-gray-200">
+                  +91 {phone}
+                </strong>
+              </p>
+            </div>
+
+            <div className="mx-auto mt-7 grid max-w-xs grid-cols-6 gap-2">
               {otp.map((digit, index) => (
                 <input
                   key={index}
@@ -248,58 +241,65 @@ export function PhoneAuthForm() {
                   inputMode="numeric"
                   autoComplete={index === 0 ? "one-time-code" : "off"}
                   maxLength={1}
-                  className="aspect-square min-w-0 rounded-xl border border-black/10 bg-white text-center font-display text-lg font-black outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/10 dark:border-white/15 dark:bg-white/[0.06]"
+                  className={`aspect-square min-w-0 rounded-full border text-center text-lg font-bold outline-none transition focus:border-accent focus:ring-4 focus:ring-accent/15 focus-visible:ring-offset-0 ${digit ? "border-accent bg-accent text-white" : "border-sand bg-white dark:border-white/15 dark:bg-white/[0.06]"}`}
                 />
               ))}
             </div>
 
-            {error && (
-              <p
-                role="alert"
-                className="mt-3 rounded-xl bg-deal/10 px-3 py-2.5 text-xs font-bold text-deal"
-              >
-                {error}
-              </p>
-            )}
+            {error && <ErrorText message={error} />}
             <Button
               type="submit"
               loading={busy}
               disabled={expiresIn === 0 || otp.some((digit) => !digit)}
-              className="mt-6 w-full"
+              className="mt-7 h-12 w-full text-base"
             >
-              Verify & continue
+              Verify &amp; continue
             </Button>
 
-            <div className="mt-5 flex items-center justify-between text-xs font-semibold text-gray-500">
+            <div className="mt-5 text-center text-sm text-gray-500">
               {expiresIn > 0 ? (
-                <span>
-                  OTP valid for{" "}
+                <p>
+                  Code valid for{" "}
                   <strong className="tabular-nums text-ink dark:text-white">
                     ({formatSeconds(expiresIn)})
                   </strong>
-                </span>
+                </p>
               ) : (
-                <span className="text-deal">OTP expired</span>
+                <p className="font-semibold text-deal">Code expired</p>
               )}
-              {resendIn > 0 ? (
-                <span className="tabular-nums">
-                  Resend in {formatSeconds(resendIn)}
-                </span>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleSendOtp}
-                  disabled={busy}
-                  className="font-extrabold text-accent"
-                >
-                  Resend OTP
-                </button>
-              )}
+              <p className="mt-1.5">
+                Didn&apos;t receive the code?{" "}
+                {resendIn > 0 ? (
+                  <span className="tabular-nums">
+                    Resend in {formatSeconds(resendIn)}
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleSendOtp}
+                    disabled={busy}
+                    className="font-bold text-accent"
+                  >
+                    Resend
+                  </button>
+                )}
+              </p>
             </div>
           </form>
         )}
       </div>
     </section>
+  );
+}
+
+function ErrorText({ message }: { message: string }) {
+  return (
+    <p
+      role="alert"
+      className="mt-4 rounded-2xl bg-deal/10 px-4 py-2.5 text-center text-sm font-semibold text-deal"
+    >
+      {message}
+    </p>
   );
 }
 

@@ -8,15 +8,31 @@ import {
   UsersRound,
 } from "lucide-react";
 
-export const adminNav = [
-  { href: "/admin", label: "Overview", icon: LayoutDashboard },
-  { href: "/admin/products", label: "Products", icon: Boxes },
-  { href: "/admin/orders", label: "Orders", icon: PackageCheck },
-  { href: "/admin/categories", label: "Categories", icon: Shapes },
-  { href: "/admin/brands", label: "Brands", icon: Tags },
-  { href: "/admin/banners", label: "Banners", icon: Image },
-  { href: "/admin/users", label: "Customers", icon: UsersRound },
-] as const;
+// Sidebar sections, like the order of daily admin work.
+export const adminNavGroups = [
+  {
+    title: "Store",
+    items: [
+      { href: "/admin", label: "Overview", icon: LayoutDashboard },
+      { href: "/admin/orders", label: "Orders", icon: PackageCheck },
+      { href: "/admin/products", label: "Products", icon: Boxes },
+    ],
+  },
+  {
+    title: "Catalog",
+    items: [
+      { href: "/admin/categories", label: "Categories", icon: Shapes },
+      { href: "/admin/brands", label: "Brands", icon: Tags },
+      { href: "/admin/banners", label: "Banners", icon: Image },
+    ],
+  },
+  {
+    title: "People",
+    items: [{ href: "/admin/users", label: "Customers", icon: UsersRound }],
+  },
+];
+
+export const adminNav = adminNavGroups.flatMap((group) => group.items);
 
 export function isActiveAdminLink(pathname: string, href: string) {
   return (

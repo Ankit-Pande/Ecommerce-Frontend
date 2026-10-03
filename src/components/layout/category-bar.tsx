@@ -27,15 +27,15 @@ export function CategoryBar({ categories }: { categories: Category[] }) {
       aria-label="Product categories"
       className="relative z-30 hidden border-b border-sand bg-white dark:border-white/10 dark:bg-night md:block"
     >
-      <div className="mx-auto flex max-w-7xl items-center gap-1 overflow-x-auto px-5 py-1.5 scrollbar-thin lg:px-8">
+      <div className="mx-auto flex max-w-7xl items-center gap-0.5 overflow-x-auto px-5 py-1 scrollbar-thin lg:px-8">
         <button
           type="button"
           onClick={() => setOpen((value) => !value)}
           aria-expanded={open}
-          className="flex shrink-0 flex-col items-center gap-1 rounded-2xl px-3 py-1.5 text-xs font-extrabold hover:bg-mist dark:hover:bg-white/10"
+          className="flex shrink-0 flex-col items-center gap-0.5 rounded-xl px-2.5 py-1 text-[11px] font-bold hover:bg-mist dark:hover:bg-white/10"
         >
-          <span className="grid h-12 w-12 place-items-center rounded-full bg-chrome text-white dark:bg-accent">
-            <LayoutGrid className="h-5 w-5" />
+          <span className="grid h-9 w-9 place-items-center rounded-full bg-chrome text-white dark:bg-accent">
+            <LayoutGrid className="h-4 w-4" />
           </span>
           <span className="flex items-center gap-0.5">
             {uiText(language, "allCategories")}
@@ -47,14 +47,14 @@ export function CategoryBar({ categories }: { categories: Category[] }) {
           <Link
             key={category.id}
             href={catalogHref(category)}
-            className="flex shrink-0 flex-col items-center gap-1 rounded-2xl px-3 py-1.5 text-xs font-bold text-gray-600 transition hover:bg-mist hover:text-accent dark:text-gray-300 dark:hover:bg-white/10"
+            className="flex shrink-0 flex-col items-center gap-0.5 rounded-xl px-2.5 py-1 text-[11px] font-semibold text-gray-600 transition hover:bg-mist hover:text-accent dark:text-gray-300 dark:hover:bg-white/10"
           >
-            <span className="relative h-12 w-12 overflow-hidden rounded-full bg-mist dark:bg-white/10">
+            <span className="relative h-9 w-9 overflow-hidden rounded-full bg-mist ring-1 ring-black/5 dark:bg-white/10">
               <SafeImage
                 src={category.image}
                 alt=""
-                sizes="40px"
-                className="object-contain p-1"
+                sizes="36px"
+                className="rounded-full object-cover"
               />
             </span>
             {category.name}

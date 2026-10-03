@@ -1,33 +1,54 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import Script from "next/script";
-import { Check, MapPin, Plus, WalletCards } from "lucide-react";
+import { Check, MapPin, Minus, Package, Plus, WalletCards } from "lucide-react";
 import { listAddresses } from "@/api/account";
 import { getCart } from "@/api/cart";
+import { getProduct } from "@/api/catalog";
 import { errorMessage } from "@/api/http";
 import { checkout } from "@/api/order";
 import { Button } from "@/components/ui/button";
-import { formatAddress, inr } from "@/lib/format";
+import { OfflineNotice } from "@/components/ui/offline-notice";
+import { SafeImage } from "@/components/ui/safe-image";
+import { ListSkeleton } from "@/components/ui/skeletons";
+import { AddressForm, MAX_ADDRESSES } from "@/features/account/address-form";
 import { useAuthGuard } from "@/hooks/use-auth-guard";
+import { formatAddress, inr } from "@/lib/format";
+import { openRazorpay, RAZORPAY_SCRIPT } from "@/lib/razorpay";
 import { useCartStore } from "@/store/cart-store";
 import { toast } from "@/store/toast-store";
-import { AddressForm, MAX_ADDRESSES } from "@/features/account/address-form";
+import type { Address, PaymentMethod } from "@/lib/types";
 import { CheckoutSteps } from "./checkout-steps";
+import { OrderSummary } from "./order-summary";
 import { PaymentMethods, type PaymentChoice } from "./payment-methods";
-import { ListSkeleton } from "@/components/ui/skeletons";
-import { OfflineNotice } from "@/components/ui/offline-notice";
-import { openRazorpay, RAZORPAY_SCRIPT } from "@/lib/razorpay";
-import type { Address, Cart, PaymentMethod } from "@/lib/types";
 
+// Same cap as the cart and the backend.
+const MAX_QUANTITY = 10;
+
+type Line = {
+  productId: string;
+  slug: string;
+  name: string;
+  image: string | null;
+  quantity: number;
+  mrpPaise: number;
+  finalPaise: number;
+  available: boolean;
+};
+
+// Two ways in: from the cart, or "Buy now" (?buy=<slug>) with one product
+// that never goes into the cart.
 export function CheckoutPage() {
   const { ready } = useAuthGuard();
   const router = useRouter();
+  const buySlug = useSearchParams().get("buy");
   const setCount = useCartStore((state) => state.setCount);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [selectedId, setSelectedId] = useState("");
-  const [cart, setCart] = useState<Cart | null>(null);
+  const [lines, setLines] = useState<Line[]>([]);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
@@ -43,23 +64,27 @@ export function CheckoutPage() {
     setLoading(true);
     setFailed(false);
 
-    Promise.all([listAddresses(), getCart()])
-      .then(([savedAddresses, freshCart]) => {
+    Promise.all([listAddresses(), buySlug ? buyNowLines(buySlug) : cartLines()])
+      .then(([savedAddresses, freshLines]) => {
         setAddresses(savedAddresses);
-        const preferredAddress =
+        const preferred =
           savedAddresses.find((address) => address.isDefault) ??
           savedAddresses[0];
-        setSelectedId(preferredAddress?.id ?? "");
-        setCart(freshCart);
+        setSelectedId(preferred?.id ?? "");
+        setLines(freshLines);
       })
       .catch(() => setFailed(true))
       .finally(() => setLoading(false));
-  }, [ready, reloadKey]);
+  }, [ready, reloadKey, buySlug]);
 
   function handleAddressSaved(address: Address) {
     setAddresses((current) => [...current, address]);
     setSelectedId(address.id);
     setShowAddressForm(false);
+  }
+
+  function changeBuyQuantity(quantity: number) {
+    setLines((current) => current.map((line) => ({ ...line, quantity })));
   }
 
   // My Orders shows a banner for each result: cod, paid or pending.
@@ -68,7 +93,7 @@ export function CheckoutPage() {
   }
 
   async function placeOrder() {
-    if (!selectedId || !cart?.items.length) return;
+    if (!selectedId || lines.length === 0) return;
     setPaying(true);
     const paymentMethod: PaymentMethod =
       paymentChoice === "COD" ? "COD" : "ONLINE";
@@ -78,10 +103,16 @@ export function CheckoutPage() {
         idempotencyKey,
         addressId: selectedId,
         paymentMethod,
+        ...(buySlug && {
+          buyNow: {
+            productId: lines[0].productId,
+            quantity: lines[0].quantity,
+          },
+        }),
       });
 
-      // The order now holds the cart items, so the cart badge is empty either way.
-      setCount(0);
+      // A cart order empties the cart; buy now leaves it as it was.
+      if (!buySlug) setCount(0);
       if (payment.paymentMethod === "COD") {
         openOrders("cod");
         return;
@@ -116,12 +147,21 @@ export function CheckoutPage() {
     );
   }
 
-  const cartIsEmpty = !cart?.items.length;
+  if (lines.length === 0) {
+    return (
+      <CheckoutShell>
+        <div className="card py-14 text-center">
+          <p className="font-bold">Nothing to check out.</p>
+          <Link href="/products" className="btn-primary mt-5">
+            Browse products
+          </Link>
+        </div>
+      </CheckoutShell>
+    );
+  }
+
   // The backend rejects the whole order if any item cannot be bought.
-  const hasBlockedItems = !!cart?.items.some(
-    ({ product, quantity }) =>
-      !product.isAvailable || quantity > product.maxQuantity,
-  );
+  const hasBlockedItems = lines.some((line) => !line.available);
   const selectedAddress = addresses.find(
     (address) => address.id === selectedId,
   );
@@ -135,25 +175,22 @@ export function CheckoutPage() {
       />
       <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-7">
         <div className="space-y-5">
-          <section>
-            <div className="mb-3 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <span className="grid h-9 w-9 place-items-center rounded-xl bg-accent/10 text-accent">
-                  <MapPin className="h-4 w-4" />
-                </span>
-                <p className="text-sm font-extrabold">Delivery address</p>
-              </div>
-              {addresses.length < MAX_ADDRESSES && !showAddressForm && (
+          <Section
+            icon={MapPin}
+            title="Delivery address"
+            action={
+              addresses.length < MAX_ADDRESSES &&
+              !showAddressForm && (
                 <Button
                   variant="ghost"
                   onClick={() => setShowAddressForm(true)}
                   className="text-accent"
                 >
-                  <Plus className="h-4 w-4" /> Add address
+                  <Plus className="h-4 w-4" /> Add
                 </Button>
-              )}
-            </div>
-
+              )
+            }
+          >
             {showAddressForm ? (
               <AddressForm
                 onSaved={handleAddressSaved}
@@ -163,10 +200,10 @@ export function CheckoutPage() {
               <button
                 type="button"
                 onClick={() => setShowAddressForm(true)}
-                className="card w-full border-dashed p-8 text-center hover:border-accent/30"
+                className="w-full rounded-2xl border-2 border-dashed border-sand p-8 text-center hover:border-accent/40 dark:border-white/15"
               >
                 <Plus className="mx-auto h-6 w-6 text-accent" />
-                <span className="mt-2 block text-sm font-extrabold">
+                <span className="mt-2 block text-sm font-bold">
                   Add a delivery address
                 </span>
               </button>
@@ -177,7 +214,7 @@ export function CheckoutPage() {
                   return (
                     <label
                       key={address.id}
-                      className={`relative cursor-pointer rounded-2xl border-2 bg-white p-4 transition dark:bg-white/[0.04] ${selected ? "border-accent shadow-card" : "border-sand hover:border-accent/20 dark:border-white/10"}`}
+                      className={`relative cursor-pointer rounded-2xl border-2 p-4 transition ${selected ? "border-accent bg-accent/[0.04]" : "border-sand hover:border-accent/30 dark:border-white/10"}`}
                     >
                       <input
                         type="radio"
@@ -191,11 +228,11 @@ export function CheckoutPage() {
                       >
                         {selected && <Check className="h-3 w-3" />}
                       </span>
-                      <p className="pr-8 text-sm font-extrabold">
+                      <p className="pr-8 text-sm font-bold">
                         {address.fullName}
                       </p>
-                      <p className="mt-1 text-xs font-semibold text-gray-500">
-                        {address.phone}
+                      <p className="mt-1 text-xs text-gray-500">
+                        +91 {address.phone}
                       </p>
                       <p className="mt-2 text-xs leading-5 text-gray-500">
                         {formatAddress(address)}
@@ -210,82 +247,188 @@ export function CheckoutPage() {
                 })}
               </div>
             )}
-          </section>
+          </Section>
 
-          <section>
-            <div className="mb-3 flex items-center gap-2.5">
-              <span className="grid h-9 w-9 place-items-center rounded-xl bg-accent/10 text-accent">
-                <WalletCards className="h-4 w-4" />
-              </span>
-              <p className="text-sm font-extrabold">Payment method</p>
-            </div>
+          <Section icon={WalletCards} title="Payment method">
             <PaymentMethods value={paymentChoice} onChange={setPaymentChoice} />
-          </section>
+          </Section>
+
+          <Section icon={Package} title={buySlug ? "Buying now" : "Items"}>
+            <ul className="divide-y divide-sand dark:divide-white/10">
+              {lines.map((line) => (
+                <li
+                  key={line.productId}
+                  className="flex items-center gap-3 py-3 first:pt-0 last:pb-0"
+                >
+                  <span className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-mist dark:bg-white/[0.06]">
+                    <SafeImage
+                      src={line.image}
+                      alt=""
+                      sizes="64px"
+                      className="object-contain p-1.5"
+                    />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <Link
+                      href={`/products/${line.slug}`}
+                      className="line-clamp-2 text-sm font-bold hover:text-accent"
+                    >
+                      {line.name}
+                    </Link>
+                    {!line.available && (
+                      <p className="mt-0.5 text-xs font-bold text-deal">
+                        Out of stock
+                      </p>
+                    )}
+                  </div>
+                  {buySlug ? (
+                    <QuantityStepper
+                      value={line.quantity}
+                      onChange={changeBuyQuantity}
+                    />
+                  ) : (
+                    <span className="text-xs text-gray-500">
+                      × {line.quantity}
+                    </span>
+                  )}
+                  <span className="w-20 shrink-0 text-right text-sm font-bold">
+                    {inr(line.finalPaise * line.quantity)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </Section>
         </div>
 
-        <aside className="card p-5 lg:sticky lg:top-32 sm:p-6">
-          <h2 className="font-display text-xl font-bold">Order summary</h2>
-          <div className="mt-4 max-h-48 space-y-3 overflow-y-auto pr-1 scrollbar-thin">
-            {cart?.items.map(({ product, quantity }) => (
-              <div
-                key={product.id}
-                className="flex justify-between gap-3 text-xs"
-              >
-                <span className="line-clamp-2 font-semibold text-gray-600 dark:text-gray-300">
-                  {product.name}{" "}
-                  <span className="text-gray-400">× {quantity}</span>
-                </span>
-                <span className="shrink-0 font-extrabold">
-                  {inr(product.finalPricePaise * quantity)}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          <div className="my-5 border-t border-dashed border-black/15 dark:border-white/15" />
-          <div className="flex items-end justify-between">
-            <span className="font-extrabold">Total payable</span>
-            <span className="font-display text-2xl font-black">
-              {cart ? inr(cart.totalPaise) : "—"}
-            </span>
-          </div>
-
+        <OrderSummary lines={lines.filter((line) => line.available)}>
           {selectedAddress && (
-            <p className="mt-4 rounded-xl bg-mist/70 p-3 text-[11px] leading-5 text-gray-500 dark:bg-white/[0.05]">
+            <p className="mb-4 rounded-xl bg-mist/70 p-3 text-xs leading-5 text-gray-500 dark:bg-white/[0.05]">
               Delivering to{" "}
-              <strong className="text-gray-700 dark:text-gray-200">
+              <strong className="text-ink dark:text-gray-200">
                 {selectedAddress.fullName}
               </strong>
               , {selectedAddress.city} {selectedAddress.pincode}
             </p>
           )}
-
           <Button
             onClick={placeOrder}
             loading={paying}
-            disabled={!selectedId || cartIsEmpty || hasBlockedItems}
-            className="mt-5 w-full"
+            disabled={!selectedId || hasBlockedItems}
+            className="w-full bg-chrome"
           >
-            {paymentChoice === "COD"
-              ? "Place COD order"
-              : `Pay ${cart ? inr(cart.totalPaise) : ""}`}
+            {paymentChoice === "COD" ? "Place order (COD)" : "Pay securely"}
           </Button>
           {hasBlockedItems && (
             <p className="mt-3 text-center text-xs font-bold text-deal">
-              Some cart items are unavailable. Update your cart to continue.
+              {buySlug
+                ? "This product is out of stock."
+                : "Some cart items are unavailable. Update your cart to continue."}
             </p>
           )}
-        </aside>
+        </OrderSummary>
       </div>
     </CheckoutShell>
+  );
+}
+
+async function cartLines(): Promise<Line[]> {
+  const cart = await getCart();
+  return cart.items.map(({ product, quantity }) => ({
+    productId: product.id,
+    slug: product.slug,
+    name: product.name,
+    image: product.image,
+    quantity,
+    mrpPaise: product.pricePaise,
+    finalPaise: product.finalPricePaise,
+    available: product.isAvailable && quantity <= product.maxQuantity,
+  }));
+}
+
+async function buyNowLines(slug: string): Promise<Line[]> {
+  const product = await getProduct(slug);
+  return [
+    {
+      productId: product.id,
+      slug: product.slug,
+      name: product.name,
+      image: product.image,
+      quantity: 1,
+      mrpPaise: product.pricePaise,
+      finalPaise: product.finalPricePaise,
+      available: product.stockStatus !== "OUT_OF_STOCK",
+    },
+  ];
+}
+
+function QuantityStepper({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (value: number) => void;
+}) {
+  return (
+    <div className="inline-flex items-center rounded-full border border-sand dark:border-white/15">
+      <button
+        type="button"
+        onClick={() => onChange(value - 1)}
+        disabled={value <= 1}
+        aria-label="Decrease quantity"
+        className="grid h-8 w-8 place-items-center rounded-full disabled:opacity-40"
+      >
+        <Minus className="h-3.5 w-3.5" />
+      </button>
+      <span className="w-6 text-center text-sm font-bold" aria-live="polite">
+        {value}
+      </span>
+      <button
+        type="button"
+        onClick={() => onChange(value + 1)}
+        disabled={value >= MAX_QUANTITY}
+        aria-label="Increase quantity"
+        className="grid h-8 w-8 place-items-center rounded-full disabled:opacity-40"
+      >
+        <Plus className="h-3.5 w-3.5" />
+      </button>
+    </div>
+  );
+}
+
+function Section({
+  icon: Icon,
+  title,
+  action,
+  children,
+}: {
+  icon: typeof MapPin;
+  title: string;
+  action?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="card p-4 sm:p-6">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h2 className="flex items-center gap-2.5 text-base font-bold">
+          <span className="grid h-9 w-9 place-items-center rounded-full bg-accent/10 text-accent">
+            <Icon className="h-4 w-4" />
+          </span>
+          {title}
+        </h2>
+        {action}
+      </div>
+      {children}
+    </section>
   );
 }
 
 function CheckoutShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="pb-12 pt-6 sm:pt-8">
+      <h1 className="mb-6 text-center font-display text-2xl font-bold sm:text-3xl">
+        Checkout
+      </h1>
       <CheckoutSteps current={2} />
-      <h1 className="mb-5 font-display text-3xl font-bold">Checkout</h1>
       {children}
     </div>
   );

@@ -6,6 +6,7 @@ import type {
   AdminOrder,
   AdminProduct,
   AdminProductDetail,
+  AdminStats,
   AdminUser,
   ApiData,
   OrderStatus,
@@ -106,8 +107,19 @@ export function deleteBanner(id: string) {
 }
 
 // ---------- Orders ----------
-export function listOrders(cursor: string | undefined, status: string) {
-  const params = listParams(cursor, status ? { status } : {});
+export async function getStats() {
+  return (await http.get<ApiData<AdminStats>>("/api/admin/stats")).data;
+}
+
+export function listOrders(
+  cursor: string | undefined,
+  status: string,
+  needsReview = false,
+) {
+  const params = listParams(cursor, {
+    ...(status && { status }),
+    ...(needsReview && { needsReview: "true" }),
+  });
   return http.get<Paginated<AdminOrder>>(`/api/admin/orders?${params}`);
 }
 

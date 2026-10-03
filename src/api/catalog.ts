@@ -25,8 +25,11 @@ export function getProductOnServer(slug: string) {
   );
 }
 
-export async function getHome() {
-  return (await publicGet<ApiData<HomeData>>("/api/home")).data;
+export async function getProduct(slug: string) {
+  const res = await publicGet<ApiData<ProductDetail>>(
+    `/api/products/${encodeURIComponent(slug)}`,
+  );
+  return res.data;
 }
 
 export function getCatalog(params: URLSearchParams) {

@@ -13,6 +13,7 @@ import { toast } from "@/store/toast-store";
 import { OfflineNotice } from "@/components/ui/offline-notice";
 import { ListSkeleton } from "@/components/ui/skeletons";
 import { CheckoutSteps } from "@/features/checkout/checkout-steps";
+import { OrderSummary } from "@/features/checkout/order-summary";
 import { SafeImage } from "@/components/ui/safe-image";
 import type { Cart } from "@/lib/types";
 
@@ -99,15 +100,10 @@ export function CartPage() {
   );
   const hasBlockedItems = orderable.length < cart.items.length;
   const itemCount = orderable.reduce((total, item) => total + item.quantity, 0);
-  const mrpTotal = orderable.reduce(
-    (total, item) => total + item.product.pricePaise * item.quantity,
-    0,
-  );
-  const savings = Math.max(0, mrpTotal - cart.totalPaise);
 
   return (
     <CartShell itemCount={itemCount}>
-      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-7">
+      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-7">
         <div className="space-y-3">
           {cart.items.map(({ product, quantity }) => {
             const busy = busyProductId === product.id;
@@ -203,47 +199,23 @@ export function CartPage() {
           })}
         </div>
 
-        <aside
-          className="card p-5 lg:sticky lg:top-32 sm:p-6"
-          aria-label="Price summary"
+        <OrderSummary
+          lines={orderable.map(({ product, quantity }) => ({
+            mrpPaise: product.pricePaise,
+            finalPaise: product.finalPricePaise,
+            quantity,
+          }))}
         >
-          <h2 className="font-display text-xl font-bold">Order summary</h2>
-          <div className="mt-5 space-y-3 text-sm">
-            <SummaryRow
-              label={`MRP (${itemCount} items)`}
-              value={inr(mrpTotal)}
-            />
-            {savings > 0 && (
-              <SummaryRow
-                label="Product discount"
-                value={`−${inr(savings)}`}
-                accent
-              />
-            )}
-            <SummaryRow label="Delivery" value="Free" accent />
-          </div>
-          <div className="my-5 border-t border-dashed border-black/15 dark:border-white/15" />
-          <div className="flex items-end justify-between">
-            <span className="font-extrabold">Total</span>
-            <span className="font-display text-2xl font-black">
-              {inr(cart.totalPaise)}
-            </span>
-          </div>
-          {savings > 0 && (
-            <p className="mt-3 rounded-xl bg-accent/[0.07] px-3 py-2 text-center text-xs font-extrabold text-accent">
-              You save {inr(savings)} on this order
-            </p>
-          )}
           {hasBlockedItems ? (
-            <p className="mt-5 rounded-xl bg-deal/10 px-3 py-2.5 text-center text-xs font-extrabold text-deal">
+            <p className="rounded-xl bg-deal/10 px-3 py-2.5 text-center text-xs font-bold text-deal">
               Remove or reduce the marked items to continue.
             </p>
           ) : (
-            <Link href="/checkout" className="btn-primary mt-5 w-full">
-              Continue to checkout <ArrowRight className="h-4 w-4" />
+            <Link href="/checkout" className="btn-primary w-full bg-chrome">
+              Go to checkout <ArrowRight className="h-4 w-4" />
             </Link>
           )}
-        </aside>
+        </OrderSummary>
       </div>
     </CartShell>
   );
@@ -258,35 +230,16 @@ function CartShell({
 }) {
   return (
     <div className="pb-12 pt-6 sm:pt-8">
-      <CheckoutSteps current={1} />
-      <div className="mb-5 flex items-end justify-between gap-4">
-        <h1 className="font-display text-3xl font-bold">Shopping cart</h1>
+      <h1 className="mb-6 text-center font-display text-2xl font-bold sm:text-3xl">
+        Your shopping cart
         {itemCount !== undefined && (
-          <p className="text-sm font-bold text-gray-500">
-            {itemCount} {itemCount === 1 ? "item" : "items"}
-          </p>
+          <span className="ml-2 align-middle text-sm font-medium text-gray-500">
+            ({itemCount} {itemCount === 1 ? "item" : "items"})
+          </span>
         )}
-      </div>
+      </h1>
+      <CheckoutSteps current={1} />
       {children}
-    </div>
-  );
-}
-
-function SummaryRow({
-  label,
-  value,
-  accent = false,
-}: {
-  label: string;
-  value: string;
-  accent?: boolean;
-}) {
-  return (
-    <div className="flex justify-between gap-4">
-      <span className="text-gray-500">{label}</span>
-      <span className={`font-extrabold ${accent ? "text-accent" : ""}`}>
-        {value}
-      </span>
     </div>
   );
 }

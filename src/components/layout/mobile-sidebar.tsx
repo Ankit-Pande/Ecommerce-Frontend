@@ -148,12 +148,12 @@ export function MobileSidebar({
                     onClick={onClose}
                     className="flex min-h-11 items-center gap-3 rounded-xl px-2 text-sm font-extrabold hover:bg-mist dark:hover:bg-white/10"
                   >
-                    <span className="relative grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-xl bg-mist text-gray-400 dark:bg-white/10">
+                    <span className="relative grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-mist text-gray-400 dark:bg-white/10">
                       <SafeImage
                         src={category.image}
                         alt=""
                         sizes="36px"
-                        className="object-contain p-1"
+                        className="rounded-full object-cover"
                       />
                     </span>
                     <span className="min-w-0 flex-1 truncate">

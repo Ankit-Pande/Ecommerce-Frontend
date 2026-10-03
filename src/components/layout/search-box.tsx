@@ -92,7 +92,7 @@ export function SearchBox({
         aria-label={label}
         placeholder={placeholder}
         autoComplete="off"
-        className="min-w-0 flex-1 appearance-none border-0 bg-transparent pl-4 pr-2 text-sm font-medium outline-none placeholder:text-gray-400 focus-visible:ring-0 [&::-webkit-search-cancel-button]:hidden"
+        className="min-w-0 flex-1 appearance-none border-0 bg-transparent pl-4 pr-2 text-sm font-medium outline-none placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0 [&::-webkit-search-cancel-button]:hidden"
       />
       {loading && (
         <span className="mr-1 text-gray-400">
