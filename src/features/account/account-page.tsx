@@ -11,6 +11,7 @@ import {
   UserRound,
 } from "lucide-react";
 import {
+  deleteAccount,
   deleteAddress,
   getProfile,
   listAddresses,
@@ -147,6 +148,17 @@ export function AccountPage() {
   // Logs out from this device.
   function handleLogout() {
     void logoutSession();
+  }
+
+  // Deletes the account after a confirm, then logs out.
+  async function handleDeleteAccount() {
+    if (!window.confirm("Delete your account? This cannot be undone.")) return;
+    try {
+      await deleteAccount();
+      void logoutSession();
+    } catch (error) {
+      toast.error(errorMessage(error, "Could not delete your account"));
+    }
   }
 
   if (!ready || loading) {
@@ -324,6 +336,15 @@ export function AccountPage() {
             )}
           </div>
         </section>
+      </div>
+      <div className="mt-10 text-center">
+        <button
+          type="button"
+          onClick={handleDeleteAccount}
+          className="text-xs font-bold text-gray-500 hover:text-deal"
+        >
+          Delete my account
+        </button>
       </div>
     </AccountShell>
   );

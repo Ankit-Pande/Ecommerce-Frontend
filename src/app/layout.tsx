@@ -46,8 +46,6 @@ export const metadata: Metadata = {
   },
 };
 
-const MAX_MENU_CATEGORIES = 8;
-
 export const revalidate = 60;
 
 // Root layout; loads categories for the menu.
@@ -55,7 +53,7 @@ export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const home = await getHomeOnServer();
-  const categories = home?.categories.slice(0, MAX_MENU_CATEGORIES) ?? [];
+  const categories = home?.categories ?? [];
 
   return (
     <html lang="en" suppressHydrationWarning>

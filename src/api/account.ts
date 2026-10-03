@@ -15,6 +15,11 @@ export function updateProfile(data: { name?: string; email?: string }) {
   return http.patch("/api/user/me", data);
 }
 
+// Deletes the account; past orders stay for the store's records.
+export function deleteAccount() {
+  return http.delete("/api/user/me");
+}
+
 // Saved addresses.
 export async function listAddresses() {
   return (await http.get<ApiData<Address[]>>("/api/address")).data;
