@@ -78,7 +78,10 @@ export function AddToCart({
           ))}
         {adding ? "Adding..." : added ? "Added" : "Add to cart"}
       </Button>
-      <Link href={buyNowHref} className="btn-primary px-3 sm:px-5">
+      <Link
+        href={buyNowHref}
+        className="btn-primary bg-deal px-3 shadow-none hover:bg-orange-600 sm:px-5"
+      >
         <Zap className="h-4 w-4" /> Buy now
       </Link>
     </div>

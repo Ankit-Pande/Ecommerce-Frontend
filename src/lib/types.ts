@@ -98,6 +98,7 @@ export type Address = {
 
 type OrderItem = {
   productName: string;
+  productImage: string | null;
   pricePaise: number;
   quantity: number;
 };

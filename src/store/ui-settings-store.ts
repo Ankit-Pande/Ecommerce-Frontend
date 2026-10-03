@@ -4,7 +4,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 export type AppLanguage = "en" | "hi";
-export type AppColor = "slate" | "teal" | "purple" | "orange";
+export type AppColor = "blue" | "green" | "purple" | "orange";
 
 type UiSettings = {
   language: AppLanguage;
@@ -17,10 +17,10 @@ export const useUiSettings = create<UiSettings>()(
   persist(
     (set) => ({
       language: "en",
-      color: "slate",
+      color: "blue",
       setLanguage: (language) => set({ language }),
       setColor: (color) => set({ color }),
     }),
-    { name: "apnakart-ui", skipHydration: true },
+    { name: "apnakart-ui-v2", skipHydration: true },
   ),
 );

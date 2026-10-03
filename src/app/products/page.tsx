@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
+import { getHomeOnServer } from "@/api/catalog";
 import { ProductListing } from "@/features/catalog/product-listing";
 import { GridSkeleton } from "@/components/ui/skeletons";
 
@@ -9,8 +10,9 @@ export const metadata: Metadata = {
     "Browse all products with filters — brand, colour, price and more.",
 };
 
-// Product list with search and filters.
-export default function ProductsPage() {
+// Product list with search and filters; categories give the page its title.
+export default async function ProductsPage() {
+  const home = await getHomeOnServer();
   return (
     <Suspense
       fallback={
@@ -19,7 +21,7 @@ export default function ProductsPage() {
         </div>
       }
     >
-      <ProductListing />
+      <ProductListing categories={home?.categories ?? []} />
     </Suspense>
   );
 }

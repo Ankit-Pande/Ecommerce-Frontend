@@ -1,12 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import Script from "next/script";
-import { useSearchParams } from "next/navigation";
 import {
   Banknote,
-  AlertTriangle,
   Check,
   Clock3,
   CreditCard,
@@ -26,6 +24,7 @@ import { toast } from "@/store/toast-store";
 import { LoadMoreButton } from "@/components/ui/load-more-button";
 import { OfflineNotice } from "@/components/ui/offline-notice";
 import { ListSkeleton } from "@/components/ui/skeletons";
+import { SafeImage } from "@/components/ui/safe-image";
 import type { Order, OrderStatus } from "@/lib/types";
 
 // Only an unshipped, unpaid order can be cancelled.
@@ -84,28 +83,17 @@ const STATUS: Record<
 
 const CONFIRM_WAIT_MS = 5000;
 
-type PlacedResult = "cod" | "paid" | "pending";
+const TRACK_STEPS: OrderStatus[] = ["CONFIRMED", "SHIPPED", "DELIVERED"];
 
-const PLACED_BANNER: Record<PlacedResult, { text: string; warning: boolean }> =
-  {
-    cod: {
-      text: "Order confirmed. Pay in cash when it arrives.",
-      warning: false,
-    },
-    paid: {
-      text: "Payment received. Your order will be confirmed in a moment.",
-      warning: false,
-    },
-    pending: {
-      text: "Payment not completed. Your order is saved; pay within 30 minutes or it will be cancelled.",
-      warning: true,
-    },
-  };
+const PAYMENT_LABEL = {
+  PENDING: "Not paid yet",
+  COMPLETED: "Paid",
+  REFUNDED: "Refunded",
+} as const;
 
 // My orders with cancel and pay again.
 export function OrdersPage() {
   const { ready } = useAuthGuard();
-  const params = useSearchParams();
   const [cancellingId, setCancellingId] = useState("");
   const [payingId, setPayingId] = useState("");
 
@@ -119,13 +107,6 @@ export function OrdersPage() {
     loadMore,
     reload,
   } = usePaginatedList<Order>(listOrders, ready);
-  const placed = params.get("placed") as PlacedResult | null;
-
-  useEffect(() => {
-    if (placed !== "paid") return;
-    const timer = setTimeout(reload, CONFIRM_WAIT_MS);
-    return () => clearTimeout(timer);
-  }, [placed, reload]);
 
   // Cancels an order.
   async function handleCancel(id: string) {
@@ -186,7 +167,7 @@ export function OrdersPage() {
   }
 
   return (
-    <OrdersShell banner={placed ? PLACED_BANNER[placed] : undefined}>
+    <OrdersShell>
       <Script
         src={RAZORPAY_SCRIPT}
         strategy="lazyOnload"
@@ -225,35 +206,18 @@ export function OrdersPage() {
   );
 }
 
-// Page title and result banner around the orders list.
-function OrdersShell({
-  children,
-  banner,
-}: {
-  children: React.ReactNode;
-  banner?: { text: string; warning: boolean };
-}) {
+// Page title around the orders list.
+function OrdersShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="mx-auto max-w-4xl pb-12 pt-6 sm:pt-8">
-      {banner && (
-        <div
-          role="status"
-          className={`mb-5 flex items-center gap-3 rounded-2xl border p-4 ${banner.warning ? "border-amber-300/40 bg-amber-50 text-amber-800 dark:bg-amber-400/10 dark:text-amber-300" : "border-accent/15 bg-accent/[0.07] text-accent"}`}
-        >
-          <span
-            className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-white ${banner.warning ? "bg-amber-500" : "bg-accent"}`}
-          >
-            {banner.warning ? (
-              <AlertTriangle className="h-4 w-4" />
-            ) : (
-              <Check className="h-4 w-4" />
-            )}
-          </span>
-          <p className="text-sm font-extrabold">{banner.text}</p>
-        </div>
-      )}
-
-      <h1 className="mb-5 font-display text-3xl font-bold">My orders</h1>
+      <div className="mb-6 rounded-2xl bg-gradient-to-r from-accent/10 via-violet-100/60 to-orange-100/70 p-5 dark:from-white/5 dark:via-white/5 dark:to-white/5 sm:p-6">
+        <p className="text-xs font-bold uppercase tracking-[0.16em] text-deal">
+          Account
+        </p>
+        <h1 className="mt-1 font-display text-2xl font-extrabold sm:text-3xl">
+          My orders
+        </h1>
+      </div>
       {children}
     </div>
   );
@@ -280,20 +244,14 @@ function OrderCard({
 
   return (
     <article className="card overflow-hidden">
-      <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-sand bg-mist/50 px-4 py-3.5 dark:border-white/10 dark:bg-white/[0.03] sm:px-5">
+      <header className="flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-sand px-4 py-3.5 dark:border-white/10 sm:px-5">
         <div>
-          <p className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400">
-            Order ID
-          </p>
-          <p className="mt-0.5 text-xs font-extrabold">#{orderLabel}</p>
+          <p className="text-[11px] font-semibold text-gray-400">Order ID</p>
+          <p className="font-display text-base font-extrabold">#{orderLabel}</p>
         </div>
         <div>
-          <p className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400">
-            Placed on
-          </p>
-          <p className="mt-0.5 text-xs font-extrabold">
-            {formatDate(order.createdAt)}
-          </p>
+          <p className="text-[11px] font-semibold text-gray-400">Placed on</p>
+          <p className="text-sm font-bold">{formatDate(order.createdAt)}</p>
         </div>
         <span className={`status-pill ml-auto gap-1.5 ${status.className}`}>
           <StatusIcon className="h-3.5 w-3.5" /> {status.label}
@@ -301,36 +259,47 @@ function OrderCard({
       </header>
 
       <div className="p-4 sm:p-5">
-        <div className="space-y-2.5">
+        {TRACK_STEPS.includes(order.status) && (
+          <OrderTracker status={order.status} />
+        )}
+
+        <ul className="space-y-3">
           {order.items.map((item, index) => (
-            <div
+            <li
               key={`${item.productName}-${index}`}
-              className="flex justify-between gap-4 text-sm"
+              className="flex items-center gap-3 rounded-xl bg-mist/60 p-2.5 dark:bg-white/[0.04]"
             >
-              <span className="font-semibold text-gray-600 dark:text-gray-300">
-                {item.productName}{" "}
-                <span className="text-gray-400">× {item.quantity}</span>
+              <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-white dark:bg-white/10">
+                <SafeImage
+                  src={item.productImage}
+                  alt=""
+                  sizes="56px"
+                  className="object-contain p-1"
+                />
               </span>
-              <span className="shrink-0 font-extrabold">
+              <span className="min-w-0 flex-1">
+                <span className="line-clamp-1 text-sm font-semibold">
+                  {item.productName}
+                </span>
+                <span className="text-xs text-gray-500">
+                  Qty {item.quantity} · {inr(item.pricePaise)} each
+                </span>
+              </span>
+              <span className="shrink-0 text-sm font-extrabold">
                 {inr(item.pricePaise * item.quantity)}
               </span>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
 
-        <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-dashed border-black/15 pt-4 dark:border-white/15">
-          <span className="flex items-center gap-1.5 text-xs font-bold text-gray-500">
-            <PaymentIcon className="h-4 w-4" />{" "}
-            {order.paymentMethod === "COD"
-              ? "Cash on delivery"
-              : "Online payment"}
+        <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-dashed border-black/15 pt-4 dark:border-white/15">
+          <span className="flex items-center gap-1.5 rounded-full bg-mist px-3 py-1.5 text-xs font-bold text-gray-600 dark:bg-white/10 dark:text-gray-300">
+            <PaymentIcon className="h-4 w-4" />
+            {order.paymentMethod === "COD" ? "Cash on delivery" : "Online"}
+            {" · "}
+            {PAYMENT_LABEL[order.paymentStatus]}
           </span>
-          <span
-            className={`status-pill ${order.paymentStatus === "COMPLETED" ? "bg-accent/10 text-accent" : order.paymentStatus === "REFUNDED" ? "bg-deal/10 text-deal" : "bg-gray-100 text-gray-500 dark:bg-white/10"}`}
-          >
-            {order.paymentStatus}
-          </span>
-          <span className="ml-auto font-display text-xl font-black">
+          <span className="ml-auto font-display text-xl font-extrabold">
             {inr(order.totalPaise)}
           </span>
           {canPay(order) && (
@@ -351,5 +320,40 @@ function OrderCard({
         </div>
       </div>
     </article>
+  );
+}
+
+// Confirmed → shipped → delivered progress line.
+function OrderTracker({ status }: { status: OrderStatus }) {
+  const reached = TRACK_STEPS.indexOf(status);
+  const labels = ["Confirmed", "Shipped", "Delivered"];
+
+  return (
+    <ol className="mb-5 flex items-center" aria-label="Order progress">
+      {labels.map((label, index) => (
+        <li
+          key={label}
+          className={`flex items-center ${index < labels.length - 1 ? "flex-1" : ""}`}
+        >
+          <span className="flex flex-col items-center gap-1">
+            <span
+              className={`grid h-7 w-7 place-items-center rounded-full ${index <= reached ? "bg-leaf text-white" : "bg-gray-200 text-gray-400 dark:bg-white/10"}`}
+            >
+              <Check className="h-3.5 w-3.5" />
+            </span>
+            <span
+              className={`text-[11px] font-bold ${index <= reached ? "text-leaf" : "text-gray-400"}`}
+            >
+              {label}
+            </span>
+          </span>
+          {index < labels.length - 1 && (
+            <span
+              className={`mx-2 mb-5 h-1 flex-1 rounded-full ${index < reached ? "bg-leaf" : "bg-gray-200 dark:bg-white/10"}`}
+            />
+          )}
+        </li>
+      ))}
+    </ol>
   );
 }

@@ -2,45 +2,34 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { getCatalog } from "@/api/catalog";
 import { SectionHeader } from "@/components/ui/section-header";
 import { CardSkeleton } from "@/components/ui/skeletons";
 import { useInViewOnce } from "@/hooks/use-in-view";
 import { catalogHref } from "@/lib/format";
+import { tint } from "@/lib/tints";
 import { ProductCard } from "./product-card";
 import { ProductScroller } from "./product-scroller";
 import type { Category, Product } from "@/lib/types";
 
 const PRODUCTS_PER_SHELF = 10;
+const MAX_SHELVES = 8;
+const MAX_CHIPS = 6;
 
-type Subcategory = Category["children"][number];
-
-// One block per category with a shelf per subcategory.
+// One shelf per category with subcategory chips; each loads only when scrolled near.
 export function LazyCategoryShelves({
   categories,
 }: {
   categories: Category[];
 }) {
   return categories
-    .filter((category) => category.children.length > 0)
-    .map((category) => (
-      <section key={category.id}>
-        <SectionHeader
-          title={`Best of ${category.name}`}
-          href={catalogHref(category)}
-        />
-        <div className="space-y-7">
-          {category.children.map((child) => (
-            <SubcategoryShelf key={child.id} subcategory={child} />
-          ))}
-        </div>
-      </section>
-    ));
+    .slice(0, MAX_SHELVES)
+    .map((category) => <CategoryShelf key={category.id} category={category} />);
 }
 
 // Loads its products only when scrolled near.
-function SubcategoryShelf({ subcategory }: { subcategory: Subcategory }) {
+function CategoryShelf({ category }: { category: Category }) {
   const { ref, inView } = useInViewOnce<HTMLDivElement>();
   const [products, setProducts] = useState<Product[] | null>(null);
   const [failed, setFailed] = useState(false);
@@ -51,8 +40,10 @@ function SubcategoryShelf({ subcategory }: { subcategory: Subcategory }) {
     let active = true;
     setFailed(false);
 
-    const params = new URLSearchParams({ subcategory: subcategory.slug });
-    params.set("limit", String(PRODUCTS_PER_SHELF));
+    const params = new URLSearchParams({
+      category: category.slug,
+      limit: String(PRODUCTS_PER_SHELF),
+    });
     getCatalog(params)
       .then((response) => {
         if (active) setProducts(response.items);
@@ -64,21 +55,29 @@ function SubcategoryShelf({ subcategory }: { subcategory: Subcategory }) {
     return () => {
       active = false;
     };
-  }, [subcategory, reloadKey, inView]);
+  }, [category.slug, reloadKey, inView]);
 
   if (products?.length === 0) return null;
 
   return (
-    <div ref={ref}>
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <h3 className="text-base font-extrabold">{subcategory.name}</h3>
-        <Link
-          href={catalogHref(subcategory, "subcategory")}
-          className="flex items-center gap-1 text-xs font-extrabold text-accent"
-        >
-          See all <ArrowRight className="h-3.5 w-3.5" />
-        </Link>
-      </div>
+    <section ref={ref}>
+      <SectionHeader
+        title={`Best of ${category.name}`}
+        href={catalogHref(category)}
+      />
+      {category.children.length > 0 && (
+        <div className="-mt-1 mb-4 flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
+          {category.children.slice(0, MAX_CHIPS).map((child, index) => (
+            <Link
+              key={child.id}
+              href={catalogHref(child, "subcategory")}
+              className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-bold transition hover:opacity-80 ${tint(index)}`}
+            >
+              {child.name}
+            </Link>
+          ))}
+        </div>
+      )}
 
       {failed && (
         <button
@@ -93,7 +92,7 @@ function SubcategoryShelf({ subcategory }: { subcategory: Subcategory }) {
         </button>
       )}
 
-      <ProductScroller label={subcategory.name}>
+      <ProductScroller label={category.name}>
         {products
           ? products.map((product) => (
               <ProductCard key={product.id} product={product} />
@@ -102,6 +101,6 @@ function SubcategoryShelf({ subcategory }: { subcategory: Subcategory }) {
               <CardSkeleton key={index} />
             ))}
       </ProductScroller>
-    </div>
+    </section>
   );
 }

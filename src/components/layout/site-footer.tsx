@@ -7,6 +7,16 @@ import type { Category } from "@/lib/types";
 const SUPPORT_EMAIL = "support@apnakart.in";
 const SUPPORT_PHONE = "6392061026";
 
+const PAYMENTS = [
+  { label: "UPI", className: "bg-white text-emerald-700" },
+  { label: "G Pay", className: "bg-white text-blue-600" },
+  { label: "PhonePe", className: "bg-violet-600 text-white" },
+  { label: "Paytm", className: "bg-sky-500 text-white" },
+  { label: "VISA", className: "bg-white text-blue-800" },
+  { label: "RuPay", className: "bg-white text-orange-600" },
+  { label: "COD", className: "bg-emerald-500 text-white" },
+];
+
 const SHOP_LINKS = [
   { href: "/products", label: "All products" },
   { href: "/products?section=trending", label: "Trending" },
@@ -29,7 +39,7 @@ export function SiteFooter({ categories }: { categories: Category[] }) {
   }));
 
   return (
-    <footer className="mt-12 bg-chrome pb-20 text-white md:pb-0">
+    <footer className="mt-14 bg-gradient-to-b from-chrome to-[#0A1330] pb-20 text-white md:pb-0">
       <div className="mx-auto grid max-w-7xl grid-cols-2 gap-9 px-4 py-10 sm:px-6 md:grid-cols-4 lg:px-8">
         <div className="col-span-2 md:col-span-1">
           <Link href="/">
@@ -38,7 +48,7 @@ export function SiteFooter({ categories }: { categories: Category[] }) {
           <p className="mt-3 max-w-xs text-xs leading-5 text-white/55">
             Trusted products, fair prices and reliable delivery across India.
           </p>
-          <div className="mt-4 flex flex-col gap-2.5 text-xs font-extrabold text-sky-300">
+          <div className="mt-4 flex flex-col gap-2.5 text-xs font-extrabold text-orange-300">
             <a
               href={`tel:+91${SUPPORT_PHONE}`}
               className="inline-flex items-center gap-2"
@@ -59,8 +69,25 @@ export function SiteFooter({ categories }: { categories: Category[] }) {
         <FooterLinks title="Account" links={ACCOUNT_LINKS} />
       </div>
 
-      <div className="border-t border-white/10 px-4 py-4 text-center text-[11px] font-medium text-white/35">
-        © {new Date().getFullYear()} ApnaKart. All rights reserved.
+      <div className="border-t border-white/10">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 py-4 sm:flex-row sm:px-6 lg:px-8">
+          <ul
+            className="flex flex-wrap justify-center gap-1.5"
+            aria-label="Accepted payments"
+          >
+            {PAYMENTS.map((item) => (
+              <li
+                key={item.label}
+                className={`rounded-md px-2 py-1 text-[10px] font-extrabold ${item.className}`}
+              >
+                {item.label}
+              </li>
+            ))}
+          </ul>
+          <p className="text-[11px] font-medium text-white/40">
+            © {new Date().getFullYear()} ApnaKart. All rights reserved.
+          </p>
+        </div>
       </div>
     </footer>
   );

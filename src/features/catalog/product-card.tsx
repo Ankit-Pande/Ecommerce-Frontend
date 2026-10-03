@@ -1,63 +1,68 @@
 import Link from "next/link";
-import { inr, STOCK_TEXT } from "@/lib/format";
+import { inr } from "@/lib/format";
 import { SafeImage } from "@/components/ui/safe-image";
+import { QuickAdd } from "./quick-add";
 import { RatingBadge } from "./rating-badge";
-import type { Product, StockStatus } from "@/lib/types";
+import type { Product } from "@/lib/types";
 
-const STOCK_CLASS: Record<StockStatus, string> = {
-  IN_STOCK: "text-leaf",
-  LOW_STOCK: "text-deal",
-  OUT_OF_STOCK: "text-gray-400",
-};
-
-// Product tile with image, price, discount and rating.
+// Product tile with image, price, discount, rating and a quick add button.
 export function ProductCard({ product }: { product: Product }) {
+  const href = `/products/${product.slug}`;
+  const soldOut = product.stockStatus === "OUT_OF_STOCK";
+
   return (
-    <Link
-      href={`/products/${product.slug}`}
-      className="group block overflow-hidden rounded-3xl bg-white p-2 shadow-card transition duration-300 hover:-translate-y-1 hover:shadow-soft hover:shadow-soft dark:border-white/10 dark:bg-white/[0.04]"
-    >
-      <div className="relative aspect-square overflow-hidden rounded-2xl bg-mist dark:bg-white/[0.06]">
+    <article className="group flex h-full flex-col rounded-2xl border border-sand/70 bg-white p-2.5 transition duration-300 hover:-translate-y-1 hover:border-accent/20 hover:shadow-soft dark:border-white/10 dark:bg-white/[0.04]">
+      <Link
+        href={href}
+        className="relative block aspect-square overflow-hidden rounded-xl bg-mist dark:bg-white/[0.06]"
+      >
         <SafeImage
           src={product.image}
           alt={product.name}
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 260px"
-          className="object-contain p-4 transition-transform duration-500 group-hover:scale-105"
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 240px"
+          className={`object-contain p-4 transition-transform duration-500 group-hover:scale-105 ${soldOut ? "opacity-50" : ""}`}
         />
-
         {product.discountPercent > 0 && (
-          <span className="absolute left-2.5 top-2.5 rounded-full bg-chrome px-2.5 py-1 text-[10px] font-bold text-white">
-            {product.discountPercent}% OFF
+          <span className="absolute left-2 top-2 rounded-lg bg-deal px-2 py-1 text-[10px] font-extrabold text-white">
+            -{product.discountPercent}%
           </span>
         )}
-      </div>
+        {product.stockStatus !== "IN_STOCK" && (
+          <span className="absolute bottom-2 left-2 rounded-lg bg-white/90 px-2 py-1 text-[10px] font-bold text-deal">
+            {soldOut ? "Sold out" : "Only few left"}
+          </span>
+        )}
+      </Link>
 
-      <div className="px-2 pb-2 pt-3">
-        <h3 className="line-clamp-2 min-h-10 text-sm font-bold leading-5 text-ink transition group-hover:text-accent dark:text-gray-100">
+      <div className="flex flex-1 flex-col px-1 pt-3">
+        <Link
+          href={href}
+          className="line-clamp-2 min-h-10 text-sm font-semibold leading-5 text-ink transition hover:text-accent dark:text-gray-100"
+        >
           {product.name}
-        </h3>
-        <div className="mt-1.5 min-h-5">
+        </Link>
+        <div className="mt-1 min-h-5">
           <RatingBadge rating={product.rating} />
         </div>
-        <div className="mt-1.5 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-          <span className="font-display text-lg font-black tracking-tight">
-            {inr(product.finalPricePaise)}
-          </span>
-          {product.discountPercent > 0 && (
-            <span className="text-xs font-semibold text-deal line-through">
-              {inr(product.pricePaise)}
-            </span>
-          )}
-        </div>
-
-        <div className="mt-2 min-h-4">
-          <p
-            className={`text-[11px] font-extrabold ${STOCK_CLASS[product.stockStatus]}`}
-          >
-            {STOCK_TEXT[product.stockStatus]}
-          </p>
+        <div className="mt-auto flex items-end justify-between gap-2 pt-2">
+          <div className="min-w-0">
+            <p className="font-display text-base font-extrabold sm:text-lg">
+              {inr(product.finalPricePaise)}
+            </p>
+            {product.discountPercent > 0 && (
+              <p className="text-[11px] font-semibold">
+                <span className="text-gray-400 line-through">
+                  {inr(product.pricePaise)}
+                </span>{" "}
+                <span className="text-leaf">
+                  {product.discountPercent}% off
+                </span>
+              </p>
+            )}
+          </div>
+          {!soldOut && <QuickAdd productId={product.id} />}
         </div>
       </div>
-    </Link>
+    </article>
   );
 }

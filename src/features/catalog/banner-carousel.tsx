@@ -38,7 +38,7 @@ export function BannerCarousel({ banners }: { banners: Banner[] }) {
       aria-label="Store offers"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
-      className="group relative mt-5 aspect-[16/7] overflow-hidden rounded-3xl bg-mist shadow-soft sm:mt-7 sm:aspect-[16/6]"
+      className="group relative aspect-[16/7] overflow-hidden rounded-2xl bg-mist shadow-soft lg:aspect-auto lg:min-h-[340px]"
     >
       <div
         className="flex h-full transition-transform duration-700 ease-out"

@@ -2,7 +2,14 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
+import {
+  ArrowRight,
+  Minus,
+  Plus,
+  ShoppingBag,
+  Trash2,
+  Truck,
+} from "lucide-react";
 import { getCart, removeCartItem, updateCartItem } from "@/api/cart";
 import { errorMessage } from "@/api/http";
 import { Spinner } from "@/components/ui/spinner";
@@ -211,7 +218,10 @@ export function CartPage() {
               Remove or reduce the marked items to continue.
             </p>
           ) : (
-            <Link href="/checkout" className="btn-primary w-full bg-chrome">
+            <Link
+              href="/checkout"
+              className="btn-primary w-full bg-deal hover:bg-orange-600"
+            >
               Go to checkout <ArrowRight className="h-4 w-4" />
             </Link>
           )}
@@ -240,6 +250,12 @@ function CartShell({
         )}
       </h1>
       <CheckoutSteps current={1} />
+      {itemCount !== undefined && itemCount > 0 && (
+        <p className="mb-4 flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-300">
+          <Truck className="h-5 w-5 shrink-0" />
+          Yay! This order gets free delivery. Cash on delivery is available.
+        </p>
+      )}
       {children}
     </div>
   );

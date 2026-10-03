@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, RotateCcw, Truck, Wallet } from "lucide-react";
 import { inr, STOCK_TEXT } from "@/lib/format";
 import { catalogHref } from "@/lib/format";
 import { safeColor } from "@/lib/sanitize";
@@ -102,8 +102,8 @@ export function ProductDetails({ product }: { product: ProductDetail }) {
                 <span className="pb-1 text-sm font-semibold text-gray-400 line-through">
                   {inr(product.pricePaise)}
                 </span>
-                <span className="mb-1 rounded-full bg-deal/10 px-2.5 py-1 text-xs font-extrabold text-deal">
-                  Save {inr(saving)}
+                <span className="mb-1 rounded-lg bg-leaf/10 px-2.5 py-1 text-xs font-extrabold text-leaf">
+                  {product.discountPercent}% off · Save {inr(saving)}
                 </span>
               </>
             )}
@@ -114,14 +114,40 @@ export function ProductDetails({ product }: { product: ProductDetail }) {
 
           <div className="mt-5 flex items-center gap-2">
             <span
-              className={`h-2.5 w-2.5 rounded-full ${inStock ? "bg-accent" : "bg-gray-300"}`}
+              className={`h-2.5 w-2.5 rounded-full ${inStock ? "bg-leaf" : "bg-gray-300"}`}
             />
             <span
-              className={`text-sm font-extrabold ${inStock ? "text-accent" : "text-gray-500"}`}
+              className={`text-sm font-extrabold ${product.stockStatus === "LOW_STOCK" ? "text-deal" : inStock ? "text-leaf" : "text-gray-500"}`}
             >
               {STOCK_TEXT[product.stockStatus]}
             </span>
           </div>
+
+          <div className="mt-6">
+            <AddToCart
+              productId={product.id}
+              slug={product.slug}
+              inStock={inStock}
+            />
+          </div>
+
+          <ul className="mt-6 divide-y divide-sand rounded-2xl border border-sand text-sm dark:divide-white/10 dark:border-white/10">
+            <DeliveryLine
+              icon={Truck}
+              title="Free delivery"
+              text="Delivered in 2-5 days across India"
+            />
+            <DeliveryLine
+              icon={Wallet}
+              title="Cash on delivery"
+              text="Pay when the order reaches you"
+            />
+            <DeliveryLine
+              icon={RotateCcw}
+              title="Easy returns"
+              text="Replacement for damaged items"
+            />
+          </ul>
 
           <div className="mt-6 border-t border-sand pt-6 dark:border-white/10">
             <h2 className="text-sm font-extrabold">Product details</h2>
@@ -139,20 +165,35 @@ export function ProductDetails({ product }: { product: ProductDetail }) {
               <ProductFact label="Colour" value={product.color} />
             )}
           </dl>
-
-          <div className="mt-7">
-            <AddToCart
-              productId={product.id}
-              slug={product.slug}
-              inStock={inStock}
-            />
-          </div>
         </div>
       </div>
 
       <ProductReviews slug={product.slug} rating={product.rating} />
       <RelatedProducts slug={product.slug} categoryLink={categoryLink} />
     </div>
+  );
+}
+
+// One delivery promise row with a coloured icon.
+function DeliveryLine({
+  icon: Icon,
+  title,
+  text,
+}: {
+  icon: typeof Truck;
+  title: string;
+  text: string;
+}) {
+  return (
+    <li className="flex items-center gap-3 p-3.5">
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-accent/10 text-accent">
+        <Icon className="h-4 w-4" />
+      </span>
+      <span>
+        <span className="block font-bold">{title}</span>
+        <span className="block text-xs text-gray-500">{text}</span>
+      </span>
+    </li>
   );
 }
 

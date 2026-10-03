@@ -18,10 +18,10 @@ import { uiText } from "@/lib/ui-text";
 import { useUiSettings, type AppColor } from "@/store/ui-settings-store";
 
 const colors: { value: AppColor; label: string; className: string }[] = [
-  { value: "slate", label: "Slate", className: "bg-[#3F5F8F]" },
-  { value: "teal", label: "Teal", className: "bg-[#236F70]" },
-  { value: "purple", label: "Purple", className: "bg-[#6B4E9B]" },
-  { value: "orange", label: "Orange", className: "bg-[#D65C1C]" },
+  { value: "blue", label: "Blue", className: "bg-[#1E55D6]" },
+  { value: "green", label: "Green", className: "bg-[#166534]" },
+  { value: "purple", label: "Purple", className: "bg-[#6D28D9]" },
+  { value: "orange", label: "Orange", className: "bg-[#EA580C]" },
 ];
 
 // Menu for theme, colour and language.

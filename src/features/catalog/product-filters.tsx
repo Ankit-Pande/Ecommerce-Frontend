@@ -94,17 +94,21 @@ export function ProductFilters({
                   onClick={() => onColorChange(color === option ? "" : option)}
                   aria-label={`Filter by ${option}`}
                   aria-pressed={color === option}
-                  title={option}
-                  className={`grid h-9 w-9 place-items-center rounded-full border-2 transition ${
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-xs font-semibold transition ${
                     color === option
-                      ? "border-accent ring-2 ring-accent/15"
-                      : "border-black/10 dark:border-white/20"
+                      ? "border-accent bg-accent/10 text-accent"
+                      : "border-sand hover:border-accent/40 dark:border-white/15"
                   }`}
                 >
                   <span
-                    className="h-6 w-6 rounded-full border border-black/10"
-                    style={{ backgroundColor: safeColor(option) ?? undefined }}
+                    className="h-3.5 w-3.5 rounded-full border border-black/15 bg-gradient-to-br from-pink-400 via-amber-300 to-sky-400"
+                    style={
+                      safeColor(option)
+                        ? { background: safeColor(option) ?? undefined }
+                        : undefined
+                    }
                   />
+                  {option}
                 </button>
               ))}
             </div>

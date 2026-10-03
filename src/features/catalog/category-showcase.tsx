@@ -1,58 +1,43 @@
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { SafeImage } from "@/components/ui/safe-image";
 import { SectionHeader } from "@/components/ui/section-header";
 import { catalogHref } from "@/lib/format";
+import { tint } from "@/lib/tints";
 import type { Category } from "@/lib/types";
 
-const MAX_CATEGORIES = 8;
-const MAX_SUBCATEGORIES = 3;
+const MAX_CATEGORIES = 12;
 
-// Category cards on the home page.
+// Colourful category tiles on the home page.
 export function CategoryShowcase({ categories }: { categories: Category[] }) {
   if (categories.length === 0) return null;
 
   return (
     <section>
-      <SectionHeader title="Shop by category" href="/products" />
+      <SectionHeader title="Shop our top categories" href="/products" />
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:gap-4 xl:grid-cols-8">
-        {categories.slice(0, MAX_CATEGORIES).map((category) => (
-          <article
+      <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6 lg:gap-4">
+        {categories.slice(0, MAX_CATEGORIES).map((category, index) => (
+          <Link
             key={category.id}
-            className="group overflow-hidden rounded-2xl border border-sand bg-white shadow-card transition duration-300 hover:-translate-y-1 hover:border-accent/20 hover:shadow-soft dark:border-white/10 dark:bg-white/[0.04]"
+            href={catalogHref(category)}
+            className={`group relative flex aspect-[4/5] flex-col overflow-hidden rounded-2xl p-3 transition duration-300 hover:-translate-y-1 hover:shadow-soft sm:p-4 ${tint(index)}`}
           >
-            <Link href={catalogHref(category)} className="block">
-              <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-mist to-white dark:from-white/[0.07] dark:to-white/[0.02]">
-                <SafeImage
-                  src={category.image}
-                  alt={category.name}
-                  sizes="(max-width: 640px) 50vw, (max-width: 1280px) 25vw, 160px"
-                  className="object-contain p-4 transition-transform duration-300 group-hover:scale-105"
-                />
-              </div>
-              <div className="flex items-center justify-between gap-2 px-3 pb-2 pt-3">
-                <h2 className="truncate text-sm font-extrabold">
-                  {category.name}
-                </h2>
-                <ArrowUpRight className="h-4 w-4 shrink-0 text-accent" />
-              </div>
-            </Link>
-
-            {category.children.length > 0 && (
-              <div className="flex flex-wrap gap-1 border-t border-sand px-3 py-2.5 dark:border-white/10">
-                {category.children.slice(0, MAX_SUBCATEGORIES).map((child) => (
-                  <Link
-                    key={child.id}
-                    href={catalogHref(child, "subcategory")}
-                    className="max-w-full truncate rounded-full bg-mist px-2 py-1 text-[9px] font-bold text-gray-600 transition hover:bg-accent hover:text-white dark:bg-white/[0.07] dark:text-gray-300"
-                  >
-                    {child.name}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </article>
+            <h3 className="font-display text-xs font-extrabold leading-tight sm:text-sm">
+              {category.name}
+            </h3>
+            <div className="relative mt-2 flex-1">
+              <SafeImage
+                src={category.image}
+                alt=""
+                sizes="(max-width: 640px) 33vw, (max-width: 1024px) 25vw, 180px"
+                className="rounded-xl object-cover transition-transform duration-300 group-hover:scale-105"
+              />
+            </div>
+            <span className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold opacity-80 group-hover:opacity-100">
+              Shop now <ArrowRight className="h-3 w-3" />
+            </span>
+          </Link>
         ))}
       </div>
     </section>

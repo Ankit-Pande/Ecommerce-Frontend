@@ -7,11 +7,12 @@ Online shopping website made with Next.js. It works with the ApnaKart backend AP
 - Home page with banners, categories and product shelves
 - Search with suggestions, filters, sort and load more
 - Product page with images, reviews and related products
-- Cart, Buy now and checkout (UPI, card, cash on delivery via Razorpay)
+- Cart, Buy now and checkout (cash on delivery, or UPI apps and cards via Razorpay)
+- Order confirmed page and order tracking (confirmed, shipped, delivered)
 - Login with mobile number and OTP
 - My orders, cancel order, pay again
 - My account and saved addresses
-- Admin panel: dashboard, orders, products, categories, brands, banners, customers
+- Admin panel: dashboard, orders, products, festival sale, categories, brands, banners, customers
 - Works on phone, tablet and desktop, with light and dark mode
 
 ## Tech

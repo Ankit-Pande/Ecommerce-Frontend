@@ -7,6 +7,7 @@ import { ChevronDown, LayoutGrid } from "lucide-react";
 import { SafeImage } from "@/components/ui/safe-image";
 import { useClickOutside } from "@/hooks/use-click-outside";
 import { catalogHref } from "@/lib/format";
+import { tint } from "@/lib/tints";
 import { uiText } from "@/lib/ui-text";
 import { useUiSettings } from "@/store/ui-settings-store";
 import type { Category } from "@/lib/types";
@@ -34,7 +35,7 @@ export function CategoryBar({ categories }: { categories: Category[] }) {
           aria-expanded={open}
           className="flex w-[72px] shrink-0 flex-col items-center gap-1 rounded-xl py-1 text-center text-[11px] font-bold leading-tight hover:bg-mist dark:hover:bg-white/10"
         >
-          <span className="grid h-9 w-9 place-items-center rounded-full bg-chrome text-white dark:bg-accent">
+          <span className="grid h-10 w-10 place-items-center rounded-full bg-accent text-white">
             <LayoutGrid className="h-4 w-4" />
           </span>
           <span className="flex items-center gap-0.5">
@@ -43,17 +44,19 @@ export function CategoryBar({ categories }: { categories: Category[] }) {
           </span>
         </button>
 
-        {categories.map((category) => (
+        {categories.map((category, index) => (
           <Link
             key={category.id}
             href={catalogHref(category)}
             className="flex w-[72px] shrink-0 flex-col items-center gap-1 rounded-xl py-1 text-center text-[11px] font-semibold leading-tight text-gray-600 transition hover:bg-mist hover:text-accent dark:text-gray-300 dark:hover:bg-white/10"
           >
-            <span className="relative h-9 w-9 overflow-hidden rounded-full bg-mist ring-1 ring-black/5 dark:bg-white/10">
+            <span
+              className={`relative h-10 w-10 overflow-hidden rounded-full ring-2 ring-white ${tint(index)}`}
+            >
               <SafeImage
                 src={category.image}
                 alt=""
-                sizes="36px"
+                sizes="40px"
                 className="rounded-full object-cover"
               />
             </span>

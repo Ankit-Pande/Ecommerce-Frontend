@@ -61,12 +61,12 @@ export function AdminShell({
                       aria-current={active ? "page" : undefined}
                       className={`flex min-h-10 items-center gap-3 rounded-xl px-3 text-sm font-semibold transition ${
                         active
-                          ? "bg-ivory text-ink shadow-sm ring-1 ring-sand dark:bg-white/10 dark:text-white dark:ring-white/10"
+                          ? "bg-accent text-white shadow-button"
                           : "text-gray-600 hover:bg-ivory hover:text-ink dark:text-gray-300 dark:hover:bg-white/5"
                       }`}
                     >
                       <Icon
-                        className={`h-4 w-4 ${active ? "text-accent" : ""}`}
+                        className={`h-4 w-4 ${active ? "text-white" : ""}`}
                       />
                       {item.label}
                     </Link>
@@ -112,7 +112,7 @@ export function AdminShell({
                 href={item.href}
                 className={`flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-bold ${
                   active
-                    ? "bg-chrome text-white"
+                    ? "bg-accent text-white"
                     : "bg-white text-gray-600 dark:bg-white/10 dark:text-gray-300"
                 }`}
               >

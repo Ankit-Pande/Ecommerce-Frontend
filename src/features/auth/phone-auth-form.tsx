@@ -134,8 +134,26 @@ export function PhoneAuthForm() {
   }
 
   return (
-    <section className="mx-auto w-full max-w-md py-8 sm:py-14">
-      <div className="card px-5 py-8 sm:px-9 sm:py-10">
+    <section className="mx-auto grid w-full max-w-md overflow-hidden py-8 sm:py-14 lg:max-w-5xl lg:grid-cols-2 lg:py-12">
+      <div className="relative hidden overflow-hidden rounded-l-3xl bg-gradient-to-br from-accent via-violet-600 to-deal p-10 text-white lg:flex lg:flex-col lg:justify-between">
+        <span className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/10" />
+        <span className="absolute -bottom-20 -left-10 h-64 w-64 rounded-full bg-white/10" />
+        <Wordmark onDark className="relative text-2xl" />
+        <div className="relative">
+          <h2 className="font-display text-4xl font-extrabold leading-tight">
+            Shop smarter, pay your way.
+          </h2>
+          <ul className="mt-6 space-y-3 text-sm font-semibold text-white/90">
+            <li>✓ 8,000+ products across 15 categories</li>
+            <li>✓ UPI, cards or cash on delivery</li>
+            <li>✓ Free delivery on every order</li>
+          </ul>
+        </div>
+        <p className="relative text-xs text-white/70">
+          No password needed — just your mobile number.
+        </p>
+      </div>
+      <div className="card px-5 py-8 sm:px-9 sm:py-10 lg:rounded-l-none lg:rounded-r-3xl lg:px-12 lg:py-14">
         {step === "phone" ? (
           <form
             onSubmit={(event) => {
@@ -144,7 +162,7 @@ export function PhoneAuthForm() {
             }}
           >
             <div className="text-center">
-              <Wordmark className="text-2xl" />
+              <Wordmark className="text-2xl lg:hidden" />
               <h1 className="mt-6 font-display text-2xl font-bold sm:text-3xl">
                 Welcome back
               </h1>

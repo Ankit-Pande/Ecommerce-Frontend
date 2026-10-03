@@ -1,6 +1,6 @@
 import { Star } from "lucide-react";
 
-// Green rating chip; hidden before the first review.
+// Gold star rating with the review count; hidden before the first review.
 export function RatingBadge({
   rating,
 }: {
@@ -9,10 +9,10 @@ export function RatingBadge({
   if (rating.count === 0) return null;
 
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-500">
-      <span className="inline-flex items-center gap-0.5 rounded-md bg-leaf px-1.5 py-0.5 text-[11px] font-extrabold text-white">
+    <span className="inline-flex items-center gap-1 text-xs font-semibold text-gray-500">
+      <Star className="h-3.5 w-3.5 fill-gold text-gold" />
+      <span className="font-bold text-ink dark:text-gray-100">
         {rating.average.toFixed(1)}
-        <Star className="h-3 w-3 fill-current" />
       </span>
       ({rating.count.toLocaleString("en-IN")})
     </span>

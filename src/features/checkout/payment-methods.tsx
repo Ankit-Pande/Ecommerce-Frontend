@@ -4,26 +4,37 @@ export type PaymentChoice = "UPI" | "CARD" | "COD";
 
 const choices = [
   {
+    value: "COD",
+    icon: Banknote,
+    title: "Cash on delivery",
+    detail: "Pay in cash or UPI when the order arrives",
+    badges: [{ label: "Cash", className: "bg-emerald-100 text-emerald-700" }],
+  },
+  {
     value: "UPI",
     icon: Smartphone,
     title: "UPI apps",
-    detail: "Google Pay, PhonePe or any UPI app",
+    detail: "Pay instantly from any UPI app",
+    badges: [
+      { label: "G Pay", className: "bg-blue-50 text-blue-600" },
+      { label: "PhonePe", className: "bg-violet-600 text-white" },
+      { label: "Paytm", className: "bg-sky-500 text-white" },
+    ],
   },
   {
     value: "CARD",
     icon: CreditCard,
-    title: "Cards & banking",
+    title: "Cards & netbanking",
     detail: "Debit card, credit card or netbanking",
-  },
-  {
-    value: "COD",
-    icon: Banknote,
-    title: "Cash on delivery",
-    detail: "Pay when the order arrives",
+    badges: [
+      { label: "VISA", className: "bg-blue-900 text-white" },
+      { label: "Mastercard", className: "bg-orange-100 text-orange-700" },
+      { label: "RuPay", className: "bg-emerald-50 text-emerald-700" },
+    ],
   },
 ] as const;
 
-// UPI, card and COD choices.
+// Cash on delivery, UPI and card choices with app badges.
 export function PaymentMethods({
   value,
   onChange,
@@ -32,7 +43,7 @@ export function PaymentMethods({
   onChange: (value: PaymentChoice) => void;
 }) {
   return (
-    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+    <div className="grid gap-3">
       {choices.map((choice) => {
         const active = value === choice.value;
         const Icon = choice.icon;
@@ -43,21 +54,35 @@ export function PaymentMethods({
             type="button"
             onClick={() => onChange(choice.value)}
             aria-pressed={active}
-            className={`relative flex min-h-32 flex-col rounded-2xl border-2 bg-white p-4 text-left transition dark:bg-white/[0.04] ${active ? "border-accent shadow-card" : "border-sand hover:border-accent/25 dark:border-white/10"}`}
+            className={`flex items-center gap-3 rounded-2xl border-2 bg-white p-3.5 text-left transition dark:bg-white/[0.04] sm:p-4 ${active ? "border-accent bg-accent/[0.03] shadow-card" : "border-sand hover:border-accent/30 dark:border-white/10"}`}
           >
             <span
-              className={`grid h-10 w-10 place-items-center rounded-xl ${active ? "bg-accent text-white" : "bg-mist text-gray-500 dark:bg-white/10"}`}
+              className={`grid h-5 w-5 shrink-0 place-items-center rounded-full border-2 ${active ? "border-accent bg-accent text-white" : "border-gray-300"}`}
+            >
+              {active && <Check className="h-3 w-3" />}
+            </span>
+            <span
+              className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${active ? "bg-accent text-white" : "bg-mist text-gray-500 dark:bg-white/10"}`}
             >
               <Icon className="h-5 w-5" />
             </span>
-            <span className="mt-3 text-sm font-extrabold">{choice.title}</span>
-            <span className="mt-1 text-[11px] leading-4 text-gray-500">
-              {choice.detail}
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-extrabold">
+                {choice.title}
+              </span>
+              <span className="block text-xs text-gray-500">
+                {choice.detail}
+              </span>
             </span>
-            <span
-              className={`absolute right-3 top-3 grid h-5 w-5 place-items-center rounded-full border ${active ? "border-accent bg-accent text-white" : "border-gray-300"}`}
-            >
-              {active && <Check className="h-3 w-3" />}
+            <span className="hidden flex-wrap justify-end gap-1 sm:flex">
+              {choice.badges.map((badge) => (
+                <span
+                  key={badge.label}
+                  className={`rounded-md px-1.5 py-0.5 text-[10px] font-extrabold ${badge.className}`}
+                >
+                  {badge.label}
+                </span>
+              ))}
             </span>
           </button>
         );

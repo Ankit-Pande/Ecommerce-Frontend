@@ -15,6 +15,7 @@ import {
 import { SafeImage } from "@/components/ui/safe-image";
 import { Wordmark } from "@/components/ui/wordmark";
 import { catalogHref } from "@/lib/format";
+import { tint } from "@/lib/tints";
 import { uiText, type UiTextKey } from "@/lib/ui-text";
 import { isAdmin, useAuthStore } from "@/store/auth-store";
 import { useUiSettings } from "@/store/ui-settings-store";
@@ -140,7 +141,7 @@ export function MobileSidebar({
             </div>
           ) : (
             <nav className="space-y-1" aria-label="Categories">
-              {categories.map((category) => (
+              {categories.map((category, index) => (
                 <div
                   key={category.id}
                   className="border-b border-sand py-2 last:border-0 dark:border-white/10"
@@ -150,7 +151,9 @@ export function MobileSidebar({
                     onClick={onClose}
                     className="flex min-h-11 items-center gap-3 rounded-xl px-2 text-sm font-extrabold hover:bg-mist dark:hover:bg-white/10"
                   >
-                    <span className="relative grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-mist text-gray-400 dark:bg-white/10">
+                    <span
+                      className={`relative grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full ${tint(index)}`}
+                    >
                       <SafeImage
                         src={category.image}
                         alt=""

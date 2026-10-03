@@ -75,7 +75,7 @@ export function SearchBox({
         openResults(search);
       }}
       role="search"
-      className="relative flex h-11 min-w-0 flex-1 items-center rounded-full border border-sand bg-ivory transition focus-within:border-accent focus-within:bg-white focus-within:ring-4 focus-within:ring-accent/10 dark:border-white/10 dark:bg-white/[0.06] dark:focus-within:bg-white/10"
+      className="relative flex h-11 min-w-0 flex-1 items-center rounded-full border border-sand bg-mist transition focus-within:border-accent focus-within:bg-white focus-within:ring-4 focus-within:ring-accent/10 dark:border-white/10 dark:bg-white/[0.06] dark:focus-within:bg-white/10"
     >
       <input
         type="search"
@@ -114,7 +114,7 @@ export function SearchBox({
         type="submit"
         aria-label={label}
         title={label}
-        className="mr-1 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-chrome text-white transition hover:bg-accent dark:bg-accent"
+        className="mr-1 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent text-white transition hover:bg-accent-dark"
       >
         <Search className="h-4 w-4" />
       </button>

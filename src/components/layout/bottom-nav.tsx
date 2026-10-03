@@ -55,7 +55,7 @@ export function BottomNav() {
           aria-current={active ? "page" : undefined}
           className={`relative flex h-11 items-center justify-center gap-2 rounded-full text-xs font-bold transition ${
             active
-              ? "bg-chrome px-4 text-white dark:bg-accent"
+              ? "bg-accent px-4 text-white"
               : "w-11 text-gray-500 hover:text-ink dark:text-gray-300"
           }`}
         >

@@ -3,35 +3,35 @@
 @tailwind utilities;
 
 @layer base {
-  /* Default look "Slate": cool grey-blue ground, white cards, slate-blue actions. */
+  /* Default look "Blue": white pages, vivid blue actions, orange deals. */
   :root {
-    --color-chrome: 28 35 51;
-    --color-accent: 63 95 143;
-    --color-accent-dark: 47 74 114;
-    --color-gold: 245 166 35;
-    --color-ivory: 233 237 243;
-    --color-night: 13 17 24;
-    --color-ink: 28 35 51;
-    --color-mist: 221 227 236;
-    --color-sand: 222 228 237;
+    --color-chrome: 15 27 61;
+    --color-accent: 30 85 214;
+    --color-accent-dark: 22 63 166;
+    --color-gold: 245 165 36;
+    --color-ivory: 245 247 251;
+    --color-night: 11 15 25;
+    --color-ink: 17 24 39;
+    --color-mist: 238 242 250;
+    --color-sand: 228 232 240;
   }
 
-  :root[data-color="teal"] {
-    --color-accent: 35 111 112;
-    --color-accent-dark: 25 84 85;
-    --color-mist: 218 233 233;
+  :root[data-color="green"] {
+    --color-accent: 22 101 52;
+    --color-accent-dark: 20 83 45;
+    --color-mist: 236 245 238;
   }
 
   :root[data-color="purple"] {
-    --color-accent: 107 78 155;
-    --color-accent-dark: 80 56 120;
-    --color-mist: 230 224 242;
+    --color-accent: 109 40 217;
+    --color-accent-dark: 91 33 182;
+    --color-mist: 243 238 252;
   }
 
   :root[data-color="orange"] {
-    --color-accent: 214 92 28;
-    --color-accent-dark: 168 68 18;
-    --color-mist: 244 228 218;
+    --color-accent: 234 88 12;
+    --color-accent-dark: 194 65 12;
+    --color-mist: 255 241 232;
   }
 
   html {
@@ -62,11 +62,11 @@
 
 @layer components {
   .card {
-    @apply rounded-3xl border border-white bg-white shadow-card dark:border-white/10 dark:bg-white/[0.04];
+    @apply rounded-2xl border border-sand/80 bg-white shadow-card dark:border-white/10 dark:bg-white/[0.04];
   }
 
   .field {
-    @apply min-h-11 w-full rounded-2xl border border-sand bg-white px-3.5 py-2.5 text-sm text-ink outline-none transition
+    @apply min-h-11 w-full rounded-xl border border-sand bg-white px-3.5 py-2.5 text-sm text-ink outline-none transition
       placeholder:text-gray-400 hover:border-black/20 focus:border-accent dark:border-white/15 dark:bg-white/[0.06] dark:text-white dark:hover:border-white/25;
   }
 
@@ -127,4 +127,38 @@
 
 .animate-toast-in {
   animation: toast-in 0.25s ease-out;
+}
+
+@keyframes road {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -44px 0;
+  }
+}
+
+@keyframes truck {
+  0%,
+  100% {
+    transform: translate(-50%, 0);
+  }
+  50% {
+    transform: translate(-50%, -4px);
+  }
+}
+
+.animate-road {
+  animation: road 0.6s linear infinite;
+}
+
+.animate-truck {
+  animation: truck 0.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-road,
+  .animate-truck {
+    animation: none;
+  }
 }

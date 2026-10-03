@@ -20,7 +20,7 @@ import { formatAddress, inr } from "@/lib/format";
 import { openRazorpay, RAZORPAY_SCRIPT } from "@/lib/razorpay";
 import { useCartStore } from "@/store/cart-store";
 import { toast } from "@/store/toast-store";
-import type { Address, PaymentMethod } from "@/lib/types";
+import type { Address, PaymentDetails, PaymentMethod } from "@/lib/types";
 import { CheckoutSteps } from "./checkout-steps";
 import { OrderSummary } from "./order-summary";
 import { PaymentMethods, type PaymentChoice } from "./payment-methods";
@@ -51,7 +51,7 @@ export function CheckoutPage() {
   const [failed, setFailed] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const [showAddressForm, setShowAddressForm] = useState(false);
-  const [paymentChoice, setPaymentChoice] = useState<PaymentChoice>("UPI");
+  const [paymentChoice, setPaymentChoice] = useState<PaymentChoice>("COD");
   const [paying, setPaying] = useState(false);
   const [idempotencyKey] = useState(() => crypto.randomUUID());
 
@@ -85,9 +85,17 @@ export function CheckoutPage() {
     setLines((current) => current.map((line) => ({ ...line, quantity })));
   }
 
-  // Opens My orders with the result banner.
-  function openOrders(placed: "cod" | "paid" | "pending") {
-    router.push(`/orders?placed=${placed}`);
+  // Opens the order result page (confirmed, paid or payment pending).
+  function showResult(
+    result: "cod" | "paid" | "pending",
+    payment: PaymentDetails,
+  ) {
+    const params = new URLSearchParams({
+      result,
+      id: payment.orderId,
+      total: String(payment.amount),
+    });
+    router.push(`/order-success?${params}`);
   }
 
   // Places the order, then opens Razorpay for online payment.
@@ -112,18 +120,23 @@ export function CheckoutPage() {
 
       if (!buySlug) setCount(0);
       if (payment.paymentMethod === "COD") {
-        openOrders("cod");
+        showResult("cod", payment);
         return;
       }
 
       const opened = openRazorpay(payment, {
         display: razorpayDisplay(paymentChoice),
-        onPaid: () => openOrders("paid"),
-        onClose: () => openOrders("pending"),
+        onPaid: () => showResult("paid", payment),
+        onClose: () => showResult("pending", payment),
       });
-      if (!opened) openOrders("pending");
+      if (!opened) showResult("pending", payment);
     } catch (error) {
-      toast.error(errorMessage(error, "Checkout could not be completed"));
+      const message = errorMessage(error, "Checkout could not be completed");
+      toast.error(
+        paymentMethod === "ONLINE"
+          ? `${message} You can choose Cash on delivery instead.`
+          : message,
+      );
     } finally {
       setPaying(false);
     }
@@ -165,11 +178,13 @@ export function CheckoutPage() {
 
   return (
     <CheckoutShell>
-      <Script
-        src={RAZORPAY_SCRIPT}
-        strategy="afterInteractive"
-        onError={() => toast.error("Secure payment service could not load")}
-      />
+      {paymentChoice !== "COD" && (
+        <Script
+          src={RAZORPAY_SCRIPT}
+          strategy="afterInteractive"
+          onError={() => toast.error("Secure payment service could not load")}
+        />
+      )}
       <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-7">
         <div className="space-y-5">
           <Section
@@ -311,7 +326,7 @@ export function CheckoutPage() {
             onClick={placeOrder}
             loading={paying}
             disabled={!selectedId || hasBlockedItems}
-            className="w-full bg-chrome"
+            className="w-full bg-deal hover:bg-orange-600"
           >
             {paymentChoice === "COD" ? "Place order (COD)" : "Pay securely"}
           </Button>

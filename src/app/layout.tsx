@@ -1,20 +1,20 @@
 import type { Metadata } from "next";
-import { DM_Sans, Poppins } from "next/font/google";
+import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import { AppShell } from "@/components/layout/app-shell";
 import { Providers } from "@/components/layout/providers";
 import { getHomeOnServer } from "@/api/catalog";
 import "./globals.css";
 import { SITE_URL } from "@/lib/site";
 
-const displayFont = Poppins({
-  weight: ["500", "600", "700"],
+const displayFont = Plus_Jakarta_Sans({
+  weight: ["600", "700", "800"],
   subsets: ["latin"],
   variable: "--font-display",
   preload: false,
   display: "swap",
 });
 
-const bodyFont = DM_Sans({
+const bodyFont = Inter({
   subsets: ["latin"],
   variable: "--font-body",
   preload: false,

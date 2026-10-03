@@ -14,7 +14,7 @@ import {
   MobileProductFilters,
   ProductFilters,
 } from "@/features/catalog/product-filters";
-import type { Product, ProductFacets } from "@/lib/types";
+import type { Category, Product, ProductFacets } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 
 const PAGE_SIZE = 20;
@@ -31,7 +31,7 @@ const SORT_OPTIONS = [
 type Sort = (typeof SORT_OPTIONS)[number]["value"];
 
 // Product list page with search, filters, sort and load more.
-export function ProductListing() {
+export function ProductListing({ categories }: { categories: Category[] }) {
   const urlParams = useSearchParams();
   const query = urlParams.get("q")?.trim() ?? "";
   const searchText = query.length >= MIN_SEARCH_LENGTH ? query : "";
@@ -184,10 +184,23 @@ export function ProductListing() {
 
   return (
     <div className="pb-12 pt-6 sm:pt-8">
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-        <h1 className="font-display text-3xl font-bold">
-          {searchText ? `Results for “${searchText}”` : "All products"}
-        </h1>
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-4 rounded-2xl bg-gradient-to-r from-accent/10 via-violet-100/60 to-orange-100/70 p-5 dark:from-white/5 dark:via-white/5 dark:to-white/5 sm:p-6">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-deal">
+            {searchText ? "Search" : "Shop"}
+          </p>
+          <h1 className="mt-1 font-display text-2xl font-extrabold sm:text-3xl">
+            {searchText
+              ? `Results for “${searchText}”`
+              : pageTitle(
+                  categories,
+                  category,
+                  subcategory,
+                  section,
+                  requestedDiscount,
+                )}
+          </h1>
+        </div>
 
         <div className="flex items-center gap-2">
           <Button
@@ -303,4 +316,23 @@ function readPrice(value: string | null) {
 // Converts rupees typed by the user to paise.
 function rupeesToPaise(value: string) {
   return String(Number(value) * 100);
+}
+
+// Page heading from the URL: subcategory, category, section or offers.
+function pageTitle(
+  categories: Category[],
+  category: string,
+  subcategory: string,
+  section: string,
+  discount: boolean,
+) {
+  for (const parent of categories) {
+    if (parent.slug === category && !subcategory) return parent.name;
+    const child = parent.children.find((item) => item.slug === subcategory);
+    if (child) return child.name;
+  }
+  if (section === "trending") return "Trending now";
+  if (section === "featured") return "Featured for you";
+  if (discount) return "Today's best deals";
+  return "All products";
 }

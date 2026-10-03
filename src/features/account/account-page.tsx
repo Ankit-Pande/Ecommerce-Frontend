@@ -184,7 +184,7 @@ export function AccountPage() {
           onSubmit={saveProfile}
           className="card overflow-hidden lg:sticky lg:top-32"
         >
-          <div className="bg-chrome px-5 py-6 text-white">
+          <div className="bg-gradient-to-br from-accent to-violet-600 px-5 py-6 text-white">
             <span className="grid h-12 w-12 place-items-center rounded-2xl bg-white/10">
               <UserRound className="h-5 w-5" />
             </span>
