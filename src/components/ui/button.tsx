@@ -1,0 +1,37 @@
+import { Spinner } from "@/components/ui/spinner";
+
+const VARIANTS = {
+  primary: "btn-primary",
+  outline: "btn-outline",
+  ghost: "btn-ghost",
+  danger: "btn-ghost text-deal hover:text-deal",
+};
+
+type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: keyof typeof VARIANTS;
+  loading?: boolean;
+};
+
+/** One button for the whole app. While loading it shows a spinner and blocks a double click. */
+export function Button({
+  variant = "primary",
+  loading = false,
+  disabled,
+  type = "button",
+  className = "",
+  children,
+  ...rest
+}: ButtonProps) {
+  return (
+    <button
+      type={type}
+      disabled={disabled || loading}
+      aria-busy={loading}
+      className={`${VARIANTS[variant]} ${className}`}
+      {...rest}
+    >
+      {loading && <Spinner />}
+      {children}
+    </button>
+  );
+}

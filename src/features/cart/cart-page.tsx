@@ -1,0 +1,292 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { ArrowRight, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
+import { getCart, removeCartItem, updateCartItem } from "@/api/cart";
+import { errorMessage } from "@/api/http";
+import { Spinner } from "@/components/ui/spinner";
+import { inr } from "@/lib/format";
+import { useAuthGuard } from "@/hooks/use-auth-guard";
+import { useCartStore } from "@/store/cart-store";
+import { toast } from "@/store/toast-store";
+import { OfflineNotice } from "@/components/ui/offline-notice";
+import { ListSkeleton } from "@/components/ui/skeletons";
+import { CheckoutSteps } from "@/features/checkout/checkout-steps";
+import { SafeImage } from "@/components/ui/safe-image";
+import type { Cart } from "@/lib/types";
+
+export function CartPage() {
+  const { ready } = useAuthGuard();
+  const [cart, setCart] = useState<Cart | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
+  const [busyProductId, setBusyProductId] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
+  const setCount = useCartStore((state) => state.setCount);
+
+  useEffect(() => {
+    if (!ready) return;
+    setLoading(true);
+    setFailed(false);
+
+    getCart()
+      .then((fresh) => {
+        setCart(fresh);
+        setCount(fresh.items.length);
+      })
+      .catch(() => setFailed(true))
+      .finally(() => setLoading(false));
+  }, [ready, reloadKey, setCount]);
+
+  async function changeQuantity(productId: string, quantity: number) {
+    setBusyProductId(productId);
+    try {
+      const fresh =
+        quantity < 1
+          ? await removeCartItem(productId)
+          : await updateCartItem(productId, quantity);
+      setCart(fresh);
+      setCount(fresh.items.length);
+    } catch (error) {
+      toast.error(errorMessage(error, "Could not update your cart"));
+    } finally {
+      setBusyProductId("");
+    }
+  }
+
+  if (!ready || loading) {
+    return (
+      <CartShell>
+        <ListSkeleton />
+      </CartShell>
+    );
+  }
+
+  if (failed) {
+    return (
+      <CartShell>
+        <OfflineNotice onRetry={() => setReloadKey((key) => key + 1)} />
+      </CartShell>
+    );
+  }
+
+  if (!cart || cart.items.length === 0) {
+    return (
+      <CartShell itemCount={0}>
+        <div className="grid min-h-[48vh] place-items-center py-12 text-center">
+          <div className="max-w-sm">
+            <span className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-mist text-accent dark:bg-white/[0.06]">
+              <ShoppingBag className="h-9 w-9" strokeWidth={1.5} />
+            </span>
+            <h1 className="mt-5 font-display text-2xl font-bold">
+              Your cart is empty
+            </h1>
+            <Link href="/products" className="btn-primary mt-6">
+              Browse products <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      </CartShell>
+    );
+  }
+
+  // The backend total skips unavailable items and checkout rejects the cart
+  // while any of them is still in it, so they are counted the same way here.
+  const orderable = cart.items.filter(
+    ({ product, quantity }) =>
+      product.isAvailable && quantity <= product.maxQuantity,
+  );
+  const hasBlockedItems = orderable.length < cart.items.length;
+  const itemCount = orderable.reduce((total, item) => total + item.quantity, 0);
+  const mrpTotal = orderable.reduce(
+    (total, item) => total + item.product.pricePaise * item.quantity,
+    0,
+  );
+  const savings = Math.max(0, mrpTotal - cart.totalPaise);
+
+  return (
+    <CartShell itemCount={itemCount}>
+      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-7">
+        <div className="space-y-3">
+          {cart.items.map(({ product, quantity }) => {
+            const busy = busyProductId === product.id;
+            return (
+              <article
+                key={product.id}
+                className="card flex gap-3 p-3.5 sm:gap-5 sm:p-5"
+              >
+                <Link
+                  href={`/products/${product.slug}`}
+                  className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl bg-mist dark:bg-white/[0.05] sm:h-32 sm:w-32"
+                >
+                  <SafeImage
+                    src={product.image}
+                    alt={product.name}
+                    sizes="128px"
+                    className="object-contain p-2.5"
+                  />
+                </Link>
+
+                <div className="min-w-0 flex-1">
+                  <div className="flex gap-2">
+                    <div className="min-w-0 flex-1">
+                      <Link
+                        href={`/products/${product.slug}`}
+                        className="line-clamp-2 text-sm font-extrabold leading-5 hover:text-accent sm:text-base"
+                      >
+                        {product.name}
+                      </Link>
+                      {!product.isAvailable ? (
+                        <p className="mt-1 text-xs font-extrabold text-deal">
+                          No longer available
+                        </p>
+                      ) : quantity > product.maxQuantity ? (
+                        <p className="mt-1 text-xs font-extrabold text-deal">
+                          {product.maxQuantity === 0
+                            ? "Out of stock"
+                            : `Only ${product.maxQuantity} available`}
+                        </p>
+                      ) : null}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => changeQuantity(product.id, 0)}
+                      disabled={busy}
+                      aria-label={`Remove ${product.name}`}
+                      className="icon-button -mr-1 -mt-1 text-gray-400 hover:text-deal"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <div className="mt-2 flex flex-wrap items-baseline gap-2">
+                    <span className="font-display text-xl font-black">
+                      {inr(product.finalPricePaise)}
+                    </span>
+                    {product.discountPercent > 0 && (
+                      <span className="text-xs font-semibold text-gray-400 line-through">
+                        {inr(product.pricePaise)}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="mt-3 inline-flex items-center rounded-xl border border-black/10 bg-white p-0.5 dark:border-white/15 dark:bg-white/[0.04]">
+                    <button
+                      type="button"
+                      onClick={() => changeQuantity(product.id, quantity - 1)}
+                      disabled={busy}
+                      aria-label="Decrease quantity"
+                      className="grid h-8 w-8 place-items-center rounded-lg text-accent hover:bg-mist dark:hover:bg-white/10"
+                    >
+                      <Minus className="h-3.5 w-3.5" />
+                    </button>
+                    <span
+                      className="w-8 text-center text-xs font-extrabold"
+                      aria-live="polite"
+                    >
+                      {busy ? <Spinner /> : quantity}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => changeQuantity(product.id, quantity + 1)}
+                      disabled={busy || quantity >= product.maxQuantity}
+                      aria-label="Increase quantity"
+                      className="grid h-8 w-8 place-items-center rounded-lg text-accent hover:bg-mist dark:hover:bg-white/10"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+
+        <aside
+          className="card p-5 lg:sticky lg:top-32 sm:p-6"
+          aria-label="Price summary"
+        >
+          <h2 className="font-display text-xl font-bold">Order summary</h2>
+          <div className="mt-5 space-y-3 text-sm">
+            <SummaryRow
+              label={`MRP (${itemCount} items)`}
+              value={inr(mrpTotal)}
+            />
+            {savings > 0 && (
+              <SummaryRow
+                label="Product discount"
+                value={`−${inr(savings)}`}
+                accent
+              />
+            )}
+            <SummaryRow label="Delivery" value="Free" accent />
+          </div>
+          <div className="my-5 border-t border-dashed border-black/15 dark:border-white/15" />
+          <div className="flex items-end justify-between">
+            <span className="font-extrabold">Total</span>
+            <span className="font-display text-2xl font-black">
+              {inr(cart.totalPaise)}
+            </span>
+          </div>
+          {savings > 0 && (
+            <p className="mt-3 rounded-xl bg-accent/[0.07] px-3 py-2 text-center text-xs font-extrabold text-accent">
+              You save {inr(savings)} on this order
+            </p>
+          )}
+          {hasBlockedItems ? (
+            <p className="mt-5 rounded-xl bg-deal/10 px-3 py-2.5 text-center text-xs font-extrabold text-deal">
+              Remove or reduce the marked items to continue.
+            </p>
+          ) : (
+            <Link href="/checkout" className="btn-primary mt-5 w-full">
+              Continue to checkout <ArrowRight className="h-4 w-4" />
+            </Link>
+          )}
+        </aside>
+      </div>
+    </CartShell>
+  );
+}
+
+function CartShell({
+  children,
+  itemCount,
+}: {
+  children: React.ReactNode;
+  itemCount?: number;
+}) {
+  return (
+    <div className="pb-12 pt-6 sm:pt-8">
+      <CheckoutSteps current={1} />
+      <div className="mb-5 flex items-end justify-between gap-4">
+        <h1 className="font-display text-3xl font-bold">Shopping cart</h1>
+        {itemCount !== undefined && (
+          <p className="text-sm font-bold text-gray-500">
+            {itemCount} {itemCount === 1 ? "item" : "items"}
+          </p>
+        )}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function SummaryRow({
+  label,
+  value,
+  accent = false,
+}: {
+  label: string;
+  value: string;
+  accent?: boolean;
+}) {
+  return (
+    <div className="flex justify-between gap-4">
+      <span className="text-gray-500">{label}</span>
+      <span className={`font-extrabold ${accent ? "text-accent" : ""}`}>
+        {value}
+      </span>
+    </div>
+  );
+}
