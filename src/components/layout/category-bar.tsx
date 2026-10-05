@@ -28,41 +28,43 @@ export function CategoryBar({ categories }: { categories: Category[] }) {
       aria-label="Product categories"
       className="relative z-30 hidden border-b border-sand bg-white dark:border-white/10 dark:bg-night md:block"
     >
-      <div className="mx-auto flex max-w-7xl items-start justify-between gap-1 overflow-x-auto px-5 py-1.5 scrollbar-thin lg:px-8">
-        <button
-          type="button"
-          onClick={() => setOpen((value) => !value)}
-          aria-expanded={open}
-          className="flex w-[72px] shrink-0 flex-col items-center gap-1 rounded-xl py-1 text-center text-[11px] font-bold leading-tight hover:bg-mist dark:hover:bg-white/10"
-        >
-          <span className="grid h-10 w-10 place-items-center rounded-full bg-accent text-white">
-            <LayoutGrid className="h-4 w-4" />
-          </span>
-          <span className="flex items-center gap-0.5">
-            {uiText(language, "allCategories")}
-            <ChevronDown className="h-3 w-3" />
-          </span>
-        </button>
-
-        {categories.map((category, index) => (
-          <Link
-            key={category.id}
-            href={catalogHref(category)}
-            className="flex w-[72px] shrink-0 flex-col items-center gap-1 rounded-xl py-1 text-center text-[11px] font-semibold leading-tight text-gray-600 transition hover:bg-mist hover:text-accent dark:text-gray-300 dark:hover:bg-white/10"
+      <div className="mx-auto max-w-7xl overflow-x-auto px-5 py-2 scrollbar-thin lg:px-8">
+        <div className="mx-auto flex w-max items-start gap-1.5">
+          <button
+            type="button"
+            onClick={() => setOpen((value) => !value)}
+            aria-expanded={open}
+            className="flex w-[72px] shrink-0 flex-col items-center gap-1 rounded-xl py-1 text-center text-[11px] font-bold leading-tight hover:bg-mist dark:hover:bg-white/10"
           >
-            <span
-              className={`relative h-10 w-10 overflow-hidden rounded-full ring-2 ring-white ${tint(index)}`}
-            >
-              <SafeImage
-                src={category.image}
-                alt=""
-                sizes="40px"
-                className="rounded-full object-cover"
-              />
+            <span className="grid h-12 w-12 place-items-center rounded-full bg-accent text-white">
+              <LayoutGrid className="h-4 w-4" />
             </span>
-            {category.name}
-          </Link>
-        ))}
+            <span className="flex items-center gap-0.5">
+              {uiText(language, "allCategories")}
+              <ChevronDown className="h-3 w-3" />
+            </span>
+          </button>
+
+          {categories.map((category, index) => (
+            <Link
+              key={category.id}
+              href={catalogHref(category)}
+              className="group flex w-[72px] shrink-0 flex-col items-center gap-1 rounded-xl py-1 text-center text-[11px] font-semibold leading-tight text-gray-600 transition hover:bg-mist hover:text-accent dark:text-gray-300 dark:hover:bg-white/10"
+            >
+              <span
+                className={`relative h-12 w-12 overflow-hidden rounded-full ring-2 ring-white transition group-hover:ring-accent ${tint(index)}`}
+              >
+                <SafeImage
+                  src={category.image}
+                  alt=""
+                  sizes="48px"
+                  className="rounded-full object-cover"
+                />
+              </span>
+              {category.name}
+            </Link>
+          ))}
+        </div>
       </div>
 
       {open && (

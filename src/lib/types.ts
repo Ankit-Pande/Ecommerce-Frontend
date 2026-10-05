@@ -110,8 +110,19 @@ export type Order = {
   paymentStatus: PaymentStatus;
   paymentMethod: PaymentMethod;
   paymentExpiresAt: string | null;
+  cancelledBy: "USER" | "ADMIN" | "SYSTEM" | null;
   createdAt: string;
   items: OrderItem[];
+};
+
+export type OrderDetail = Order & {
+  shipName: string;
+  shipPhone: string;
+  shipLine1: string;
+  shipLine2: string | null;
+  shipCity: string;
+  shipState: string;
+  shipPincode: string;
 };
 
 export type PaymentDetails = {
@@ -195,6 +206,7 @@ export type AdminOrder = {
   paymentStatus: PaymentStatus;
   paymentMethod: PaymentMethod;
   needsReview: boolean;
+  cancelledBy: Order["cancelledBy"];
   createdAt: string;
   shipName: string;
   shipPhone: string;

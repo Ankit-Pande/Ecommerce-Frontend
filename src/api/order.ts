@@ -2,6 +2,7 @@ import { http } from "@/api/http";
 import type {
   ApiData,
   Order,
+  OrderDetail,
   Paginated,
   PaymentDetails,
   PaymentMethod,
@@ -21,11 +22,21 @@ export async function checkout(input: CheckoutInput) {
   ).data;
 }
 
-// User's orders.
-export function listOrders(cursor?: string) {
-  const params = new URLSearchParams({ limit: "10" });
+const OPEN_STATUSES = "PENDING,CONFIRMED,SHIPPED,DELIVERED";
+
+// User's orders: active ones, or only the cancelled ones.
+export function listOrders(cancelled: boolean, cursor?: string) {
+  const params = new URLSearchParams({
+    limit: "10",
+    status: cancelled ? "CANCELLED" : OPEN_STATUSES,
+  });
   if (cursor) params.set("cursor", cursor);
   return http.get<Paginated<Order>>(`/api/order?${params}`);
+}
+
+// One order with photos, address and payment.
+export async function getOrder(id: string) {
+  return (await http.get<ApiData<OrderDetail>>(`/api/order/${id}`)).data;
 }
 
 // Cancels an order.

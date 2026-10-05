@@ -5,6 +5,7 @@ import { BottomNav } from "@/components/layout/bottom-nav";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { Toaster } from "@/components/ui/toaster";
+import { ChatWidget } from "@/features/assistant/chat-widget";
 
 import type { Category } from "@/lib/types";
 
@@ -38,6 +39,7 @@ export function AppShell({
       </main>
       <SiteFooter categories={categories} />
       <BottomNav />
+      <ChatWidget />
       <Toaster />
     </>
   );

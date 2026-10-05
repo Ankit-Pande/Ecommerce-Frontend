@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Check, ShoppingBag, Zap } from "lucide-react";
 import { addToCart } from "@/api/cart";
@@ -23,6 +22,7 @@ export function AddToCart({
 }) {
   const [adding, setAdding] = useState(false);
   const [added, setAdded] = useState(false);
+  const [buying, setBuying] = useState(false);
   const router = useRouter();
   const loggedIn = useAuthStore((state) => Boolean(state.accessToken));
   const hydrated = useAuthStore((state) => state.hydrated);
@@ -78,12 +78,17 @@ export function AddToCart({
           ))}
         {adding ? "Adding..." : added ? "Added" : "Add to cart"}
       </Button>
-      <Link
-        href={buyNowHref}
-        className="btn-primary bg-deal px-3 shadow-none hover:bg-orange-600 sm:px-5"
+      <Button
+        onClick={() => {
+          setBuying(true);
+          router.push(buyNowHref);
+        }}
+        loading={buying}
+        disabled={!hydrated}
+        className="bg-deal px-3 shadow-none hover:bg-orange-600 sm:px-5"
       >
-        <Zap className="h-4 w-4" /> Buy now
-      </Link>
+        {!buying && <Zap className="h-4 w-4" />} Buy now
+      </Button>
     </div>
   );
 }

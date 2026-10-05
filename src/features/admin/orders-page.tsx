@@ -176,10 +176,17 @@ export default function AdminOrders() {
                               : "Unpaid"}
                         </span>
                       </div>
-                      <span
-                        className={`status-pill w-fit ${STATUS_STYLE[order.status]}`}
-                      >
-                        {order.status}
+                      <span>
+                        <span
+                          className={`status-pill w-fit ${STATUS_STYLE[order.status]}`}
+                        >
+                          {order.status}
+                        </span>
+                        {order.cancelledBy && (
+                          <span className="mt-1 block text-[11px] text-gray-500">
+                            by {order.cancelledBy.toLowerCase()}
+                          </span>
+                        )}
                       </span>
                       <p className="text-xs text-gray-500">
                         {formatDate(order.createdAt)}
