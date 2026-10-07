@@ -333,6 +333,6 @@ function pageTitle(
   }
   if (section === "trending") return "Trending now";
   if (section === "featured") return "Featured for you";
-  if (discount) return "Today's best deals";
+  if (discount) return "Festival sale & best deals";
   return "All products";
 }

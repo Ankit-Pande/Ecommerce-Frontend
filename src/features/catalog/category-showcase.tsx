@@ -6,8 +6,6 @@ import { catalogHref } from "@/lib/format";
 import { tint } from "@/lib/tints";
 import type { Category } from "@/lib/types";
 
-const MAX_CATEGORIES = 12;
-
 // Colourful category tiles on the home page.
 export function CategoryShowcase({ categories }: { categories: Category[] }) {
   if (categories.length === 0) return null;
@@ -17,7 +15,7 @@ export function CategoryShowcase({ categories }: { categories: Category[] }) {
       <SectionHeader title="Shop our top categories" href="/products" />
 
       <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6 lg:gap-4">
-        {categories.slice(0, MAX_CATEGORIES).map((category, index) => (
+        {categories.map((category, index) => (
           <Link
             key={category.id}
             href={catalogHref(category)}

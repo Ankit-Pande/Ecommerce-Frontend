@@ -6,7 +6,7 @@ import { RefreshCw } from "lucide-react";
 import { ProductScroller } from "./product-scroller";
 import { CardSkeleton } from "@/components/ui/skeletons";
 
-const SHELVES = ["Trending now", "Discount offers", "New arrivals"];
+const SHELVES = ["Trending now", "Festival sale & best deals", "New arrivals"];
 
 // Shown when the home API does not answer.
 export function HomeRetry() {

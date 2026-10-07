@@ -14,7 +14,6 @@ import { ProductScroller } from "./product-scroller";
 import type { Category, Product } from "@/lib/types";
 
 const PRODUCTS_PER_SHELF = 10;
-const MAX_SHELVES = 8;
 const MAX_CHIPS = 6;
 
 // One shelf per category with subcategory chips; each loads only when scrolled near.
@@ -23,9 +22,9 @@ export function LazyCategoryShelves({
 }: {
   categories: Category[];
 }) {
-  return categories
-    .slice(0, MAX_SHELVES)
-    .map((category) => <CategoryShelf key={category.id} category={category} />);
+  return categories.map((category) => (
+    <CategoryShelf key={category.id} category={category} />
+  ));
 }
 
 // Loads its products only when scrolled near.

@@ -78,10 +78,10 @@ export function HomeContent({ home }: { home: HomeData }) {
       {home.offers.length > 0 && (
         <section className="mt-10 rounded-3xl bg-gradient-to-br from-orange-50 to-pink-50 px-4 pb-5 pt-1 dark:from-white/[0.04] dark:to-white/[0.02] sm:mt-14 sm:px-6">
           <SectionHeader
-            title="Today's best deals"
+            title="Festival sale & best deals"
             href="/products?discount=true"
           />
-          <ProductScroller label="Today's best deals">
+          <ProductScroller label="Festival sale and best deals">
             {home.offers.slice(0, PRODUCTS_PER_SECTION).map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
