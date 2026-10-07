@@ -185,7 +185,7 @@ export function CheckoutPage() {
           onError={() => toast.error("Secure payment service could not load")}
         />
       )}
-      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-7">
+      <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-5 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-7">
         <div className="space-y-5">
           <Section
             icon={MapPin}
@@ -270,7 +270,7 @@ export function CheckoutPage() {
               {lines.map((line) => (
                 <li
                   key={line.productId}
-                  className="flex items-center gap-3 py-3 first:pt-0 last:pb-0"
+                  className="flex flex-wrap items-center gap-3 py-3 first:pt-0 last:pb-0"
                 >
                   <span className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-mist dark:bg-white/[0.06]">
                     <SafeImage

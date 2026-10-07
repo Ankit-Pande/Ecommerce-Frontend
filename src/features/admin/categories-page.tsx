@@ -87,7 +87,7 @@ export default function AdminCategories() {
   }
 
   return (
-    <div className="grid items-start gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
+    <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
       <form
         onSubmit={create}
         className="rounded-2xl border border-sand p-5 dark:border-white/10 xl:sticky xl:top-32"

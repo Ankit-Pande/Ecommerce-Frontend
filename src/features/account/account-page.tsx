@@ -179,7 +179,7 @@ export function AccountPage() {
 
   return (
     <AccountShell onLogout={handleLogout}>
-      <div className="grid items-start gap-6 lg:grid-cols-[340px_minmax(0,1fr)]">
+      <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-6 lg:grid-cols-[340px_minmax(0,1fr)]">
         <form
           onSubmit={saveProfile}
           className="card overflow-hidden lg:sticky lg:top-32"
