@@ -9,7 +9,7 @@ import { ChatWidget } from "@/features/assistant/chat-widget";
 
 import type { Category } from "@/lib/types";
 
-// Store layout with header and footer; admin pages get their own layout.
+// Store layout; product and checkout pages hide the bottom nav so it never covers their buttons.
 export function AppShell({
   categories,
   children,
@@ -19,6 +19,8 @@ export function AppShell({
 }) {
   const pathname = usePathname();
   const isAdminPage = pathname.startsWith("/admin");
+  const isBuyPage =
+    pathname.startsWith("/products/") || pathname === "/checkout";
 
   if (isAdminPage) {
     return (
@@ -38,8 +40,8 @@ export function AppShell({
         {children}
       </main>
       <SiteFooter categories={categories} />
-      <BottomNav />
-      <ChatWidget />
+      {!isBuyPage && <BottomNav />}
+      {pathname !== "/checkout" && <ChatWidget />}
       <Toaster />
     </>
   );
