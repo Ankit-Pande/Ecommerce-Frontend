@@ -55,7 +55,6 @@ export function ChatWidget() {
     setThinking(true);
     try {
       const answer = await askAssistant(sent, options);
-      const nextPage = (options.page ?? 0) + 1;
       setMessages([
         ...shown,
         {
@@ -63,7 +62,9 @@ export function ChatWidget() {
           content: answer.reply,
           products: answer.products,
           confirm: answer.confirm,
-          more: answer.hasMore ? { history: sent, page: nextPage } : undefined,
+          more: answer.hasMore
+            ? { history: sent, page: (options.page ?? 0) + 1 }
+            : undefined,
         },
       ]);
     } catch (error) {
@@ -104,7 +105,7 @@ export function ChatWidget() {
   function answerConfirm(yes: boolean) {
     if (thinking) return;
     const next: ChatMessage[] = [
-      ...messages.map((m) => ({ ...m, confirm: undefined })),
+      ...messages,
       { role: "user", content: yes ? "Yes, confirm" : "No, cancel" },
     ];
     void ask(next, next.slice(-HISTORY_SENT), { confirm: yes });
