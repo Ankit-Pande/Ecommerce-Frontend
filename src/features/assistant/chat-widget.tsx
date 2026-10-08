@@ -12,6 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { askAssistant, type ChatMessage } from "@/api/assistant";
+import { errorMessage } from "@/api/http";
 import { SafeImage } from "@/components/ui/safe-image";
 import { inr } from "@/lib/format";
 import { useAuthStore } from "@/store/auth-store";
@@ -44,32 +45,69 @@ export function ChatWidget() {
     });
   }, [messages, thinking]);
 
-  // Sends one question and appends the answer (or a friendly error).
-  async function send(question: string) {
-    const content = question.trim().slice(0, MAX_LENGTH);
-    if (!content || thinking) return;
-    const next: ChatMessage[] = [...messages, { role: "user", content }];
-    setMessages(next);
-    setText("");
+  // Sends `sent` to the assistant and shows the reply after `shown`.
+  async function ask(
+    shown: ChatMessage[],
+    sent: ChatMessage[],
+    options: { page?: number; confirm?: boolean } = {},
+  ) {
+    setMessages(shown);
     setThinking(true);
     try {
-      const answer = await askAssistant(next.slice(-HISTORY_SENT));
+      const answer = await askAssistant(sent, options);
+      const nextPage = (options.page ?? 0) + 1;
       setMessages([
-        ...next,
-        { role: "assistant", content: answer.reply, products: answer.products },
-      ]);
-    } catch {
-      setMessages([
-        ...next,
+        ...shown,
         {
           role: "assistant",
-          content:
+          content: answer.reply,
+          products: answer.products,
+          confirm: answer.confirm,
+          more: answer.hasMore ? { history: sent, page: nextPage } : undefined,
+        },
+      ]);
+    } catch (error) {
+      setMessages([
+        ...shown,
+        {
+          role: "assistant",
+          content: errorMessage(
+            error,
             "Sorry, I could not answer right now. Please try again in a moment.",
+          ),
         },
       ]);
     } finally {
       setThinking(false);
     }
+  }
+
+  // Sends one typed question.
+  function send(question: string) {
+    const content = question.trim().slice(0, MAX_LENGTH);
+    if (!content || thinking) return;
+    setText("");
+    const next: ChatMessage[] = [...messages, { role: "user", content }];
+    void ask(next, next.slice(-HISTORY_SENT));
+  }
+
+  // Loads the next 5 products of the same earlier question.
+  function showMore(more: NonNullable<ChatMessage["more"]>) {
+    if (thinking) return;
+    const shown = messages.map((m) =>
+      m.more === more ? { ...m, more: undefined } : m,
+    );
+    void ask(shown, more.history, { page: more.page });
+  }
+
+  // Answers the assistant's "confirm?" question.
+  function answerConfirm(yes: boolean) {
+    if (thinking) return;
+    const next: ChatMessage[] = [
+      ...messages.map((m) => ({ ...m, confirm: undefined })),
+      { role: "user", content: yes ? "Yes, confirm" : "No, cancel" },
+    ];
+    void ask(next, next.slice(-HISTORY_SENT), { confirm: yes });
   }
 
   return (
@@ -151,9 +189,7 @@ export function ChatWidget() {
                     <button
                       key={suggestion}
                       type="button"
-                      onClick={() =>
-                        loggedIn ? send(suggestion) : setText(suggestion)
-                      }
+                      onClick={() => send(suggestion)}
                       className="rounded-full border border-accent/30 bg-white px-3 py-1.5 text-xs font-semibold text-accent transition hover:bg-accent hover:text-white dark:bg-white/5"
                     >
                       {suggestion}
@@ -205,6 +241,36 @@ export function ChatWidget() {
                       ))}
                     </div>
                   )}
+                  {message.more && (
+                    <button
+                      type="button"
+                      onClick={() => showMore(message.more!)}
+                      disabled={thinking}
+                      className="mt-2 rounded-full border border-accent/30 bg-white px-3 py-1.5 text-xs font-semibold text-accent transition hover:bg-accent hover:text-white disabled:opacity-50 dark:bg-white/5"
+                    >
+                      Next 5 products
+                    </button>
+                  )}
+                  {message.confirm && index === messages.length - 1 && (
+                    <div className="mt-2 flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => answerConfirm(true)}
+                        disabled={thinking}
+                        className="rounded-full bg-accent px-4 py-1.5 text-xs font-bold text-white transition hover:bg-accent-dark disabled:opacity-50"
+                      >
+                        Confirm
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => answerConfirm(false)}
+                        disabled={thinking}
+                        className="rounded-full border border-sand bg-white px-4 py-1.5 text-xs font-bold text-ink transition hover:border-accent disabled:opacity-50 dark:border-white/10 dark:bg-white/5 dark:text-gray-100"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -222,13 +288,13 @@ export function ChatWidget() {
             )}
           </div>
 
-          {loggedIn ? (
+          <div className="border-t border-sand p-3 dark:border-white/10">
             <form
               onSubmit={(event) => {
                 event.preventDefault();
                 void send(text);
               }}
-              className="flex items-center gap-2 border-t border-sand p-3 dark:border-white/10"
+              className="flex items-center gap-2"
             >
               <input
                 value={text}
@@ -247,20 +313,19 @@ export function ChatWidget() {
                 <SendHorizontal className="h-5 w-5" />
               </button>
             </form>
-          ) : (
-            <div className="border-t border-sand p-4 text-center dark:border-white/10">
-              <p className="text-sm text-gray-500">
-                Log in to chat with the assistant.
+            {!loggedIn && (
+              <p className="mt-2 text-center text-[11px] text-gray-500">
+                <Link
+                  href={`/login?next=${encodeURIComponent(pathname)}`}
+                  onClick={() => setOpen(false)}
+                  className="font-semibold text-accent"
+                >
+                  Log in
+                </Link>{" "}
+                for cart, orders and smarter answers.
               </p>
-              <Link
-                href={`/login?next=${encodeURIComponent(pathname)}`}
-                onClick={() => setOpen(false)}
-                className="btn-primary mt-3 w-full"
-              >
-                Log in
-              </Link>
-            </div>
-          )}
+            )}
+          </div>
         </section>
       )}
     </>
