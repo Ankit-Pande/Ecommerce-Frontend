@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Script from "next/script";
-import { ArrowLeft, CreditCard, MapPin, XCircle } from "lucide-react";
+import { ArrowLeft, CreditCard, MapPin, Truck, XCircle } from "lucide-react";
 import { getOrder } from "@/api/order";
 import { Button } from "@/components/ui/button";
 import { OfflineNotice } from "@/components/ui/offline-notice";
@@ -23,7 +23,29 @@ import {
 } from "./order-parts";
 import type { OrderDetail } from "@/lib/types";
 
-// Order page: product photos, progress, who cancelled, address and payment.
+const DELIVERY_DAYS = 5;
+
+// One line about where the order is now and when it will arrive.
+function deliveryText(order: OrderDetail) {
+  const expected = new Date(order.createdAt);
+  expected.setDate(expected.getDate() + DELIVERY_DAYS);
+  const by = expected.toLocaleDateString("en-IN", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  });
+  if (order.status === "PENDING")
+    return `Waiting for payment. Delivery by ${by} after payment.`;
+  if (order.status === "CONFIRMED")
+    return `Order confirmed and being packed. Delivery by ${by}.`;
+  if (order.status === "SHIPPED")
+    return `On the way to you. Delivery by ${by}.`;
+  if (order.status === "DELIVERED")
+    return `Delivered on ${formatDate(order.updatedAt)}.`;
+  return "This order was cancelled.";
+}
+
+// Order page: where it is, delivery date, product photos, address and payment.
 export function OrderDetailPage({ id }: { id: string }) {
   const { ready } = useAuthGuard();
   const [order, setOrder] = useState<OrderDetail | null>(null);
@@ -78,6 +100,13 @@ export function OrderDetailPage({ id }: { id: string }) {
               </p>
             )}
 
+            {order.status !== "CANCELLED" && (
+              <p className="mt-4 flex items-center gap-2 rounded-xl bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-800 dark:bg-blue-400/10 dark:text-blue-300">
+                <Truck className="h-4 w-4 shrink-0" />
+                {deliveryText(order)}
+              </p>
+            )}
+
             <div className="mt-5">
               <OrderTracker status={order.status} />
             </div>
@@ -85,28 +114,37 @@ export function OrderDetailPage({ id }: { id: string }) {
             <ul className="space-y-3">
               {order.items.map((item, index) => (
                 <li
-                  key={`${item.productName}-${index}`}
-                  className="flex items-center gap-4 rounded-2xl bg-mist/60 p-3 dark:bg-white/[0.04]"
+                  key={`${item.productId}-${index}`}
+                  className="flex items-start gap-4 rounded-2xl bg-mist/60 p-3 dark:bg-white/[0.04]"
                 >
-                  <span className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-white dark:bg-white/10">
+                  <Link
+                    href={`/products/${item.product.slug}`}
+                    className="relative h-28 w-28 shrink-0 overflow-hidden rounded-xl bg-white dark:bg-white/10 sm:h-36 sm:w-36"
+                  >
                     <SafeImage
                       src={item.productImage}
                       alt={item.productName}
-                      sizes="80px"
-                      className="object-contain p-1.5"
+                      sizes="144px"
+                      className="object-contain p-2"
                     />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="line-clamp-2 text-sm font-bold">
+                  </Link>
+                  <div className="min-w-0 flex-1">
+                    <Link
+                      href={`/products/${item.product.slug}`}
+                      className="line-clamp-2 text-sm font-bold hover:text-accent"
+                    >
                       {item.productName}
-                    </span>
-                    <span className="mt-1 block text-xs text-gray-500">
+                    </Link>
+                    <p className="mt-1 line-clamp-2 text-xs leading-5 text-gray-500">
+                      {item.product.description}
+                    </p>
+                    <p className="mt-2 text-xs text-gray-500">
                       Qty {item.quantity} × {inr(item.pricePaise)}
-                    </span>
-                  </span>
-                  <span className="font-extrabold">
-                    {inr(item.pricePaise * item.quantity)}
-                  </span>
+                    </p>
+                    <p className="mt-1 font-extrabold">
+                      {inr(item.pricePaise * item.quantity)}
+                    </p>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -146,6 +184,14 @@ export function OrderDetailPage({ id }: { id: string }) {
                     {PAYMENT_LABEL[order.paymentStatus]}
                   </dd>
                 </div>
+                {order.paymentMethod === "COD" &&
+                  order.paymentStatus === "PENDING" &&
+                  order.status !== "CANCELLED" && (
+                    <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800 dark:bg-amber-400/10 dark:text-amber-300">
+                      Pay {inr(order.totalPaise)} in cash when the order
+                      arrives.
+                    </p>
+                  )}
                 <div className="flex justify-between">
                   <dt className="text-gray-500">Delivery</dt>
                   <dd className="font-bold text-leaf">Free</dd>

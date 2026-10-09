@@ -165,11 +165,16 @@ export function CartPage() {
 
                   <div className="mt-2 flex flex-wrap items-baseline gap-2">
                     <span className="font-display text-xl font-black">
-                      {inr(product.finalPricePaise)}
+                      {inr(product.finalPricePaise * quantity)}
                     </span>
                     {product.discountPercent > 0 && (
                       <span className="text-xs font-semibold text-gray-400 line-through">
-                        {inr(product.pricePaise)}
+                        {inr(product.pricePaise * quantity)}
+                      </span>
+                    )}
+                    {quantity > 1 && (
+                      <span className="text-xs text-gray-500">
+                        {inr(product.finalPricePaise)} each
                       </span>
                     )}
                   </div>

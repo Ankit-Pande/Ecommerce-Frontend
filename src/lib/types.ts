@@ -115,7 +115,12 @@ export type Order = {
   items: OrderItem[];
 };
 
-export type OrderDetail = Order & {
+export type OrderDetail = Omit<Order, "items"> & {
+  updatedAt: string;
+  items: (OrderItem & {
+    productId: string;
+    product: { slug: string; description: string };
+  })[];
   shipName: string;
   shipPhone: string;
   shipLine1: string;

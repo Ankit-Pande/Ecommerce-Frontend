@@ -1,23 +1,15 @@
 import type { Metadata } from "next";
-import { Inter, Plus_Jakarta_Sans } from "next/font/google";
+import { Roboto } from "next/font/google";
 import { AppShell } from "@/components/layout/app-shell";
 import { Providers } from "@/components/layout/providers";
 import { getHomeOnServer } from "@/api/catalog";
 import "./globals.css";
 import { SITE_URL } from "@/lib/site";
 
-const displayFont = Plus_Jakarta_Sans({
-  weight: ["600", "700", "800"],
-  subsets: ["latin"],
-  variable: "--font-display",
-  preload: false,
-  display: "swap",
-});
-
-const bodyFont = Inter({
+const roboto = Roboto({
+  weight: ["400", "500", "700", "900"],
   subsets: ["latin"],
   variable: "--font-body",
-  preload: false,
   display: "swap",
 });
 
@@ -58,7 +50,7 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${displayFont.variable} ${bodyFont.variable} font-body antialiased`}
+        className={`${roboto.variable} font-body antialiased`}
       >
         <Providers>
           <AppShell categories={categories}>{children}</AppShell>

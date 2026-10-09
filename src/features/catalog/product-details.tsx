@@ -71,10 +71,7 @@ export function ProductDetails({ product }: { product: ProductDetail }) {
               </Link>
             )}
             {product.color && (
-              <Link
-                href={`${categoryLink}&color=${encodeURIComponent(product.color)}`}
-                className="inline-flex items-center gap-1.5 rounded-full bg-mist px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-gray-600 transition hover:text-accent dark:bg-white/[0.07] dark:text-gray-300"
-              >
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-mist px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-gray-600 dark:bg-white/[0.07] dark:text-gray-300">
                 {swatch && (
                   <span
                     className="h-3 w-3 rounded-full border border-black/15"
@@ -82,7 +79,7 @@ export function ProductDetails({ product }: { product: ProductDetail }) {
                   />
                 )}
                 {product.color}
-              </Link>
+              </span>
             )}
           </div>
 

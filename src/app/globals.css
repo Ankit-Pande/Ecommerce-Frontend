@@ -3,17 +3,17 @@
 @tailwind utilities;
 
 @layer base {
-  /* Default look "Blue": white pages, vivid blue actions, orange deals. */
+  /* Default look: light grey page, white boxes, blue actions, orange deals. */
   :root {
-    --color-chrome: 15 27 61;
-    --color-accent: 30 85 214;
-    --color-accent-dark: 22 63 166;
-    --color-gold: 245 165 36;
-    --color-ivory: 245 247 251;
+    --color-chrome: 33 33 33;
+    --color-accent: 40 116 240;
+    --color-accent-dark: 30 94 200;
+    --color-gold: 255 159 0;
+    --color-ivory: 241 243 246;
     --color-night: 11 15 25;
-    --color-ink: 17 24 39;
-    --color-mist: 238 242 250;
-    --color-sand: 228 232 240;
+    --color-ink: 33 33 33;
+    --color-mist: 245 247 250;
+    --color-sand: 224 224 224;
   }
 
   :root[data-color="green"] {
@@ -62,34 +62,34 @@
 
 @layer components {
   .card {
-    @apply rounded-2xl border border-sand/80 bg-white shadow-card dark:border-white/10 dark:bg-white/[0.04];
+    @apply rounded-md border border-sand/70 bg-white shadow-card dark:border-white/10 dark:bg-white/[0.04];
   }
 
   .field {
-    @apply min-h-11 w-full rounded-xl border border-sand bg-white px-3.5 py-2.5 text-sm text-ink outline-none transition
+    @apply min-h-11 w-full rounded border border-sand bg-white px-3.5 py-2.5 text-sm text-ink outline-none transition
       placeholder:text-gray-400 hover:border-black/20 focus:border-accent dark:border-white/15 dark:bg-white/[0.06] dark:text-white dark:hover:border-white/25;
   }
 
   .btn-primary {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-extrabold text-white shadow-button
-      transition hover:-translate-y-0.5 hover:bg-accent-dark hover:shadow-soft active:translate-y-0 disabled:translate-y-0 disabled:opacity-50;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-sm bg-accent px-5 py-2.5 text-sm font-bold uppercase tracking-wide text-white shadow-button
+      transition hover:bg-accent-dark disabled:opacity-50;
   }
 
   .btn-outline {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-accent/30 bg-white px-5 py-2.5 text-sm font-extrabold text-accent
-      transition hover:-translate-y-0.5 hover:border-accent/40 hover:bg-accent/10 active:translate-y-0 disabled:translate-y-0 disabled:opacity-50 dark:text-sky-300;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-sm border border-sand bg-white px-5 py-2.5 text-sm font-bold uppercase tracking-wide text-ink
+      transition hover:border-accent hover:text-accent disabled:opacity-50 dark:bg-transparent dark:text-sky-300;
   }
 
   .btn-ghost {
-    @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-full px-3.5 py-2 text-sm font-bold text-gray-600 transition hover:bg-black/[0.05] hover:text-ink dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white;
+    @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-sm px-3.5 py-2 text-sm font-bold text-gray-600 transition hover:bg-black/[0.05] hover:text-ink dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white;
   }
 
   .icon-button {
-    @apply inline-grid h-10 w-10 shrink-0 place-items-center rounded-xl transition hover:bg-black/[0.06] dark:hover:bg-white/10;
+    @apply inline-grid h-10 w-10 shrink-0 place-items-center rounded transition hover:bg-black/[0.06] dark:hover:bg-white/10;
   }
 
   .section-title {
-    @apply font-display text-xl font-bold tracking-tight sm:text-2xl;
+    @apply font-display text-lg font-medium sm:text-xl;
   }
 
   .eyebrow {
@@ -97,7 +97,7 @@
   }
 
   .status-pill {
-    @apply inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-wide;
+    @apply inline-flex items-center rounded-sm px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide;
   }
 }
 
