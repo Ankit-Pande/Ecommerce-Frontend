@@ -190,6 +190,59 @@ export function CheckoutPage() {
       )}
       <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-5 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-7">
         <div className="space-y-5">
+          <Section icon={Package} title={buySlug ? "Buying now" : "Items"}>
+            <ul className="divide-y divide-sand dark:divide-white/10">
+              {lines.map((line) => (
+                <li
+                  key={line.productId}
+                  className="flex flex-wrap items-center gap-3 py-3 first:pt-0 last:pb-0"
+                >
+                  <span className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-mist dark:bg-white/[0.06]">
+                    <SafeImage
+                      src={line.image}
+                      alt=""
+                      sizes="96px"
+                      className="object-contain p-1.5"
+                    />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <Link
+                      href={`/products/${line.slug}`}
+                      className="line-clamp-2 text-base font-bold hover:text-accent"
+                    >
+                      {line.name}
+                    </Link>
+                    <p className="mt-1 text-sm">
+                      <span className="font-bold">{inr(line.finalPaise)}</span>
+                      {line.mrpPaise > line.finalPaise && (
+                        <span className="ml-2 text-xs text-gray-400 line-through">
+                          {inr(line.mrpPaise)}
+                        </span>
+                      )}
+                    </p>
+                    {!line.available && (
+                      <p className="mt-0.5 text-xs font-bold text-deal">
+                        Out of stock
+                      </p>
+                    )}
+                  </div>
+                  {buySlug ? (
+                    <QuantityStepper
+                      value={line.quantity}
+                      onChange={changeBuyQuantity}
+                    />
+                  ) : (
+                    <span className="text-xs text-gray-500">
+                      × {line.quantity}
+                    </span>
+                  )}
+                  <span className="w-20 shrink-0 text-right text-sm font-bold">
+                    {inr(line.finalPaise * line.quantity)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </Section>
           <Section
             icon={MapPin}
             title="Delivery address"
@@ -266,52 +319,6 @@ export function CheckoutPage() {
 
           <Section icon={WalletCards} title="Payment method">
             <PaymentMethods value={paymentChoice} onChange={setPaymentChoice} />
-          </Section>
-
-          <Section icon={Package} title={buySlug ? "Buying now" : "Items"}>
-            <ul className="divide-y divide-sand dark:divide-white/10">
-              {lines.map((line) => (
-                <li
-                  key={line.productId}
-                  className="flex flex-wrap items-center gap-3 py-3 first:pt-0 last:pb-0"
-                >
-                  <span className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-mist dark:bg-white/[0.06]">
-                    <SafeImage
-                      src={line.image}
-                      alt=""
-                      sizes="64px"
-                      className="object-contain p-1.5"
-                    />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <Link
-                      href={`/products/${line.slug}`}
-                      className="line-clamp-2 text-sm font-bold hover:text-accent"
-                    >
-                      {line.name}
-                    </Link>
-                    {!line.available && (
-                      <p className="mt-0.5 text-xs font-bold text-deal">
-                        Out of stock
-                      </p>
-                    )}
-                  </div>
-                  {buySlug ? (
-                    <QuantityStepper
-                      value={line.quantity}
-                      onChange={changeBuyQuantity}
-                    />
-                  ) : (
-                    <span className="text-xs text-gray-500">
-                      × {line.quantity}
-                    </span>
-                  )}
-                  <span className="w-20 shrink-0 text-right text-sm font-bold">
-                    {inr(line.finalPaise * line.quantity)}
-                  </span>
-                </li>
-              ))}
-            </ul>
           </Section>
         </div>
 

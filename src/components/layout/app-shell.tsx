@@ -9,7 +9,7 @@ import { ChatWidget } from "@/features/assistant/chat-widget";
 
 import type { Category } from "@/lib/types";
 
-// Page layout; bottom nav is hidden on product and checkout pages.
+// Page layout; bottom nav is hidden on product and checkout pages, chat button on cart and checkout.
 export function AppShell({
   categories,
   children,
@@ -41,7 +41,7 @@ export function AppShell({
       </main>
       <SiteFooter categories={categories} />
       {!isBuyPage && <BottomNav />}
-      {pathname !== "/checkout" && <ChatWidget />}
+      {pathname !== "/checkout" && pathname !== "/cart" && <ChatWidget />}
       <Toaster />
     </>
   );
