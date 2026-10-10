@@ -1,67 +1,63 @@
 import Link from "next/link";
-import { inr } from "@/lib/format";
+import { inr, tintFor } from "@/lib/format";
 import { SafeImage } from "@/components/ui/safe-image";
-import { QuickAdd } from "@/components/product/quick-add";
-import { RatingBadge } from "@/components/product/rating-badge";
+import { CardButtons } from "@/components/product/card-buttons";
 import type { Product } from "@/lib/types";
 
-// Product tile with image, price, discount, rating and a quick add button.
+// Product tile with image, discount, rating, price and two small buttons.
 export function ProductCard({ product }: { product: Product }) {
   const href = `/products/${product.slug}`;
   const soldOut = product.stockStatus === "OUT_OF_STOCK";
 
   return (
-    <article className="group flex h-full flex-col rounded-2xl border border-line/70 bg-white p-2.5 transition duration-300 hover:-translate-y-1 hover:border-accent/20 hover:shadow-soft">
+    <article className="card flex flex-col overflow-hidden">
       <Link
         href={href}
-        className="relative block aspect-square overflow-hidden rounded-xl bg-ground"
+        aria-label={product.name}
+        className="relative block h-[162px] p-4"
+        style={{ background: tintFor(product.id) }}
       >
-        <SafeImage
-          src={product.image}
-          alt={product.name}
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 240px"
-          className={`object-contain p-4 transition-transform duration-500 group-hover:scale-105 ${soldOut ? "opacity-50" : ""}`}
-        />
+        <span className="relative block h-full">
+          <SafeImage
+            src={product.image}
+            alt=""
+            sizes="240px"
+            className={`object-contain ${soldOut ? "opacity-50" : ""}`}
+          />
+        </span>
         {product.discountPercent > 0 && (
-          <span className="absolute left-2 top-2 rounded-lg bg-discount px-2 py-1 text-[10px] font-extrabold text-white">
-            -{product.discountPercent}%
-          </span>
-        )}
-        {product.stockStatus !== "IN_STOCK" && (
-          <span className="absolute bottom-2 left-2 rounded-lg bg-white/90 px-2 py-1 text-[10px] font-bold text-discount">
-            {soldOut ? "Sold out" : "Only few left"}
+          <span className="absolute left-2.5 top-2.5 rounded-full bg-discount px-2.5 py-0.5 text-[13px] font-semibold text-white">
+            {product.discountPercent}% off
           </span>
         )}
       </Link>
 
-      <div className="flex flex-1 flex-col px-1 pt-3">
-        <Link
-          href={href}
-          className="line-clamp-2 min-h-10 text-sm font-semibold leading-5 text-ink transition hover:text-accent"
-        >
+      <div className="flex flex-1 flex-col gap-2 p-3">
+        <Link href={href} className="line-clamp-2 min-h-[46px] font-semibold">
           {product.name}
         </Link>
-        <div className="mt-1 min-h-5">
-          <RatingBadge rating={product.rating} />
-        </div>
-        <div className="mt-auto flex items-end justify-between gap-2 pt-2">
-          <div className="min-w-0">
-            <p className="font-display text-base font-extrabold sm:text-lg">
-              {inr(product.finalPricePaise)}
-            </p>
-            {product.discountPercent > 0 && (
-              <p className="text-[11px] font-semibold">
-                <span className="text-gray-400 line-through">
-                  {inr(product.pricePaise)}
-                </span>{" "}
-                <span className="text-accent">
-                  {product.discountPercent}% off
-                </span>
-              </p>
-            )}
-          </div>
-          {!soldOut && <QuickAdd productId={product.id} />}
-        </div>
+        {product.rating.count > 0 && (
+          <p className="flex items-center gap-1.5 text-[13px] text-muted">
+            <span className="rounded-full bg-accent px-2 py-px font-semibold text-white">
+              ★ {product.rating.average.toFixed(1)}
+            </span>
+            {product.rating.count.toLocaleString("en-IN")}{" "}
+            {product.rating.count === 1 ? "rating" : "ratings"}
+          </p>
+        )}
+        <p className="mt-auto flex flex-wrap items-center gap-2">
+          <span className="text-xl font-extrabold">
+            {inr(product.finalPricePaise)}
+          </span>
+          {product.discountPercent > 0 && (
+            <s className="text-sm text-muted">{inr(product.pricePaise)}</s>
+          )}
+        </p>
+        {soldOut ? (
+          <p className="btn-grey cursor-default text-danger">Out of stock</p>
+        ) : (
+          <CardButtons productId={product.id} slug={product.slug} />
+        )}
       </div>
     </article>
   );

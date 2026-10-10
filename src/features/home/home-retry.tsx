@@ -2,11 +2,7 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { RefreshCw } from "lucide-react";
-import { ProductScroller } from "@/components/product/product-scroller";
-import { CardSkeleton } from "@/components/ui/skeletons";
-
-const SHELVES = ["Trending now", "Festival sale & best deals", "New arrivals"];
+import { GridSkeleton } from "@/components/ui/skeletons";
 
 // Shown when the home API does not answer.
 export function HomeRetry() {
@@ -14,34 +10,19 @@ export function HomeRetry() {
   const [checking, startChecking] = useTransition();
 
   return (
-    <div className="pb-12">
-      <div className="mt-5 flex flex-wrap items-center justify-center gap-2 rounded-xl bg-sunny/10 px-4 py-3 text-center text-xs font-semibold text-gray-600">
-        <span>Could not load the store.</span>
+    <div className="flex flex-col gap-7">
+      <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
+        <p className="font-semibold">Could not load the store.</p>
         <button
           type="button"
           onClick={() => startChecking(() => router.refresh())}
           disabled={checking}
-          className="inline-flex items-center gap-1.5 font-extrabold text-accent"
+          className="btn-primary"
         >
-          <RefreshCw
-            className={`h-3.5 w-3.5 ${checking ? "animate-spin" : ""}`}
-          />
-          {checking ? "Checking..." : "Try again"}
+          {checking ? "Checking…" : "Try again"}
         </button>
       </div>
-
-      {SHELVES.map((title) => (
-        <section key={title} className="mt-9 sm:mt-12">
-          <h2 className="section-title">{title}</h2>
-          <div className="mt-4">
-            <ProductScroller label={`${title} loading`}>
-              {Array.from({ length: 8 }).map((_, index) => (
-                <CardSkeleton key={index} />
-              ))}
-            </ProductScroller>
-          </div>
-        </section>
-      ))}
+      <GridSkeleton />
     </div>
   );
 }

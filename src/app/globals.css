@@ -48,7 +48,7 @@
   }
 
   .btn-grey {
-    @apply inline-flex min-h-9 items-center justify-center rounded-[10px] bg-grey px-3 text-sm font-semibold text-grey-ink transition hover:bg-grey-strong disabled:opacity-50;
+    @apply inline-flex min-h-9 items-center justify-center whitespace-nowrap rounded-[10px] bg-grey px-2.5 text-sm font-semibold text-grey-ink transition hover:bg-grey-strong disabled:opacity-50;
   }
 
   .btn-line {
@@ -65,6 +65,10 @@
 
   .status-pill {
     @apply inline-flex items-center rounded-full px-3.5 py-1.5 text-sm font-semibold;
+  }
+
+  .product-grid {
+    @apply grid grid-cols-[repeat(auto-fill,minmax(190px,1fr))] gap-4;
   }
 
   .page {

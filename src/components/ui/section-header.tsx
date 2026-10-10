@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 
 // Section title with an optional "View all" link.
 export function SectionHeader({
@@ -10,15 +9,14 @@ export function SectionHeader({
   href?: string;
 }) {
   return (
-    <div className="mb-4 mt-10 flex items-center justify-between gap-4 sm:mb-5 sm:mt-14">
-      <h2 className="section-title">{title}</h2>
+    <div className="flex items-center justify-between gap-3">
+      <h2 className="text-[26px] font-extrabold">{title}</h2>
       {href && (
         <Link
           href={href}
-          className="group flex shrink-0 items-center gap-1.5 rounded-full border border-line bg-white px-3.5 py-1.5 text-xs font-bold text-ink transition hover:border-accent hover:text-accent"
+          className="inline-flex min-h-11 items-center px-2 font-extrabold text-accent"
         >
-          View all
-          <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+          View all ›
         </Link>
       )}
     </div>
