@@ -17,9 +17,12 @@ import { SafeImage } from "@/components/ui/safe-image";
 import { inr } from "@/lib/format";
 import { useAuthStore } from "@/store/auth-store";
 
-// Only the last few turns go to the backend, which keeps every request small.
-const HISTORY_SENT = 6;
+// The backend counts "Next" clicks from the chat, so enough turns go with each question.
+const HISTORY_SENT = 20;
 const MAX_LENGTH = 500;
+const WHO_OPTIONS = ["Men", "Women", "Kids"];
+const QUICK_BUTTON =
+  "rounded-full border border-accent/30 bg-white px-3 py-1.5 text-xs font-semibold text-accent transition hover:bg-accent hover:text-white disabled:opacity-50 dark:bg-white/5";
 
 const SUGGESTIONS = [
   "Running shoes under ₹2000",
@@ -27,6 +30,15 @@ const SUGGESTIONS = [
   "Best phones under ₹20,000",
   "Where is my order?",
 ];
+
+// Removes extra spaces and repeated marks like "!!!" or "....".
+function cleanQuestion(text: string) {
+  return text
+    .replace(/([^\p{L}\p{N}\s])\1+/gu, "$1")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, MAX_LENGTH);
+}
 
 // Floating shopping assistant: ask, get answers with product cards, clear or close.
 export function ChatWidget() {
@@ -45,31 +57,19 @@ export function ChatWidget() {
     });
   }, [messages, thinking]);
 
-  // Sends `sent` to the assistant and shows the reply after `shown`.
-  async function ask(
-    shown: ChatMessage[],
-    sent: ChatMessage[],
-    options: { page?: number; confirm?: boolean } = {},
-  ) {
-    setMessages(shown);
+  // Shows `next`, sends its last turns to the assistant and adds the reply.
+  async function ask(next: ChatMessage[], confirm?: boolean) {
+    setMessages(next);
     setThinking(true);
     try {
-      const answer = await askAssistant(sent, options);
-      setMessages([
-        ...shown,
-        {
-          role: "assistant",
-          content: answer.reply,
-          products: answer.products,
-          confirm: answer.confirm,
-          more: answer.hasMore
-            ? { history: sent, page: (options.page ?? 0) + 1 }
-            : undefined,
-        },
-      ]);
+      const { reply, ...extra } = await askAssistant(
+        next.slice(-HISTORY_SENT),
+        confirm,
+      );
+      setMessages([...next, { role: "assistant", content: reply, ...extra }]);
     } catch (error) {
       setMessages([
-        ...shown,
+        ...next,
         {
           role: "assistant",
           content: errorMessage(
@@ -83,32 +83,35 @@ export function ChatWidget() {
     }
   }
 
-  // Sends one typed question.
+  // Sends one question: typed, a suggestion, or a quick button like "Women" or "Next 5 products".
   function send(question: string) {
-    const content = question.trim().slice(0, MAX_LENGTH);
+    const content = cleanQuestion(question);
     if (!content || thinking) return;
     setText("");
     const next: ChatMessage[] = [...messages, { role: "user", content }];
-    void ask(next, next.slice(-HISTORY_SENT));
-  }
-
-  // Loads the next 5 products of the same earlier question.
-  function showMore(more: NonNullable<ChatMessage["more"]>) {
-    if (thinking) return;
-    const shown = messages.map((m) =>
-      m.more === more ? { ...m, more: undefined } : m,
-    );
-    void ask(shown, more.history, { page: more.page });
+    if ((content.match(/[\p{L}\p{N}]/gu) ?? []).length < 2) {
+      setMessages([
+        ...next,
+        {
+          role: "assistant",
+          content: "Please type a little more, like 'red shoes under ₹2000'.",
+        },
+      ]);
+      return;
+    }
+    void ask(next);
   }
 
   // Answers the assistant's "confirm?" question.
   function answerConfirm(yes: boolean) {
     if (thinking) return;
-    const next: ChatMessage[] = [
-      ...messages,
-      { role: "user", content: yes ? "Yes, confirm" : "No, cancel" },
-    ];
-    void ask(next, next.slice(-HISTORY_SENT), { confirm: yes });
+    void ask(
+      [
+        ...messages,
+        { role: "user", content: yes ? "Yes, confirm" : "No, cancel" },
+      ],
+      yes,
+    );
   }
 
   return (
@@ -191,7 +194,7 @@ export function ChatWidget() {
                       key={suggestion}
                       type="button"
                       onClick={() => send(suggestion)}
-                      className="rounded-full border border-accent/30 bg-white px-3 py-1.5 text-xs font-semibold text-accent transition hover:bg-accent hover:text-white dark:bg-white/5"
+                      className={QUICK_BUTTON}
                     >
                       {suggestion}
                     </button>
@@ -242,16 +245,35 @@ export function ChatWidget() {
                       ))}
                     </div>
                   )}
-                  {message.more && (
-                    <button
-                      type="button"
-                      onClick={() => showMore(message.more!)}
-                      disabled={thinking}
-                      className="mt-2 rounded-full border border-accent/30 bg-white px-3 py-1.5 text-xs font-semibold text-accent transition hover:bg-accent hover:text-white disabled:opacity-50 dark:bg-white/5"
-                    >
-                      Next 5 products
-                    </button>
-                  )}
+                  {index === messages.length - 1 &&
+                    (message.askWho || message.hasMore) && (
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {message.askWho &&
+                          WHO_OPTIONS.map((who) => (
+                            <button
+                              key={who}
+                              type="button"
+                              onClick={() => send(who)}
+                              disabled={thinking}
+                              className={QUICK_BUTTON}
+                            >
+                              {who}
+                            </button>
+                          ))}
+                        {message.hasMore && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              send(`Next ${message.products?.length} products`)
+                            }
+                            disabled={thinking}
+                            className={QUICK_BUTTON}
+                          >
+                            Next {message.products?.length} products
+                          </button>
+                        )}
+                      </div>
+                    )}
                   {message.confirm && index === messages.length - 1 && (
                     <div className="mt-2 flex gap-2">
                       <button
