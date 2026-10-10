@@ -92,7 +92,7 @@ export default function AdminBrands() {
     <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
       <form
         onSubmit={create}
-        className="rounded-2xl border border-sand p-5 dark:border-white/10 xl:sticky xl:top-32"
+        className="rounded-2xl border border-line p-5 xl:sticky xl:top-32"
       >
         <div className="flex items-center gap-3">
           <span className="grid h-10 w-10 place-items-center rounded-xl bg-accent/10 text-accent">
@@ -103,7 +103,7 @@ export default function AdminBrands() {
 
         <div className="mt-5 space-y-4">
           <label className="block">
-            <span className="mb-1.5 block text-xs font-bold text-gray-600 dark:text-gray-300">
+            <span className="mb-1.5 block text-xs font-bold text-gray-600">
               Brand name
             </span>
             <input
@@ -118,10 +118,10 @@ export default function AdminBrands() {
           </label>
 
           <label className="block">
-            <span className="mb-1.5 block text-xs font-bold text-gray-600 dark:text-gray-300">
+            <span className="mb-1.5 block text-xs font-bold text-gray-600">
               Logo <span className="font-medium text-gray-400">(optional)</span>
             </span>
-            <span className="flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-dashed border-black/15 px-3.5 text-xs font-bold text-gray-500 hover:border-accent/30 dark:border-white/20">
+            <span className="flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-dashed border-black/15 px-3.5 text-xs font-bold text-gray-500 hover:border-accent/30">
               <ImageUp className="h-4 w-4" />
               {logo?.name ?? "Choose logo"}
               <input
@@ -148,7 +148,7 @@ export default function AdminBrands() {
         ) : failed ? (
           <OfflineNotice onRetry={load} />
         ) : brands.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-black/15 py-12 text-center dark:border-white/15">
+          <div className="rounded-2xl border border-dashed border-black/15 py-12 text-center">
             <Tags className="mx-auto h-8 w-8 text-gray-300" />
             <p className="mt-3 text-sm font-extrabold">No brands yet</p>
           </div>
@@ -157,9 +157,9 @@ export default function AdminBrands() {
             {brands.map((brand) => (
               <article
                 key={brand.id}
-                className="flex items-center gap-3 rounded-2xl border border-sand p-3.5 dark:border-white/10"
+                className="flex items-center gap-3 rounded-2xl border border-line p-3.5"
               >
-                <span className="relative grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-mist text-accent dark:bg-white/[0.06]">
+                <span className="relative grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-ground text-accent">
                   {brand.logo ? (
                     <SafeImage
                       src={brand.logo}
@@ -203,7 +203,7 @@ export default function AdminBrands() {
                   type="button"
                   onClick={() => remove(brand)}
                   disabled={busyId === brand.id}
-                  className="icon-button text-gray-400 hover:text-deal"
+                  className="icon-button text-gray-400 hover:text-discount"
                   aria-label={`Delete ${brand.name}`}
                 >
                   {busyId === brand.id ? (

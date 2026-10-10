@@ -106,7 +106,7 @@ export default function AdminBanners() {
     <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-6 xl:grid-cols-[380px_minmax(0,1fr)]">
       <form
         onSubmit={create}
-        className="rounded-2xl border border-sand p-5 dark:border-white/10 xl:sticky xl:top-32"
+        className="rounded-2xl border border-line p-5 xl:sticky xl:top-32"
       >
         <div className="flex items-center gap-3">
           <span className="grid h-10 w-10 place-items-center rounded-xl bg-accent/10 text-accent">
@@ -117,10 +117,10 @@ export default function AdminBanners() {
 
         <div className="mt-5 space-y-4">
           <label className="block">
-            <span className="mb-1.5 block text-xs font-bold text-gray-600 dark:text-gray-300">
+            <span className="mb-1.5 block text-xs font-bold text-gray-600">
               Banner image
             </span>
-            <span className="flex min-h-20 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-black/15 px-3 text-center text-xs font-bold text-gray-500 hover:border-accent/30 dark:border-white/20">
+            <span className="flex min-h-20 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-black/15 px-3 text-center text-xs font-bold text-gray-500 hover:border-accent/30">
               <ImageUp className="h-5 w-5" />
               {image?.name ?? "Choose a wide image"}
               <input
@@ -135,7 +135,7 @@ export default function AdminBanners() {
           </label>
 
           <label className="block">
-            <span className="mb-1.5 block text-xs font-bold text-gray-600 dark:text-gray-300">
+            <span className="mb-1.5 block text-xs font-bold text-gray-600">
               Link <span className="font-medium text-gray-400">(optional)</span>
             </span>
             <input
@@ -151,7 +151,7 @@ export default function AdminBanners() {
           </label>
 
           <label className="block">
-            <span className="mb-1.5 block text-xs font-bold text-gray-600 dark:text-gray-300">
+            <span className="mb-1.5 block text-xs font-bold text-gray-600">
               Display order
             </span>
             <input
@@ -183,7 +183,7 @@ export default function AdminBanners() {
         ) : failed ? (
           <OfflineNotice onRetry={load} />
         ) : banners.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-black/15 py-12 text-center dark:border-white/15">
+          <div className="rounded-2xl border border-dashed border-black/15 py-12 text-center">
             <ImageIcon className="mx-auto h-8 w-8 text-gray-300" />
             <p className="mt-3 text-sm font-extrabold">No banners yet</p>
           </div>
@@ -192,9 +192,9 @@ export default function AdminBanners() {
             {banners.map((banner, index) => (
               <article
                 key={banner.id}
-                className="overflow-hidden rounded-2xl border border-sand dark:border-white/10"
+                className="overflow-hidden rounded-2xl border border-line"
               >
-                <div className="relative aspect-[16/5] bg-mist dark:bg-white/[0.04]">
+                <div className="relative aspect-[16/5] bg-ground">
                   <SafeImage
                     src={banner.image}
                     alt={`Home banner ${index + 1}`}
@@ -204,7 +204,7 @@ export default function AdminBanners() {
                 </div>
                 <div className="flex items-center gap-3 px-4 py-3">
                   <span
-                    className={`status-pill ${banner.isActive ? "bg-accent/10 text-accent" : "bg-gray-100 text-gray-500 dark:bg-white/10"}`}
+                    className={`status-pill ${banner.isActive ? "bg-accent/10 text-accent" : "bg-gray-100 text-gray-500"}`}
                   >
                     {banner.isActive ? "Live" : "Hidden"}
                   </span>
@@ -228,7 +228,7 @@ export default function AdminBanners() {
                     type="button"
                     onClick={() => remove(banner.id)}
                     disabled={busyId === banner.id}
-                    className="icon-button text-gray-400 hover:text-deal"
+                    className="icon-button text-gray-400 hover:text-discount"
                     aria-label="Delete banner"
                   >
                     {busyId === banner.id ? (

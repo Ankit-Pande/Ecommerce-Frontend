@@ -62,7 +62,7 @@ export function AdminShell({
                       className={`flex min-h-10 items-center gap-3 rounded-xl px-3 text-sm font-semibold transition ${
                         active
                           ? "bg-accent text-white shadow-button"
-                          : "text-gray-600 hover:bg-ivory hover:text-ink dark:text-gray-300 dark:hover:bg-white/5"
+                          : "text-gray-600 hover:bg-ground hover:text-ink"
                       }`}
                     >
                       <Icon
@@ -77,8 +77,8 @@ export function AdminShell({
           ))}
         </nav>
 
-        <div className="mt-4 flex items-center gap-3 border-t border-sand px-2 pt-4 dark:border-white/10">
-          <span className="grid h-9 w-9 place-items-center rounded-full bg-chrome text-white">
+        <div className="mt-4 flex items-center gap-3 border-t border-line px-2 pt-4">
+          <span className="grid h-9 w-9 place-items-center rounded-full bg-ink text-white">
             <UserRound className="h-4 w-4" />
           </span>
           <div className="min-w-0 flex-1">
@@ -111,9 +111,7 @@ export function AdminShell({
                 key={item.href}
                 href={item.href}
                 className={`flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-bold ${
-                  active
-                    ? "bg-accent text-white"
-                    : "bg-white text-gray-600 dark:bg-white/10 dark:text-gray-300"
+                  active ? "bg-accent text-white" : "bg-white text-gray-600"
                 }`}
               >
                 <Icon className="h-3.5 w-3.5" />

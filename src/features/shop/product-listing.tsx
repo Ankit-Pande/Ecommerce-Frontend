@@ -184,9 +184,9 @@ export function ProductListing({ categories }: { categories: Category[] }) {
 
   return (
     <div className="pb-12 pt-6 sm:pt-8">
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-4 rounded-2xl bg-gradient-to-r from-accent/10 via-violet-100/60 to-orange-100/70 p-5 dark:from-white/5 dark:via-white/5 dark:to-white/5 sm:p-6">
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-4 rounded-2xl bg-gradient-to-r from-accent/10 via-violet-100/60 to-orange-100/70 p-5 sm:p-6">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-deal">
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-discount">
             {searchText ? "Search" : "Shop"}
           </p>
           <h1 className="mt-1 font-display text-2xl font-extrabold sm:text-3xl">
@@ -286,7 +286,7 @@ function EmptyProducts({
 }) {
   return (
     <div className="card py-16 text-center">
-      <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-mist text-gray-400 dark:bg-white/[0.06]">
+      <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-ground text-gray-400">
         <SearchX className="h-7 w-7" />
       </span>
       <h2 className="mt-4 font-display text-xl font-bold">

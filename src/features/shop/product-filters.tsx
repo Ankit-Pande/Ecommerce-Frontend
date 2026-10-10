@@ -63,7 +63,7 @@ export function ProductFilters({
 
         {facets.brands.length > 0 && (
           <fieldset>
-            <legend className="mb-2.5 text-xs font-extrabold text-gray-600 dark:text-gray-300">
+            <legend className="mb-2.5 text-xs font-extrabold text-gray-600">
               Brand
             </legend>
             <select
@@ -83,7 +83,7 @@ export function ProductFilters({
 
         {facets.colors.length > 0 && (
           <fieldset>
-            <legend className="mb-2.5 text-xs font-extrabold text-gray-600 dark:text-gray-300">
+            <legend className="mb-2.5 text-xs font-extrabold text-gray-600">
               Colour
             </legend>
             <div className="flex flex-wrap gap-2">
@@ -97,7 +97,7 @@ export function ProductFilters({
                   className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-xs font-semibold transition ${
                     color === option
                       ? "border-accent bg-accent/10 text-accent"
-                      : "border-sand hover:border-accent/40 dark:border-white/15"
+                      : "border-line hover:border-accent/40"
                   }`}
                 >
                   <span
@@ -116,7 +116,7 @@ export function ProductFilters({
         )}
 
         <fieldset>
-          <legend className="mb-2.5 text-xs font-extrabold text-gray-600 dark:text-gray-300">
+          <legend className="mb-2.5 text-xs font-extrabold text-gray-600">
             Price range
           </legend>
           <div className="grid grid-cols-2 gap-2">
@@ -166,7 +166,7 @@ export function MobileProductFilters({
         role="dialog"
         aria-modal="true"
         aria-label="Product filters"
-        className={`absolute inset-y-0 right-0 w-[86vw] max-w-sm overflow-y-auto bg-white p-5 shadow-2xl transition-transform dark:bg-night ${
+        className={`absolute inset-y-0 right-0 w-[86vw] max-w-sm overflow-y-auto bg-white p-5 shadow-2xl transition-transform ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >

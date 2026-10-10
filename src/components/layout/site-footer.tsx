@@ -39,7 +39,7 @@ export function SiteFooter({ categories }: { categories: Category[] }) {
   }));
 
   return (
-    <footer className="mt-14 bg-gradient-to-b from-chrome to-[#0A1330] pb-20 text-white md:pb-0">
+    <footer className="mt-14 bg-gradient-to-b from-ink to-[#0A1330] pb-20 text-white md:pb-0">
       <div className="mx-auto grid max-w-7xl grid-cols-2 gap-9 px-4 py-10 sm:px-6 md:grid-cols-4 lg:px-8">
         <div className="col-span-2 md:col-span-1">
           <Link href="/">

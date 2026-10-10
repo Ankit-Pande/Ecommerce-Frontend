@@ -6,7 +6,7 @@ export default function NotFound() {
   return (
     <div className="grid min-h-[60vh] place-items-center py-12 text-center">
       <div className="max-w-md">
-        <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-mist text-accent dark:bg-white/[0.06]">
+        <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-ground text-accent">
           <SearchX className="h-7 w-7" />
         </span>
         <h1 className="mt-5 font-display text-3xl font-bold">

@@ -42,7 +42,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Quick links"
-      className="fixed inset-x-3 bottom-3 z-40 flex items-center justify-between rounded-full bg-white p-1.5 shadow-soft ring-1 ring-black/5 dark:bg-chrome dark:ring-white/10 md:hidden"
+      className="fixed inset-x-3 bottom-3 z-40 flex items-center justify-between rounded-full bg-white p-1.5 shadow-soft ring-1 ring-black/5 md:hidden"
     >
       {tabs.map(({ href, label, icon: Icon, active }) => (
         <Link
@@ -53,7 +53,7 @@ export function BottomNav() {
           className={`relative flex h-11 items-center justify-center gap-2 rounded-full text-xs font-bold transition ${
             active
               ? "bg-accent px-4 text-white"
-              : "w-11 text-gray-500 hover:text-ink dark:text-gray-300"
+              : "w-11 text-gray-500 hover:text-ink"
           }`}
         >
           <Icon className="h-5 w-5" />

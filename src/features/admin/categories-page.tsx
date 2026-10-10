@@ -90,7 +90,7 @@ export default function AdminCategories() {
     <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
       <form
         onSubmit={create}
-        className="rounded-2xl border border-sand p-5 dark:border-white/10 xl:sticky xl:top-32"
+        className="rounded-2xl border border-line p-5 xl:sticky xl:top-32"
       >
         <div className="flex items-center gap-3">
           <span className="grid h-10 w-10 place-items-center rounded-xl bg-accent/10 text-accent">
@@ -101,7 +101,7 @@ export default function AdminCategories() {
 
         <div className="mt-5 space-y-4">
           <label className="block">
-            <span className="mb-1.5 block text-xs font-bold text-gray-600 dark:text-gray-300">
+            <span className="mb-1.5 block text-xs font-bold text-gray-600">
               Category name
             </span>
             <input
@@ -116,7 +116,7 @@ export default function AdminCategories() {
           </label>
 
           <label className="block">
-            <span className="mb-1.5 block text-xs font-bold text-gray-600 dark:text-gray-300">
+            <span className="mb-1.5 block text-xs font-bold text-gray-600">
               Parent
             </span>
             <select
@@ -134,11 +134,11 @@ export default function AdminCategories() {
           </label>
 
           <label className="block">
-            <span className="mb-1.5 block text-xs font-bold text-gray-600 dark:text-gray-300">
+            <span className="mb-1.5 block text-xs font-bold text-gray-600">
               Category image{" "}
               <span className="font-medium text-gray-400">(optional)</span>
             </span>
-            <span className="flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-dashed border-black/15 px-3.5 text-xs font-bold text-gray-500 hover:border-accent/30 dark:border-white/20">
+            <span className="flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-dashed border-black/15 px-3.5 text-xs font-bold text-gray-500 hover:border-accent/30">
               <ImageUp className="h-4 w-4" />
               {image?.name ?? "Choose image"}
               <input
@@ -175,7 +175,7 @@ export default function AdminCategories() {
         ) : failed ? (
           <OfflineNotice onRetry={load} />
         ) : categories.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-black/15 py-12 text-center dark:border-white/15">
+          <div className="rounded-2xl border border-dashed border-black/15 py-12 text-center">
             <FolderTree className="mx-auto h-8 w-8 text-gray-300" />
             <p className="mt-3 text-sm font-extrabold">No categories yet</p>
           </div>
@@ -184,10 +184,10 @@ export default function AdminCategories() {
             {categories.map((category) => (
               <article
                 key={category.id}
-                className="rounded-2xl border border-sand p-4 dark:border-white/10"
+                className="rounded-2xl border border-line p-4"
               >
                 <div className="flex items-center gap-3">
-                  <span className="grid h-9 w-9 place-items-center rounded-xl bg-mist text-accent dark:bg-white/[0.06]">
+                  <span className="grid h-9 w-9 place-items-center rounded-xl bg-ground text-accent">
                     <FolderTree className="h-4 w-4" />
                   </span>
                   <h3 className="flex-1 text-sm font-extrabold">
@@ -217,7 +217,7 @@ export default function AdminCategories() {
                     type="button"
                     onClick={() => remove(category.id, category.name)}
                     disabled={busyId === category.id}
-                    className="icon-button text-gray-400 hover:text-deal"
+                    className="icon-button text-gray-400 hover:text-discount"
                     aria-label={`Delete ${category.name}`}
                   >
                     {busyId === category.id ? (
@@ -229,14 +229,14 @@ export default function AdminCategories() {
                 </div>
 
                 {category.children.length > 0 && (
-                  <div className="ml-4 mt-3 space-y-1.5 border-l border-black/10 pl-5 dark:border-white/15">
+                  <div className="ml-4 mt-3 space-y-1.5 border-l border-black/10 pl-5">
                     {category.children.map((child) => (
                       <div
                         key={child.id}
-                        className="flex min-h-9 items-center gap-2 rounded-lg px-2 hover:bg-mist/70 dark:hover:bg-white/[0.04]"
+                        className="flex min-h-9 items-center gap-2 rounded-lg px-2 hover:bg-ground/70"
                       >
-                        <span className="h-1.5 w-1.5 rounded-full bg-gold" />
-                        <span className="flex-1 text-xs font-bold text-gray-600 dark:text-gray-300">
+                        <span className="h-1.5 w-1.5 rounded-full bg-sunny" />
+                        <span className="flex-1 text-xs font-bold text-gray-600">
                           {child.name}
                           {!child.isActive && (
                             <span className="ml-2 text-[10px] text-gray-400">
@@ -263,7 +263,7 @@ export default function AdminCategories() {
                           type="button"
                           onClick={() => remove(child.id, child.name)}
                           disabled={busyId === child.id}
-                          className="icon-button h-8 w-8 text-gray-400 hover:text-deal"
+                          className="icon-button h-8 w-8 text-gray-400 hover:text-discount"
                           aria-label={`Delete ${child.name}`}
                         >
                           {busyId === child.id ? (

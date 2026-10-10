@@ -61,7 +61,7 @@ export function OrderSuccess() {
             {result.text}
           </p>
 
-          <dl className="mx-auto mt-6 grid max-w-sm grid-cols-2 gap-3 rounded-2xl bg-mist p-4 text-left dark:bg-white/5">
+          <dl className="mx-auto mt-6 grid max-w-sm grid-cols-2 gap-3 rounded-2xl bg-ground p-4 text-left">
             <div>
               <dt className="text-[11px] font-bold uppercase tracking-wide text-gray-400">
                 Order ID

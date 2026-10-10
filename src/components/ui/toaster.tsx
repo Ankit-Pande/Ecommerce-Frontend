@@ -23,7 +23,7 @@ export function Toaster() {
             key={item.id}
             type="button"
             onClick={() => remove(item.id)}
-            className={`animate-toast-in flex items-start gap-2.5 rounded-2xl px-4 py-3.5 text-left text-sm font-bold text-white shadow-2xl ${item.type === "success" ? "bg-accent" : "bg-deal"}`}
+            className={`animate-toast-in flex items-start gap-2.5 rounded-2xl px-4 py-3.5 text-left text-sm font-bold text-white shadow-2xl ${item.type === "success" ? "bg-accent" : "bg-discount"}`}
           >
             <Icon className="mt-0.5 h-4 w-4 shrink-0" />
             {item.message}

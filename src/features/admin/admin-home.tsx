@@ -56,7 +56,7 @@ export default function AdminHome() {
           href: "/admin/orders",
           className:
             stats.needsReview > 0
-              ? "from-rose-600 to-deal"
+              ? "from-rose-600 to-discount"
               : "from-slate-500 to-slate-400",
         },
       ]
@@ -74,7 +74,7 @@ export default function AdminHome() {
               ? Array.from({ length: 5 }).map((_, index) => (
                   <div
                     key={index}
-                    className="h-[104px] animate-pulse rounded-2xl bg-mist dark:bg-white/10"
+                    className="h-[104px] animate-pulse rounded-2xl bg-ground"
                   />
                 ))
               : cards.map(({ label, value, icon: Icon, href, className }) => (
@@ -107,9 +107,9 @@ export default function AdminHome() {
                 <Link
                   key={area.href}
                   href={area.href}
-                  className="group flex items-center gap-3 rounded-2xl border border-sand p-4 transition hover:shadow-card dark:border-white/10"
+                  className="group flex items-center gap-3 rounded-2xl border border-line p-4 transition hover:shadow-card"
                 >
-                  <span className="grid h-10 w-10 place-items-center rounded-xl bg-mist dark:bg-white/[0.06]">
+                  <span className="grid h-10 w-10 place-items-center rounded-xl bg-ground">
                     <Icon className="h-5 w-5" />
                   </span>
                   <span className="flex-1 text-sm font-bold">{area.label}</span>

@@ -85,7 +85,7 @@ export function AddressForm({
 
   return (
     <form onSubmit={submit} className="card overflow-hidden">
-      <div className="flex items-center gap-3 border-b border-sand bg-mist/60 px-4 py-3.5 dark:border-white/10 dark:bg-white/[0.03] sm:px-5">
+      <div className="flex items-center gap-3 border-b border-line bg-ground/60 px-4 py-3.5 sm:px-5">
         <span className="grid h-9 w-9 place-items-center rounded-xl bg-accent/10 text-accent">
           <MapPin className="h-4 w-4" />
         </span>
@@ -228,9 +228,9 @@ function FormField({
 }) {
   return (
     <label className="block">
-      <span className="mb-1.5 flex items-center gap-1.5 text-xs font-extrabold text-gray-600 dark:text-gray-300">
+      <span className="mb-1.5 flex items-center gap-1.5 text-xs font-extrabold text-gray-600">
         {label}
-        {required && <span className="text-deal">*</span>}
+        {required && <span className="text-discount">*</span>}
         {hint && (
           <span className="ml-auto text-[10px] font-medium text-gray-400">
             {hint}

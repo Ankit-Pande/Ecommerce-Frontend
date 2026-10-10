@@ -15,7 +15,7 @@ export function SectionHeader({
       {href && (
         <Link
           href={href}
-          className="group flex shrink-0 items-center gap-1.5 rounded-full border border-sand bg-white px-3.5 py-1.5 text-xs font-bold text-ink transition hover:border-accent hover:text-accent dark:border-white/10 dark:bg-white/5 dark:text-gray-200"
+          className="group flex shrink-0 items-center gap-1.5 rounded-full border border-line bg-white px-3.5 py-1.5 text-xs font-bold text-ink transition hover:border-accent hover:text-accent"
         >
           View all
           <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 export function OfflineNotice({ onRetry }: { onRetry: () => void }) {
   return (
     <div className="card mx-auto mt-8 max-w-lg p-8 text-center">
-      <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-deal/10 text-deal">
+      <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-discount/10 text-discount">
         <WifiOff className="h-6 w-6" />
       </span>
       <h2 className="mt-4 font-display text-xl font-bold">

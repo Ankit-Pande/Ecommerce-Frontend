@@ -18,7 +18,7 @@ export function CategoryShowcase({ categories }: { categories: Category[] }) {
           <Link
             key={category.id}
             href={catalogHref(category)}
-            className="group relative flex aspect-[4/5] flex-col overflow-hidden rounded-2xl p-3 transition duration-300 hover:-translate-y-1 hover:shadow-soft sm:p-4 bg-mist dark:bg-white/[0.06]"
+            className="group relative flex aspect-[4/5] flex-col overflow-hidden rounded-2xl p-3 transition duration-300 hover:-translate-y-1 hover:shadow-soft sm:p-4 bg-ground"
           >
             <h3 className="font-display text-xs font-extrabold leading-tight sm:text-sm">
               {category.name}

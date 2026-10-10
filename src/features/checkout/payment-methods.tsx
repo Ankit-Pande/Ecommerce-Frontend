@@ -54,7 +54,7 @@ export function PaymentMethods({
             type="button"
             onClick={() => onChange(choice.value)}
             aria-pressed={active}
-            className={`flex items-center gap-3 rounded-2xl border-2 bg-white p-3.5 text-left transition dark:bg-white/[0.04] sm:p-4 ${active ? "border-accent bg-accent/[0.03] shadow-card" : "border-sand hover:border-accent/30 dark:border-white/10"}`}
+            className={`flex items-center gap-3 rounded-2xl border-2 bg-white p-3.5 text-left transition sm:p-4 ${active ? "border-accent bg-accent/[0.03] shadow-card" : "border-line hover:border-accent/30"}`}
           >
             <span
               className={`grid h-5 w-5 shrink-0 place-items-center rounded-full border-2 ${active ? "border-accent bg-accent text-white" : "border-gray-300"}`}
@@ -62,7 +62,7 @@ export function PaymentMethods({
               {active && <Check className="h-3 w-3" />}
             </span>
             <span
-              className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${active ? "bg-accent text-white" : "bg-mist text-gray-500 dark:bg-white/10"}`}
+              className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${active ? "bg-accent text-white" : "bg-ground text-gray-500"}`}
             >
               <Icon className="h-5 w-5" />
             </span>

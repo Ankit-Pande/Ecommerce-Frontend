@@ -98,19 +98,19 @@ export function OrderTracker({ status }: { status: OrderStatus }) {
         >
           <span className="flex flex-col items-center gap-1">
             <span
-              className={`grid h-7 w-7 place-items-center rounded-full ${index <= reached ? "bg-leaf text-white" : "bg-gray-200 text-gray-400 dark:bg-white/10"}`}
+              className={`grid h-7 w-7 place-items-center rounded-full ${index <= reached ? "bg-accent text-white" : "bg-gray-200 text-gray-400"}`}
             >
               <Check className="h-3.5 w-3.5" />
             </span>
             <span
-              className={`text-[11px] font-bold ${index <= reached ? "text-leaf" : "text-gray-400"}`}
+              className={`text-[11px] font-bold ${index <= reached ? "text-accent" : "text-gray-400"}`}
             >
               {label}
             </span>
           </span>
           {index < labels.length - 1 && (
             <span
-              className={`mx-2 mb-5 h-1 flex-1 rounded-full ${index < reached ? "bg-leaf" : "bg-gray-200 dark:bg-white/10"}`}
+              className={`mx-2 mb-5 h-1 flex-1 rounded-full ${index < reached ? "bg-accent" : "bg-gray-200"}`}
             />
           )}
         </li>

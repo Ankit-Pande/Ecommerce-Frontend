@@ -22,7 +22,7 @@ const HISTORY_SENT = 20;
 const MAX_LENGTH = 500;
 const WHO_OPTIONS = ["Men", "Women", "Kids"];
 const QUICK_BUTTON =
-  "rounded-full border border-accent/30 bg-white px-3 py-1.5 text-xs font-semibold text-accent transition hover:bg-accent hover:text-white disabled:opacity-50 dark:bg-white/5";
+  "rounded-full border border-accent/30 bg-white px-3 py-1.5 text-xs font-semibold text-accent transition hover:bg-accent hover:text-white disabled:opacity-50";
 
 const SUGGESTIONS = [
   "Phones under ₹20,000",
@@ -131,7 +131,7 @@ export function ChatWidget() {
         <section
           role="dialog"
           aria-label="Shopping assistant"
-          className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-night md:inset-auto md:bottom-6 md:right-6 md:h-[600px] md:w-[400px] md:overflow-hidden md:rounded-3xl md:shadow-2xl md:ring-1 md:ring-black/5"
+          className="fixed inset-0 z-50 flex flex-col bg-white md:inset-auto md:bottom-6 md:right-6 md:h-[600px] md:w-[400px] md:overflow-hidden md:rounded-3xl md:shadow-2xl md:ring-1 md:ring-black/5"
         >
           <header className="flex items-center gap-3 bg-gradient-to-r from-accent to-violet-600 px-4 py-3 text-white">
             <button
@@ -175,7 +175,7 @@ export function ChatWidget() {
 
           <div
             ref={listRef}
-            className="flex-1 space-y-3 overflow-y-auto bg-ivory p-4 dark:bg-white/[0.02]"
+            className="flex-1 space-y-3 overflow-y-auto bg-ground p-4"
           >
             {messages.length === 0 && (
               <div className="pt-6 text-center">
@@ -214,7 +214,7 @@ export function ChatWidget() {
                   }
                 >
                   <p
-                    className={`whitespace-pre-line rounded-2xl px-3.5 py-2.5 text-sm leading-6 ${message.role === "user" ? "rounded-br-md bg-accent text-white" : "rounded-bl-md bg-white text-ink shadow-card dark:bg-white/10 dark:text-gray-100"}`}
+                    className={`whitespace-pre-line rounded-2xl px-3.5 py-2.5 text-sm leading-6 ${message.role === "user" ? "rounded-br-md bg-accent text-white" : "rounded-bl-md bg-white text-ink shadow-card"}`}
                   >
                     {message.content}
                   </p>
@@ -225,9 +225,9 @@ export function ChatWidget() {
                           key={product.id}
                           href={`/products/${product.slug}`}
                           onClick={() => setOpen(false)}
-                          className="w-32 shrink-0 rounded-xl border border-sand bg-white p-2 transition hover:border-accent dark:border-white/10 dark:bg-white/5"
+                          className="w-32 shrink-0 rounded-xl border border-line bg-white p-2 transition hover:border-accent"
                         >
-                          <span className="relative block aspect-square overflow-hidden rounded-lg bg-mist">
+                          <span className="relative block aspect-square overflow-hidden rounded-lg bg-ground">
                             <SafeImage
                               src={product.image}
                               alt={product.name}
@@ -280,7 +280,7 @@ export function ChatWidget() {
                         type="button"
                         onClick={() => answerConfirm(true)}
                         disabled={thinking}
-                        className="rounded-full bg-accent px-4 py-1.5 text-xs font-bold text-white transition hover:bg-accent-dark disabled:opacity-50"
+                        className="rounded-full bg-accent px-4 py-1.5 text-xs font-bold text-white transition hover:bg-accent disabled:opacity-50"
                       >
                         Confirm
                       </button>
@@ -288,7 +288,7 @@ export function ChatWidget() {
                         type="button"
                         onClick={() => answerConfirm(false)}
                         disabled={thinking}
-                        className="rounded-full border border-sand bg-white px-4 py-1.5 text-xs font-bold text-ink transition hover:border-accent disabled:opacity-50 dark:border-white/10 dark:bg-white/5 dark:text-gray-100"
+                        className="rounded-full border border-line bg-white px-4 py-1.5 text-xs font-bold text-ink transition hover:border-accent disabled:opacity-50"
                       >
                         Cancel
                       </button>
@@ -299,7 +299,7 @@ export function ChatWidget() {
             ))}
 
             {thinking && (
-              <div className="flex gap-1 rounded-2xl rounded-bl-md bg-white px-4 py-3 shadow-card dark:bg-white/10 w-fit">
+              <div className="flex gap-1 rounded-2xl rounded-bl-md bg-white px-4 py-3 shadow-card w-fit">
                 {[0, 150, 300].map((delay) => (
                   <span
                     key={delay}
@@ -311,7 +311,7 @@ export function ChatWidget() {
             )}
           </div>
 
-          <div className="border-t border-sand p-3 dark:border-white/10">
+          <div className="border-t border-line p-3">
             <form
               onSubmit={(event) => {
                 event.preventDefault();
@@ -331,7 +331,7 @@ export function ChatWidget() {
                 type="submit"
                 disabled={!text.trim() || thinking}
                 aria-label="Send"
-                className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-accent text-white transition hover:bg-accent-dark disabled:opacity-40"
+                className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-accent text-white transition hover:bg-accent disabled:opacity-40"
               >
                 <SendHorizontal className="h-5 w-5" />
               </button>

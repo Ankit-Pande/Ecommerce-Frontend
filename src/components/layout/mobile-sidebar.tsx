@@ -25,7 +25,7 @@ type MobileSidebarProps = {
 };
 
 const primaryLink =
-  "flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-bold text-gray-700 transition hover:bg-mist hover:text-accent dark:text-gray-200 dark:hover:bg-white/10";
+  "flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-bold text-gray-700 transition hover:bg-ground hover:text-accent";
 
 // Slide-in menu with categories on phones.
 export function MobileSidebar({
@@ -69,9 +69,9 @@ export function MobileSidebar({
         role="dialog"
         aria-modal="true"
         aria-label="Menu"
-        className={`absolute inset-y-0 left-0 flex w-[86vw] max-w-sm flex-col bg-white shadow-2xl transition-transform duration-300 dark:bg-night ${open ? "translate-x-0" : "-translate-x-full"}`}
+        className={`absolute inset-y-0 left-0 flex w-[86vw] max-w-sm flex-col bg-white shadow-2xl transition-transform duration-300 ${open ? "translate-x-0" : "-translate-x-full"}`}
       >
-        <div className="flex items-center justify-between border-b border-sand px-5 py-4 dark:border-white/10">
+        <div className="flex items-center justify-between border-b border-line px-5 py-4">
           <Link href="/" onClick={onClose}>
             <Wordmark className="text-2xl" />
           </Link>
@@ -97,7 +97,7 @@ export function MobileSidebar({
           </div>
         )}
 
-        <div className="border-b border-sand p-3 dark:border-white/10">
+        <div className="border-b border-line p-3">
           <nav className="grid grid-cols-2 gap-1" aria-label="Main links">
             <Link href="/" onClick={onClose} className={primaryLink}>
               <Home className="h-4 w-4 text-accent" /> Home
@@ -130,7 +130,7 @@ export function MobileSidebar({
               {Array.from({ length: 5 }).map((_, index) => (
                 <div
                   key={index}
-                  className="h-11 animate-pulse rounded-xl bg-gray-100 dark:bg-white/[0.06]"
+                  className="h-11 animate-pulse rounded-xl bg-gray-100"
                 />
               ))}
             </div>
@@ -139,14 +139,14 @@ export function MobileSidebar({
               {categories.map((category) => (
                 <div
                   key={category.id}
-                  className="border-b border-sand py-2 last:border-0 dark:border-white/10"
+                  className="border-b border-line py-2 last:border-0"
                 >
                   <Link
                     href={catalogHref(category)}
                     onClick={onClose}
-                    className="flex min-h-11 items-center gap-3 rounded-xl px-2 text-sm font-extrabold hover:bg-mist dark:hover:bg-white/10"
+                    className="flex min-h-11 items-center gap-3 rounded-xl px-2 text-sm font-extrabold hover:bg-ground"
                   >
-                    <span className="relative grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-mist dark:bg-white/[0.06]">
+                    <span className="relative grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-ground">
                       <SafeImage
                         src={category.image}
                         alt=""
@@ -166,7 +166,7 @@ export function MobileSidebar({
                           key={child.id}
                           href={catalogHref(child, "subcategory")}
                           onClick={onClose}
-                          className="truncate rounded-lg py-2 text-xs font-medium text-gray-500 hover:text-accent dark:text-gray-400"
+                          className="truncate rounded-lg py-2 text-xs font-medium text-gray-500 hover:text-accent"
                         >
                           {child.name}
                         </Link>

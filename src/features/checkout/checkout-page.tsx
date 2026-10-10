@@ -191,13 +191,13 @@ export function CheckoutPage() {
       <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-5 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-7">
         <div className="space-y-5">
           <Section icon={Package} title={buySlug ? "Buying now" : "Items"}>
-            <ul className="divide-y divide-sand dark:divide-white/10">
+            <ul className="divide-y divide-line">
               {lines.map((line) => (
                 <li
                   key={line.productId}
                   className="flex flex-wrap items-center gap-3 py-3 first:pt-0 last:pb-0"
                 >
-                  <span className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-mist dark:bg-white/[0.06]">
+                  <span className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-ground">
                     <SafeImage
                       src={line.image}
                       alt=""
@@ -221,7 +221,7 @@ export function CheckoutPage() {
                       )}
                     </p>
                     {!line.available && (
-                      <p className="mt-0.5 text-xs font-bold text-deal">
+                      <p className="mt-0.5 text-xs font-bold text-discount">
                         Out of stock
                       </p>
                     )}
@@ -268,7 +268,7 @@ export function CheckoutPage() {
               <button
                 type="button"
                 onClick={() => setShowAddressForm(true)}
-                className="w-full rounded-2xl border-2 border-dashed border-sand p-8 text-center hover:border-accent/40 dark:border-white/15"
+                className="w-full rounded-2xl border-2 border-dashed border-line p-8 text-center hover:border-accent/40"
               >
                 <Plus className="mx-auto h-6 w-6 text-accent" />
                 <span className="mt-2 block text-sm font-bold">
@@ -282,7 +282,7 @@ export function CheckoutPage() {
                   return (
                     <label
                       key={address.id}
-                      className={`relative cursor-pointer rounded-2xl border-2 p-4 transition ${selected ? "border-accent bg-accent/[0.04]" : "border-sand hover:border-accent/30 dark:border-white/10"}`}
+                      className={`relative cursor-pointer rounded-2xl border-2 p-4 transition ${selected ? "border-accent bg-accent/[0.04]" : "border-line hover:border-accent/30"}`}
                     >
                       <input
                         type="radio"
@@ -324,24 +324,22 @@ export function CheckoutPage() {
 
         <OrderSummary lines={lines.filter((line) => line.available)}>
           {selectedAddress && (
-            <p className="mb-4 rounded-xl bg-mist/70 p-3 text-xs leading-5 text-gray-500 dark:bg-white/[0.05]">
+            <p className="mb-4 rounded-xl bg-ground/70 p-3 text-xs leading-5 text-gray-500">
               Delivering to{" "}
-              <strong className="text-ink dark:text-gray-200">
-                {selectedAddress.fullName}
-              </strong>
-              , {selectedAddress.city} {selectedAddress.pincode}
+              <strong className="text-ink">{selectedAddress.fullName}</strong>,{" "}
+              {selectedAddress.city} {selectedAddress.pincode}
             </p>
           )}
           <Button
             onClick={placeOrder}
             loading={paying}
             disabled={!selectedId || hasBlockedItems}
-            className="w-full bg-deal hover:bg-orange-600"
+            className="w-full bg-discount hover:bg-orange-600"
           >
             {paymentChoice === "COD" ? "Place order (COD)" : "Pay securely"}
           </Button>
           {hasBlockedItems && (
-            <p className="mt-3 text-center text-xs font-bold text-deal">
+            <p className="mt-3 text-center text-xs font-bold text-discount">
               {buySlug
                 ? "This product is out of stock."
                 : "Some cart items are unavailable. Update your cart to continue."}
@@ -394,7 +392,7 @@ function QuantityStepper({
   onChange: (value: number) => void;
 }) {
   return (
-    <div className="inline-flex items-center rounded-full border border-sand dark:border-white/15">
+    <div className="inline-flex items-center rounded-full border border-line">
       <button
         type="button"
         onClick={() => onChange(value - 1)}

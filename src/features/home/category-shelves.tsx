@@ -65,7 +65,7 @@ function CategoryShelf({ category }: { category: Category }) {
             <Link
               key={child.id}
               href={catalogHref(child, "subcategory")}
-              className="shrink-0 rounded-full px-3 py-1.5 text-xs font-bold transition hover:opacity-80 bg-mist dark:bg-white/[0.06]"
+              className="shrink-0 rounded-full px-3 py-1.5 text-xs font-bold transition hover:opacity-80 bg-ground"
             >
               {child.name}
             </Link>
@@ -77,7 +77,7 @@ function CategoryShelf({ category }: { category: Category }) {
         <button
           type="button"
           onClick={() => setReloadKey((key) => key + 1)}
-          className="mb-3 flex w-full items-center justify-between rounded-xl bg-gold/10 px-3 py-2 text-xs font-semibold text-gray-600 dark:text-gray-300"
+          className="mb-3 flex w-full items-center justify-between rounded-xl bg-sunny/10 px-3 py-2 text-xs font-semibold text-gray-600"
         >
           Could not load products.
           <span className="flex items-center gap-1.5 font-extrabold text-accent">

@@ -4,7 +4,7 @@ const VARIANTS = {
   primary: "btn-primary",
   outline: "btn-outline",
   ghost: "btn-ghost",
-  danger: "btn-ghost text-deal hover:text-deal",
+  danger: "btn-ghost text-discount hover:text-discount",
 };
 
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {

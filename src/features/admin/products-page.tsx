@@ -105,7 +105,7 @@ export default function AdminProducts() {
         ) : failed ? (
           <OfflineNotice onRetry={reload} />
         ) : items.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-black/15 py-12 text-center dark:border-white/15">
+          <div className="rounded-2xl border border-dashed border-black/15 py-12 text-center">
             <PackageSearch className="mx-auto h-8 w-8 text-gray-300" />
             <p className="mt-3 text-sm font-extrabold">No products found</p>
             <p className="mt-1 text-xs text-gray-500">
@@ -117,12 +117,12 @@ export default function AdminProducts() {
             {items.map((product) => {
               const activeStyle = product.isActive
                 ? "bg-accent/10 text-accent"
-                : "bg-gray-100 text-gray-500 dark:bg-white/10";
+                : "bg-gray-100 text-gray-500";
 
               return (
                 <article
                   key={product.id}
-                  className="flex flex-wrap items-center gap-3 rounded-2xl border border-sand p-3.5 transition hover:border-accent/15 hover:shadow-card dark:border-white/10 sm:p-4"
+                  className="flex flex-wrap items-center gap-3 rounded-2xl border border-line p-3.5 transition hover:border-accent/15 hover:shadow-card sm:p-4"
                 >
                   <span
                     className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${activeStyle}`}
@@ -137,7 +137,7 @@ export default function AdminProducts() {
                       </h2>
                       {product.isTrending && (
                         <span title="Trending">
-                          <Star className="h-3.5 w-3.5 fill-gold text-gold" />
+                          <Star className="h-3.5 w-3.5 fill-sunny text-sunny" />
                         </span>
                       )}
                     </div>
@@ -165,7 +165,7 @@ export default function AdminProducts() {
                       disabled={busyId === product.id}
                       className={`btn-ghost px-2.5 text-xs ${
                         product.isActive
-                          ? "text-deal hover:text-deal"
+                          ? "text-discount hover:text-discount"
                           : "text-accent"
                       }`}
                     >

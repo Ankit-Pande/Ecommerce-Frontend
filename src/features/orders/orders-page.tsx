@@ -51,9 +51,9 @@ export function OrdersPage() {
   return (
     <div className="mx-auto max-w-4xl pb-12 pt-6 sm:pt-8">
       <Script src={RAZORPAY_SCRIPT} strategy="lazyOnload" />
-      <div className="mb-5 flex flex-wrap items-end justify-between gap-4 rounded-2xl bg-gradient-to-r from-accent/10 via-violet-100/60 to-orange-100/70 p-5 dark:from-white/5 dark:via-white/5 dark:to-white/5 sm:p-6">
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-4 rounded-2xl bg-gradient-to-r from-accent/10 via-violet-100/60 to-orange-100/70 p-5 sm:p-6">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-deal">
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-discount">
             Account
           </p>
           <h1 className="mt-1 font-display text-2xl font-extrabold sm:text-3xl">
@@ -63,7 +63,7 @@ export function OrdersPage() {
         <div
           role="tablist"
           aria-label="Order type"
-          className="flex rounded-full bg-white p-1 shadow-card dark:bg-white/10"
+          className="flex rounded-full bg-white p-1 shadow-card"
         >
           {[
             { value: false, label: "Orders" },
@@ -89,7 +89,7 @@ export function OrdersPage() {
         <OfflineNotice onRetry={reload} />
       ) : orders.length === 0 ? (
         <div className="card py-14 text-center">
-          <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-mist text-accent dark:bg-white/[0.06]">
+          <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-ground text-accent">
             <Package className="h-7 w-7" />
           </span>
           <h2 className="mt-4 font-display text-xl font-bold">
@@ -144,7 +144,7 @@ function OrderCard({
     <article className="card overflow-hidden transition hover:shadow-soft">
       <Link
         href={href}
-        className="flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-sand px-4 py-3.5 dark:border-white/10 sm:px-5"
+        className="flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-line px-4 py-3.5 sm:px-5"
       >
         <div>
           <p className="text-[11px] font-semibold text-gray-400">Order ID</p>
@@ -169,7 +169,7 @@ function OrderCard({
             {order.items.slice(0, 3).map((item, index) => (
               <span
                 key={`${item.productName}-${index}`}
-                className="relative h-14 w-14 overflow-hidden rounded-xl border-2 border-white bg-mist dark:border-night"
+                className="relative h-14 w-14 overflow-hidden rounded-xl border-2 border-white bg-ground"
               >
                 <SafeImage
                   src={item.productImage}
@@ -196,7 +196,7 @@ function OrderCard({
         </Link>
 
         {(canPay(order) || canCancel(order)) && (
-          <div className="mt-4 flex flex-wrap items-center justify-end gap-3 border-t border-dashed border-black/15 pt-4 dark:border-white/15">
+          <div className="mt-4 flex flex-wrap items-center justify-end gap-3 border-t border-dashed border-black/15 pt-4">
             {canPay(order) && (
               <>
                 <span className="text-xs font-bold text-amber-700">

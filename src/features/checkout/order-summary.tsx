@@ -39,20 +39,20 @@ export function OrderSummary({
         </Row>
         {savings > 0 && (
           <Row label="Discount">
-            <span className="text-deal">−{inr(savings)}</span>
+            <span className="text-discount">−{inr(savings)}</span>
           </Row>
         )}
         <Row label="Delivery fee">
-          <span className="text-leaf">Free</span>
+          <span className="text-accent">Free</span>
         </Row>
       </dl>
-      <div className="my-5 border-t border-sand dark:border-white/10" />
+      <div className="my-5 border-t border-line" />
       <div className="flex items-end justify-between">
         <span className="font-bold">Total</span>
         <span className="font-display text-2xl font-bold">{inr(total)}</span>
       </div>
       {savings > 0 && (
-        <p className="mt-2 text-right text-xs font-bold text-leaf">
+        <p className="mt-2 text-right text-xs font-bold text-accent">
           You save {inr(savings)}
         </p>
       )}

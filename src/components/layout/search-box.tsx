@@ -69,7 +69,7 @@ export function SearchBox() {
         openResults(search);
       }}
       role="search"
-      className="relative flex h-11 min-w-0 flex-1 items-center rounded-full border border-sand bg-mist transition focus-within:border-accent focus-within:bg-white focus-within:ring-4 focus-within:ring-accent/10 dark:border-white/10 dark:bg-white/[0.06] dark:focus-within:bg-white/10"
+      className="relative flex h-11 min-w-0 flex-1 items-center rounded-full border border-line bg-ground transition focus-within:border-accent focus-within:bg-white focus-within:ring-4 focus-within:ring-accent/10"
     >
       <input
         type="search"
@@ -99,7 +99,7 @@ export function SearchBox() {
             setSuggestions([]);
           }}
           aria-label="Clear search"
-          className="mr-1 grid h-8 w-8 shrink-0 place-items-center rounded-full text-gray-400 hover:bg-mist hover:text-ink dark:hover:bg-white/10"
+          className="mr-1 grid h-8 w-8 shrink-0 place-items-center rounded-full text-gray-400 hover:bg-ground hover:text-ink"
         >
           <X className="h-4 w-4" />
         </button>
@@ -108,19 +108,19 @@ export function SearchBox() {
         type="submit"
         aria-label="Search"
         title="Search"
-        className="mr-1 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent text-white transition hover:bg-accent-dark"
+        className="mr-1 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent text-white transition hover:bg-accent"
       >
         <Search className="h-4 w-4" />
       </button>
 
       {showList && (
-        <ul className="absolute inset-x-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-sand bg-white py-1 shadow-2xl dark:border-white/10 dark:bg-chrome">
+        <ul className="absolute inset-x-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-line bg-white py-1 shadow-2xl">
           {suggestions.map((text) => (
             <li key={text}>
               <button
                 type="button"
                 onClick={() => openResults(text)}
-                className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-semibold transition hover:bg-mist dark:hover:bg-white/10"
+                className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-semibold transition hover:bg-ground"
               >
                 <Search className="h-4 w-4 shrink-0 text-gray-400" />
                 <span className="truncate">{text}</span>

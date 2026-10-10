@@ -86,7 +86,7 @@ export function CartPage() {
       <CartShell itemCount={0}>
         <div className="grid min-h-[48vh] place-items-center py-12 text-center">
           <div className="max-w-sm">
-            <span className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-mist text-accent dark:bg-white/[0.06]">
+            <span className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-ground text-accent">
               <ShoppingBag className="h-9 w-9" strokeWidth={1.5} />
             </span>
             <h1 className="mt-5 font-display text-2xl font-bold">
@@ -121,7 +121,7 @@ export function CartPage() {
               >
                 <Link
                   href={`/products/${product.slug}`}
-                  className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl bg-mist dark:bg-white/[0.05] sm:h-32 sm:w-32"
+                  className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl bg-ground sm:h-32 sm:w-32"
                 >
                   <SafeImage
                     src={product.image}
@@ -141,11 +141,11 @@ export function CartPage() {
                         {product.name}
                       </Link>
                       {!product.isAvailable ? (
-                        <p className="mt-1 text-xs font-extrabold text-deal">
+                        <p className="mt-1 text-xs font-extrabold text-discount">
                           No longer available
                         </p>
                       ) : quantity > product.maxQuantity ? (
-                        <p className="mt-1 text-xs font-extrabold text-deal">
+                        <p className="mt-1 text-xs font-extrabold text-discount">
                           {product.maxQuantity === 0
                             ? "Out of stock"
                             : `Only ${product.maxQuantity} available`}
@@ -157,7 +157,7 @@ export function CartPage() {
                       onClick={() => changeQuantity(product.id, 0)}
                       disabled={busy}
                       aria-label={`Remove ${product.name}`}
-                      className="icon-button -mr-1 -mt-1 text-gray-400 hover:text-deal"
+                      className="icon-button -mr-1 -mt-1 text-gray-400 hover:text-discount"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -179,13 +179,13 @@ export function CartPage() {
                     )}
                   </div>
 
-                  <div className="mt-3 inline-flex items-center rounded-xl border border-black/10 bg-white p-0.5 dark:border-white/15 dark:bg-white/[0.04]">
+                  <div className="mt-3 inline-flex items-center rounded-xl border border-black/10 bg-white p-0.5">
                     <button
                       type="button"
                       onClick={() => changeQuantity(product.id, quantity - 1)}
                       disabled={busy}
                       aria-label="Decrease quantity"
-                      className="grid h-8 w-8 place-items-center rounded-lg text-accent hover:bg-mist dark:hover:bg-white/10"
+                      className="grid h-8 w-8 place-items-center rounded-lg text-accent hover:bg-ground"
                     >
                       <Minus className="h-3.5 w-3.5" />
                     </button>
@@ -200,7 +200,7 @@ export function CartPage() {
                       onClick={() => changeQuantity(product.id, quantity + 1)}
                       disabled={busy || quantity >= product.maxQuantity}
                       aria-label="Increase quantity"
-                      className="grid h-8 w-8 place-items-center rounded-lg text-accent hover:bg-mist dark:hover:bg-white/10"
+                      className="grid h-8 w-8 place-items-center rounded-lg text-accent hover:bg-ground"
                     >
                       <Plus className="h-3.5 w-3.5" />
                     </button>
@@ -219,13 +219,13 @@ export function CartPage() {
           }))}
         >
           {hasBlockedItems ? (
-            <p className="rounded-xl bg-deal/10 px-3 py-2.5 text-center text-xs font-bold text-deal">
+            <p className="rounded-xl bg-discount/10 px-3 py-2.5 text-center text-xs font-bold text-discount">
               Remove or reduce the marked items to continue.
             </p>
           ) : (
             <Link
               href="/checkout"
-              className="btn-primary w-full bg-deal hover:bg-orange-600"
+              className="btn-primary w-full bg-discount hover:bg-orange-600"
             >
               Go to checkout <ArrowRight className="h-4 w-4" />
             </Link>
@@ -256,7 +256,7 @@ function CartShell({
       </h1>
       <CheckoutSteps current={1} />
       {itemCount !== undefined && itemCount > 0 && (
-        <p className="mb-4 flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-300">
+        <p className="mb-4 flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
           <Truck className="h-5 w-5 shrink-0" />
           Yay! This order gets free delivery. Cash on delivery is available.
         </p>

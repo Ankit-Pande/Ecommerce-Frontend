@@ -194,17 +194,17 @@ export function AccountPage() {
           </div>
           <div className="space-y-4 p-5">
             <label className="block">
-              <span className="mb-1.5 block text-xs font-extrabold text-gray-600 dark:text-gray-300">
+              <span className="mb-1.5 block text-xs font-extrabold text-gray-600">
                 Mobile number
               </span>
               <input
-                className="field bg-gray-50 text-gray-500 dark:bg-white/[0.03]"
+                className="field bg-gray-50 text-gray-500"
                 readOnly
                 value={`+91 ${profile?.phone ?? ""}`}
               />
             </label>
             <label className="block">
-              <span className="mb-1.5 block text-xs font-extrabold text-gray-600 dark:text-gray-300">
+              <span className="mb-1.5 block text-xs font-extrabold text-gray-600">
                 Full name
               </span>
               <input
@@ -218,7 +218,7 @@ export function AccountPage() {
               />
             </label>
             <label className="block">
-              <span className="mb-1.5 block text-xs font-extrabold text-gray-600 dark:text-gray-300">
+              <span className="mb-1.5 block text-xs font-extrabold text-gray-600">
                 Email address
               </span>
               <input
@@ -261,7 +261,7 @@ export function AccountPage() {
             {addresses.map((address) => (
               <article key={address.id} className="card p-4 sm:p-5">
                 <div className="flex items-start gap-3">
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-mist text-accent dark:bg-white/[0.06]">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-ground text-accent">
                     <MapPin className="h-4 w-4" />
                   </span>
                   <div className="min-w-0 flex-1">
@@ -341,7 +341,7 @@ export function AccountPage() {
         <button
           type="button"
           onClick={handleDeleteAccount}
-          className="text-xs font-bold text-gray-500 hover:text-deal"
+          className="text-xs font-bold text-gray-500 hover:text-discount"
         >
           Delete my account
         </button>

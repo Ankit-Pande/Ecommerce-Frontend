@@ -24,19 +24,17 @@ const TABS = [
 ];
 
 const STATUS_STYLE: Record<OrderStatus, string> = {
-  PENDING:
-    "bg-amber-100 text-amber-700 dark:bg-amber-400/10 dark:text-amber-300",
-  CONFIRMED: "bg-accent/10 text-accent dark:text-sky-300",
-  SHIPPED:
-    "bg-violet-100 text-violet-700 dark:bg-violet-400/10 dark:text-violet-300",
-  DELIVERED: "bg-leaf/10 text-leaf dark:text-emerald-300",
-  CANCELLED: "bg-deal/10 text-deal",
+  PENDING: "bg-amber-100 text-amber-700",
+  CONFIRMED: "bg-accent/10 text-accent",
+  SHIPPED: "bg-violet-100 text-violet-700",
+  DELIVERED: "bg-accent/10 text-accent",
+  CANCELLED: "bg-discount/10 text-discount",
 };
 
 const PAYMENT_STYLE: Record<PaymentStatus, string> = {
-  PENDING: "bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-gray-300",
-  COMPLETED: "bg-leaf/10 text-leaf dark:text-emerald-300",
-  REFUNDED: "bg-deal/10 text-deal",
+  PENDING: "bg-gray-100 text-gray-600",
+  COMPLETED: "bg-accent/10 text-accent",
+  REFUNDED: "bg-discount/10 text-discount",
 };
 
 // Statuses the admin can move an order to.
@@ -111,7 +109,7 @@ export default function AdminOrders() {
             className={`shrink-0 rounded-full px-3.5 py-2 text-xs font-bold transition ${
               tab === item.value
                 ? "bg-accent text-white"
-                : "bg-mist text-gray-600 hover:text-ink dark:bg-white/10 dark:text-gray-300"
+                : "bg-ground text-gray-600 hover:text-ink"
             }`}
           >
             {item.label}
@@ -125,14 +123,14 @@ export default function AdminOrders() {
         ) : failed ? (
           <OfflineNotice onRetry={reload} />
         ) : items.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-sand py-12 text-center dark:border-white/15">
+          <div className="rounded-2xl border border-dashed border-line py-12 text-center">
             <PackageCheck className="mx-auto h-8 w-8 text-gray-300" />
             <p className="mt-3 text-sm font-bold">No orders here</p>
           </div>
         ) : (
           <>
             <div
-              className={`${ROW} hidden border-b border-sand px-4 pb-3 text-xs font-semibold text-gray-500 dark:border-white/10 md:grid`}
+              className={`${ROW} hidden border-b border-line px-4 pb-3 text-xs font-semibold text-gray-500 md:grid`}
             >
               <span>Customer</span>
               <span>Total</span>
@@ -141,13 +139,13 @@ export default function AdminOrders() {
               <span>Date</span>
               <span>Action</span>
             </div>
-            <ul className="space-y-2.5 md:space-y-0 md:divide-y md:divide-sand md:dark:divide-white/10">
+            <ul className="space-y-2.5 md:space-y-0 md:divide-y md:divide-line md:">
               {items.map((order) => {
                 const options = nextStatuses(order);
                 return (
                   <li
                     key={order.id}
-                    className="rounded-2xl border border-sand p-4 dark:border-white/10 md:rounded-none md:border-0 md:px-4 md:py-3.5"
+                    className="rounded-2xl border border-line p-4 md:rounded-none md:border-0 md:px-4 md:py-3.5"
                   >
                     <div className={ROW}>
                       <div className="min-w-0">
@@ -218,7 +216,7 @@ export default function AdminOrders() {
                     </div>
 
                     {order.needsReview && (
-                      <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-deal/10 px-3 py-2 text-xs font-bold text-deal">
+                      <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-discount/10 px-3 py-2 text-xs font-bold text-discount">
                         <AlertTriangle className="h-4 w-4" />
                         <span className="flex-1">
                           Payment needs review — refund it from the Razorpay

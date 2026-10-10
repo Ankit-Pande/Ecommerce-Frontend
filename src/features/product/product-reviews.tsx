@@ -118,7 +118,7 @@ export function ProductReviews({
             No reviews yet. Buyers can review after delivery.
           </p>
         ) : (
-          <ul className="divide-y divide-sand dark:divide-white/10">
+          <ul className="divide-y divide-line">
             {reviews.map((review) => (
               <li key={review.id} className="py-4 first:pt-0">
                 <div className="flex items-center gap-3">
@@ -141,7 +141,7 @@ export function ProductReviews({
                   )}
                 </div>
                 {review.comment && (
-                  <p className="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300">
+                  <p className="mt-2 text-sm leading-6 text-gray-600">
                     {review.comment}
                   </p>
                 )}
@@ -181,10 +181,7 @@ function ReviewForm({ slug, onSaved }: { slug: string; onSaved: () => void }) {
   }
 
   return (
-    <form
-      onSubmit={submit}
-      className="mt-5 rounded-2xl bg-mist/60 p-4 dark:bg-white/[0.05]"
-    >
+    <form onSubmit={submit} className="mt-5 rounded-2xl bg-ground/60 p-4">
       <fieldset>
         <legend className="text-sm font-extrabold">Your rating</legend>
         <div className="mt-2 flex gap-1">
@@ -195,7 +192,7 @@ function ReviewForm({ slug, onSaved }: { slug: string; onSaved: () => void }) {
               onClick={() => setRating(value)}
               aria-label={`${value} star${value > 1 ? "s" : ""}`}
               aria-pressed={rating === value}
-              className="grid h-10 w-10 place-items-center rounded-lg text-gold hover:bg-white dark:hover:bg-white/10"
+              className="grid h-10 w-10 place-items-center rounded-lg text-sunny hover:bg-white"
             >
               <Star
                 className={`h-6 w-6 ${value <= rating ? "fill-current" : ""}`}
@@ -233,7 +230,7 @@ function ReviewForm({ slug, onSaved }: { slug: string; onSaved: () => void }) {
 // Clickable 1 to 5 star picker.
 function Stars({ value }: { value: number }) {
   return (
-    <span className="flex text-gold" aria-label={`${value} out of 5 stars`}>
+    <span className="flex text-sunny" aria-label={`${value} out of 5 stars`}>
       {RATINGS.map((star) => (
         <Star
           key={star}

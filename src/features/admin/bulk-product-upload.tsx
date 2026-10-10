@@ -177,7 +177,7 @@ export default function BulkUpload() {
       </div>
 
       {failed && (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-deal/10 p-3 text-xs font-bold text-deal">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-discount/10 p-3 text-xs font-bold text-discount">
           <span>Could not load categories.</span>
           <Button
             variant="danger"
@@ -190,7 +190,7 @@ export default function BulkUpload() {
       )}
 
       {brandsFailed && (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-amber-100 p-3 text-xs font-bold text-amber-800 dark:bg-amber-400/10 dark:text-amber-300">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-amber-100 p-3 text-xs font-bold text-amber-800">
           <span>
             Brands are unavailable. Products can still be created without a
             brand.
@@ -198,7 +198,7 @@ export default function BulkUpload() {
           <Button
             variant="ghost"
             onClick={reloadBrands}
-            className="min-h-9 py-1 text-amber-800 dark:text-amber-300"
+            className="min-h-9 py-1 text-amber-800"
           >
             <RefreshCw className="h-3.5 w-3.5" /> Retry
           </Button>
@@ -221,7 +221,7 @@ export default function BulkUpload() {
                 }
                 disabled={anyUploading || saving}
                 aria-label={`Remove product row ${index + 1}`}
-                className="icon-button absolute right-2 top-2 z-10 h-8 w-8 bg-white text-gray-400 shadow-sm hover:text-deal dark:bg-chrome"
+                className="icon-button absolute right-2 top-2 z-10 h-8 w-8 bg-white text-gray-400 shadow-sm hover:text-discount"
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </button>

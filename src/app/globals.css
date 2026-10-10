@@ -3,17 +3,9 @@
 @tailwind utilities;
 
 @layer base {
-  /* Default look: light grey page, white boxes, blue actions, orange deals. */
+  /* Accent colour; the theme picker changes only this. */
   :root {
-    --color-chrome: 33 33 33;
-    --color-accent: 40 116 240;
-    --color-accent-dark: 30 94 200;
-    --color-gold: 255 159 0;
-    --color-ivory: 241 243 246;
-    --color-night: 11 15 25;
-    --color-ink: 33 33 33;
-    --color-mist: 245 247 250;
-    --color-sand: 224 224 224;
+    --color-accent: 11 122 92;
   }
 
   html {
@@ -21,7 +13,7 @@
   }
 
   body {
-    @apply min-h-screen bg-ivory text-ink dark:bg-night dark:text-gray-100;
+    @apply min-h-screen bg-ground text-base leading-[1.45] text-ink;
   }
 
   button,
@@ -29,57 +21,54 @@
   input,
   select,
   textarea {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-ivory dark:focus-visible:ring-offset-night;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2;
   }
 
   button,
   select {
     @apply disabled:cursor-not-allowed;
   }
-
-  ::selection {
-    @apply bg-gold/30 text-ink;
-  }
 }
 
 @layer components {
   .card {
-    @apply rounded-md border border-sand/70 bg-white shadow-card dark:border-white/10 dark:bg-white/[0.04];
+    @apply rounded-[20px] bg-white shadow-card;
   }
 
   .field {
-    @apply min-h-11 w-full rounded border border-sand bg-white px-3.5 py-2.5 text-sm text-ink outline-none transition
-      placeholder:text-gray-400 hover:border-black/20 focus:border-accent dark:border-white/15 dark:bg-white/[0.06] dark:text-white dark:hover:border-white/25;
+    @apply min-h-12 w-full rounded-xl border border-field bg-white px-3.5 text-base text-ink outline-none placeholder:text-muted focus:border-accent;
   }
 
   .btn-primary {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-sm bg-accent px-5 py-2.5 text-sm font-bold uppercase tracking-wide text-white shadow-button
-      transition hover:bg-accent-dark disabled:opacity-50;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-accent px-5 font-extrabold text-white transition hover:opacity-90 disabled:opacity-50;
   }
 
   .btn-outline {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-sm border border-sand bg-white px-5 py-2.5 text-sm font-bold uppercase tracking-wide text-ink
-      transition hover:border-accent hover:text-accent disabled:opacity-50 dark:bg-transparent dark:text-sky-300;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border-2 border-accent bg-white px-5 font-extrabold text-accent transition hover:bg-ground disabled:opacity-50;
+  }
+
+  .btn-grey {
+    @apply inline-flex min-h-9 items-center justify-center rounded-[10px] bg-grey px-3 text-sm font-semibold text-grey-ink transition hover:bg-grey-strong disabled:opacity-50;
+  }
+
+  .btn-line {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-field bg-white px-4 font-semibold text-ink transition hover:border-accent disabled:opacity-50;
   }
 
   .btn-ghost {
-    @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-sm px-3.5 py-2 text-sm font-bold text-gray-600 transition hover:bg-black/[0.05] hover:text-ink dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-3 font-semibold text-ink transition hover:bg-ground;
   }
 
   .icon-button {
-    @apply inline-grid h-10 w-10 shrink-0 place-items-center rounded transition hover:bg-black/[0.06] dark:hover:bg-white/10;
-  }
-
-  .section-title {
-    @apply font-display text-lg font-medium sm:text-xl;
-  }
-
-  .eyebrow {
-    @apply text-[11px] font-extrabold uppercase tracking-[0.18em] text-accent dark:text-sky-300;
+    @apply inline-grid h-11 w-11 shrink-0 place-items-center rounded-xl transition hover:bg-ground;
   }
 
   .status-pill {
-    @apply inline-flex items-center rounded-sm px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide;
+    @apply inline-flex items-center rounded-full px-3.5 py-1.5 text-sm font-semibold;
+  }
+
+  .page {
+    @apply mx-auto w-full max-w-page p-6;
   }
 }
 
@@ -88,11 +77,8 @@
     width: 4px;
     height: 4px;
   }
-  .scrollbar-thin::-webkit-scrollbar-track {
-    background: transparent;
-  }
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    @apply rounded-full bg-gray-300 dark:bg-gray-600;
+    @apply rounded-full bg-field;
   }
 }
 
@@ -109,38 +95,4 @@
 
 .animate-toast-in {
   animation: toast-in 0.25s ease-out;
-}
-
-@keyframes road {
-  from {
-    background-position: 0 0;
-  }
-  to {
-    background-position: -44px 0;
-  }
-}
-
-@keyframes truck {
-  0%,
-  100% {
-    transform: translate(-50%, 0);
-  }
-  50% {
-    transform: translate(-50%, -4px);
-  }
-}
-
-.animate-road {
-  animation: road 0.6s linear infinite;
-}
-
-.animate-truck {
-  animation: truck 0.8s ease-in-out infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .animate-road,
-  .animate-truck {
-    animation: none;
-  }
 }

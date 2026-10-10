@@ -94,14 +94,14 @@ export function OrderDetailPage({ id }: { id: string }) {
             </div>
 
             {order.status === "CANCELLED" && order.cancelledBy && (
-              <p className="mt-4 flex items-center gap-2 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 dark:bg-red-400/10 dark:text-red-300">
+              <p className="mt-4 flex items-center gap-2 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
                 <XCircle className="h-4 w-4 shrink-0" />
                 {CANCELLED_BY_TEXT[order.cancelledBy]}
               </p>
             )}
 
             {order.status !== "CANCELLED" && (
-              <p className="mt-4 flex items-center gap-2 rounded-xl bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-800 dark:bg-blue-400/10 dark:text-blue-300">
+              <p className="mt-4 flex items-center gap-2 rounded-xl bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-800">
                 <Truck className="h-4 w-4 shrink-0" />
                 {deliveryText(order)}
               </p>
@@ -115,11 +115,11 @@ export function OrderDetailPage({ id }: { id: string }) {
               {order.items.map((item, index) => (
                 <li
                   key={`${item.productId}-${index}`}
-                  className="flex items-start gap-4 rounded-2xl bg-mist/60 p-3 dark:bg-white/[0.04]"
+                  className="flex items-start gap-4 rounded-2xl bg-ground/60 p-3"
                 >
                   <Link
                     href={`/products/${item.product.slug}`}
-                    className="relative h-28 w-28 shrink-0 overflow-hidden rounded-xl bg-white dark:bg-white/10 sm:h-36 sm:w-36"
+                    className="relative h-28 w-28 shrink-0 overflow-hidden rounded-xl bg-white sm:h-36 sm:w-36"
                   >
                     <SafeImage
                       src={item.productImage}
@@ -187,16 +187,16 @@ export function OrderDetailPage({ id }: { id: string }) {
                 {order.paymentMethod === "COD" &&
                   order.paymentStatus === "PENDING" &&
                   order.status !== "CANCELLED" && (
-                    <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800 dark:bg-amber-400/10 dark:text-amber-300">
+                    <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
                       Pay {inr(order.totalPaise)} in cash when the order
                       arrives.
                     </p>
                   )}
                 <div className="flex justify-between">
                   <dt className="text-gray-500">Delivery</dt>
-                  <dd className="font-bold text-leaf">Free</dd>
+                  <dd className="font-bold text-accent">Free</dd>
                 </div>
-                <div className="flex justify-between border-t border-sand pt-2 dark:border-white/10">
+                <div className="flex justify-between border-t border-line pt-2">
                   <dt className="font-bold">Total</dt>
                   <dd className="font-display text-lg font-extrabold">
                     {inr(order.totalPaise)}

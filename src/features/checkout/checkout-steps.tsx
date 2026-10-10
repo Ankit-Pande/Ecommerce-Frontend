@@ -18,7 +18,7 @@ export function CheckoutSteps({ current }: { current: 1 | 2 }) {
           >
             <div className="flex items-center gap-2">
               <span
-                className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-[11px] font-extrabold ${complete || active ? "bg-accent text-white" : "bg-gray-200 text-gray-500 dark:bg-white/10"}`}
+                className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-[11px] font-extrabold ${complete || active ? "bg-accent text-white" : "bg-gray-200 text-gray-500"}`}
               >
                 {complete ? <Check className="h-3.5 w-3.5" /> : number}
               </span>
@@ -30,7 +30,7 @@ export function CheckoutSteps({ current }: { current: 1 | 2 }) {
             </div>
             {number < STEPS.length && (
               <span
-                className={`mx-2 h-px flex-1 sm:mx-4 ${complete ? "bg-accent" : "bg-gray-200 dark:bg-white/10"}`}
+                className={`mx-2 h-px flex-1 sm:mx-4 ${complete ? "bg-accent" : "bg-gray-200"}`}
               />
             )}
           </li>

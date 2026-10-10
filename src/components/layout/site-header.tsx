@@ -37,7 +37,7 @@ export function SiteHeader({ categories }: { categories: Category[] }) {
 
   return (
     <>
-      <div className="bg-gradient-to-r from-accent via-accent-dark to-accent px-3 py-1.5 text-center text-[11px] font-semibold text-white sm:text-xs">
+      <div className="bg-gradient-to-r from-accent via-accent to-accent px-3 py-1.5 text-center text-[11px] font-semibold text-white sm:text-xs">
         <Truck className="mr-1.5 inline h-3.5 w-3.5 align-[-2px]" />
         Free delivery on every order
         <span className="hidden sm:inline"> · Cash on delivery available</span>
@@ -49,7 +49,7 @@ export function SiteHeader({ categories }: { categories: Category[] }) {
           Shop offers
         </Link>
       </div>
-      <header className="sticky top-0 z-40 border-b border-sand bg-white dark:border-white/10 dark:bg-night">
+      <header className="sticky top-0 z-40 border-b border-line bg-white">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-1 px-3 sm:gap-2 sm:px-5 lg:px-8">
           <button
             type="button"
@@ -74,12 +74,12 @@ export function SiteHeader({ categories }: { categories: Category[] }) {
           <Link
             href="/cart"
             aria-label={`$Cart: ${count}`}
-            className="relative flex h-10 items-center gap-2 rounded-full px-2 text-sm font-extrabold transition hover:bg-black/[0.05] dark:hover:bg-white/10 sm:px-3"
+            className="relative flex h-10 items-center gap-2 rounded-full px-2 text-sm font-extrabold transition hover:bg-black/[0.05] sm:px-3"
           >
             <ShoppingCart className="h-5 w-5" />
             <span className="hidden lg:inline">Cart</span>
             {count > 0 && (
-              <span className="absolute -top-0.5 left-5 grid h-5 min-w-5 place-items-center rounded-full bg-deal px-1 text-[10px] font-extrabold text-white ring-2 ring-white dark:ring-night">
+              <span className="absolute -top-0.5 left-5 grid h-5 min-w-5 place-items-center rounded-full bg-discount px-1 text-[10px] font-extrabold text-white ring-2 ring-white">
                 {count > 99 ? "99+" : count}
               </span>
             )}

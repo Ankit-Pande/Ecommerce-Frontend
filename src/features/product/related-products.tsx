@@ -59,7 +59,7 @@ export function RelatedProducts({
       ) : (
         <div>
           {failed && (
-            <div className="mb-3 flex items-center justify-between rounded-xl bg-gold/10 px-3 py-2 text-xs font-semibold text-gray-600 dark:text-gray-300">
+            <div className="mb-3 flex items-center justify-between rounded-xl bg-sunny/10 px-3 py-2 text-xs font-semibold text-gray-600">
               <span>Could not load related products.</span>
               <button
                 type="button"

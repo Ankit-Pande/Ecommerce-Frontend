@@ -15,7 +15,7 @@ export function HomeRetry() {
 
   return (
     <div className="pb-12">
-      <div className="mt-5 flex flex-wrap items-center justify-center gap-2 rounded-xl bg-gold/10 px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-300">
+      <div className="mt-5 flex flex-wrap items-center justify-center gap-2 rounded-xl bg-sunny/10 px-4 py-3 text-center text-xs font-semibold text-gray-600">
         <span>Could not load the store.</span>
         <button
           type="button"

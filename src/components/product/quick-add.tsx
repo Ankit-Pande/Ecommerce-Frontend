@@ -43,7 +43,7 @@ export function QuickAdd({ productId }: { productId: string }) {
       onClick={add}
       disabled={!hydrated || state === "adding"}
       aria-label="Add to cart"
-      className="inline-flex h-8 shrink-0 items-center gap-1 rounded-full bg-accent px-3 text-xs font-bold text-white transition hover:bg-accent-dark disabled:opacity-60"
+      className="inline-flex h-8 shrink-0 items-center gap-1 rounded-full bg-accent px-3 text-xs font-bold text-white transition hover:bg-accent disabled:opacity-60"
     >
       {state === "adding" ? (
         <Spinner />

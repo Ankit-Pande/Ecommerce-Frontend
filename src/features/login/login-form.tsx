@@ -135,7 +135,7 @@ export function LoginForm() {
 
   return (
     <section className="mx-auto grid w-full max-w-md overflow-hidden py-8 sm:py-14 lg:max-w-5xl lg:grid-cols-2 lg:py-12">
-      <div className="relative hidden overflow-hidden rounded-l-3xl bg-gradient-to-br from-accent via-violet-600 to-deal p-10 text-white lg:flex lg:flex-col lg:justify-between">
+      <div className="relative hidden overflow-hidden rounded-l-3xl bg-gradient-to-br from-accent via-violet-600 to-discount p-10 text-white lg:flex lg:flex-col lg:justify-between">
         <span className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/10" />
         <span className="absolute -bottom-20 -left-10 h-64 w-64 rounded-full bg-white/10" />
         <Wordmark onDark className="relative text-2xl" />
@@ -173,12 +173,12 @@ export function LoginForm() {
 
             <label
               htmlFor="phone"
-              className="mt-8 block text-sm font-semibold text-gray-600 dark:text-gray-300"
+              className="mt-8 block text-sm font-semibold text-gray-600"
             >
               Mobile number
             </label>
-            <div className="mt-2 flex h-12 items-center rounded-full border border-sand bg-white px-1.5 transition focus-within:border-accent focus-within:ring-4 focus-within:ring-accent/10 dark:border-white/15 dark:bg-white/[0.06]">
-              <span className="grid h-9 place-items-center rounded-full bg-mist px-3 text-sm font-bold text-gray-600 dark:bg-white/10 dark:text-gray-300">
+            <div className="mt-2 flex h-12 items-center rounded-full border border-line bg-white px-1.5 transition focus-within:border-accent focus-within:ring-4 focus-within:ring-accent/10">
+              <span className="grid h-9 place-items-center rounded-full bg-ground px-3 text-sm font-bold text-gray-600">
                 +91
               </span>
               <input
@@ -200,7 +200,7 @@ export function LoginForm() {
                 className="min-w-0 flex-1 bg-transparent px-3 text-base font-semibold tracking-wide outline-none placeholder:font-normal placeholder:tracking-normal placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0"
               />
               {INDIAN_MOBILE.test(phone) && (
-                <Check className="mr-3 h-4 w-4 text-leaf" />
+                <Check className="mr-3 h-4 w-4 text-accent" />
               )}
             </div>
 
@@ -226,7 +226,7 @@ export function LoginForm() {
                 setError("");
               }}
               aria-label="Change number"
-              className="icon-button -ml-2 -mt-2 bg-mist dark:bg-white/10"
+              className="icon-button -ml-2 -mt-2 bg-ground"
             >
               <ArrowLeft className="h-4 w-4" />
             </button>
@@ -242,9 +242,7 @@ export function LoginForm() {
               </h1>
               <p className="mt-2 text-sm leading-6 text-gray-500">
                 Enter the 6-digit code sent to{" "}
-                <strong className="text-ink dark:text-gray-200">
-                  +91 {phone}
-                </strong>
+                <strong className="text-ink">+91 {phone}</strong>
               </p>
             </div>
 
@@ -263,7 +261,7 @@ export function LoginForm() {
                   inputMode="numeric"
                   autoComplete={index === 0 ? "one-time-code" : "off"}
                   maxLength={1}
-                  className={`aspect-square min-w-0 rounded-full border text-center text-lg font-bold outline-none transition focus:border-accent focus:ring-4 focus:ring-accent/15 focus-visible:ring-offset-0 ${digit ? "border-accent bg-accent text-white" : "border-sand bg-white dark:border-white/15 dark:bg-white/[0.06]"}`}
+                  className={`aspect-square min-w-0 rounded-full border text-center text-lg font-bold outline-none transition focus:border-accent focus:ring-4 focus:ring-accent/15 focus-visible:ring-offset-0 ${digit ? "border-accent bg-accent text-white" : "border-line bg-white"}`}
                 />
               ))}
             </div>
@@ -282,12 +280,12 @@ export function LoginForm() {
               {expiresIn > 0 ? (
                 <p>
                   Code valid for{" "}
-                  <strong className="tabular-nums text-ink dark:text-white">
+                  <strong className="tabular-nums text-ink">
                     ({formatSeconds(expiresIn)})
                   </strong>
                 </p>
               ) : (
-                <p className="font-semibold text-deal">Code expired</p>
+                <p className="font-semibold text-discount">Code expired</p>
               )}
               <p className="mt-1.5">
                 Didn&apos;t receive the code?{" "}
@@ -319,7 +317,7 @@ function ErrorText({ message }: { message: string }) {
   return (
     <p
       role="alert"
-      className="mt-4 rounded-2xl bg-deal/10 px-4 py-2.5 text-center text-sm font-semibold text-deal"
+      className="mt-4 rounded-2xl bg-discount/10 px-4 py-2.5 text-center text-sm font-semibold text-discount"
     >
       {message}
     </p>

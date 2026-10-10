@@ -5,10 +5,15 @@ import { ThemeProvider } from "next-themes";
 import { useAuthStore } from "@/store/auth-store";
 import { getProfile } from "@/api/account";
 import { restoreSession } from "@/api/http";
+import { ACCENTS, useUiStore } from "@/store/ui-store";
 
-// Sets up the theme and restores the saved login once on load.
+// Sets the light theme and accent colour, and restores the saved login once on load.
 export function Providers({ children }: { children: React.ReactNode }) {
+  const accent = useUiStore((state) => state.accent);
+  const language = useUiStore((state) => state.language);
+
   useEffect(() => {
+    void useUiStore.persist.rehydrate();
     Promise.resolve(useAuthStore.persist.rehydrate())
       .then(() => restoreSession())
       .then(async (loggedIn) => {
@@ -21,13 +26,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
       .finally(() => useAuthStore.getState().setHydrated());
   }, []);
 
+  useEffect(() => {
+    document.documentElement.style.setProperty(
+      "--color-accent",
+      ACCENTS[accent] ?? ACCENTS["#0B7A5C"],
+    );
+    document.documentElement.lang = language;
+  }, [accent, language]);
+
   return (
-    <ThemeProvider
-      attribute="class"
-      defaultTheme="system"
-      enableSystem
-      disableTransitionOnChange
-    >
+    <ThemeProvider attribute="class" forcedTheme="light">
       {children}
     </ThemeProvider>
   );

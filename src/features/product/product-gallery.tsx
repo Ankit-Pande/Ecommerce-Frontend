@@ -33,7 +33,7 @@ export function ProductGallery({
         type="button"
         onClick={() => activeImage && setPreviewOpen(true)}
         aria-label="Open full-size image"
-        className="group relative block aspect-square w-full cursor-zoom-in overflow-hidden rounded-2xl bg-mist/60 dark:bg-white/[0.04]"
+        className="group relative block aspect-square w-full cursor-zoom-in overflow-hidden rounded-2xl bg-ground/60"
       >
         <SafeImage
           src={activeImage}
@@ -58,7 +58,7 @@ export function ProductGallery({
               onClick={() => setActiveIndex(index)}
               aria-label={`View product image ${index + 1}`}
               aria-pressed={activeIndex === index}
-              className={`relative aspect-square overflow-hidden rounded-xl border-2 bg-white transition dark:bg-white/[0.04] ${
+              className={`relative aspect-square overflow-hidden rounded-xl border-2 bg-white transition ${
                 activeIndex === index
                   ? "border-accent shadow-sm"
                   : "border-transparent hover:border-accent/30"

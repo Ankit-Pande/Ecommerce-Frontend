@@ -40,9 +40,7 @@ export function ProductDetails({ product }: { product: ProductDetail }) {
           {product.category.name}
         </Link>
         <ChevronRight className="hidden h-3.5 w-3.5 shrink-0 sm:block" />
-        <span className="truncate text-gray-700 dark:text-gray-300">
-          {product.name}
-        </span>
+        <span className="truncate text-gray-700">{product.name}</span>
       </nav>
 
       <div className="card grid gap-7 p-4 sm:p-6 md:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)] md:gap-10 lg:p-8">
@@ -63,13 +61,13 @@ export function ProductDetails({ product }: { product: ProductDetail }) {
             {product.brand && (
               <Link
                 href={`/products?brand=${encodeURIComponent(product.brand.slug)}`}
-                className="rounded-full bg-mist px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-gray-600 transition hover:text-accent dark:bg-white/[0.07] dark:text-gray-300"
+                className="rounded-full bg-ground px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-gray-600 transition hover:text-accent"
               >
                 {product.brand.name}
               </Link>
             )}
             {product.color && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-mist px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-gray-600 dark:bg-white/[0.07] dark:text-gray-300">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-ground px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-gray-600">
                 {swatch && (
                   <span
                     className="h-3 w-3 rounded-full border border-black/15"
@@ -97,7 +95,7 @@ export function ProductDetails({ product }: { product: ProductDetail }) {
                 <span className="pb-1 text-sm font-semibold text-gray-400 line-through">
                   {inr(product.pricePaise)}
                 </span>
-                <span className="mb-1 rounded-lg bg-leaf/10 px-2.5 py-1 text-xs font-extrabold text-leaf">
+                <span className="mb-1 rounded-lg bg-accent/10 px-2.5 py-1 text-xs font-extrabold text-accent">
                   {product.discountPercent}% off · Save {inr(saving)}
                 </span>
               </>
@@ -109,10 +107,10 @@ export function ProductDetails({ product }: { product: ProductDetail }) {
 
           <div className="mt-5 flex items-center gap-2">
             <span
-              className={`h-2.5 w-2.5 rounded-full ${inStock ? "bg-leaf" : "bg-gray-300"}`}
+              className={`h-2.5 w-2.5 rounded-full ${inStock ? "bg-accent" : "bg-gray-300"}`}
             />
             <span
-              className={`text-sm font-extrabold ${product.stockStatus === "LOW_STOCK" ? "text-deal" : inStock ? "text-leaf" : "text-gray-500"}`}
+              className={`text-sm font-extrabold ${product.stockStatus === "LOW_STOCK" ? "text-discount" : inStock ? "text-accent" : "text-gray-500"}`}
             >
               {STOCK_TEXT[product.stockStatus]}
             </span>
@@ -126,7 +124,7 @@ export function ProductDetails({ product }: { product: ProductDetail }) {
             />
           </div>
 
-          <ul className="mt-6 divide-y divide-sand rounded-2xl border border-sand text-sm dark:divide-white/10 dark:border-white/10">
+          <ul className="mt-6 divide-y divide-line rounded-2xl border border-line text-sm">
             <DeliveryLine
               icon={Truck}
               title="Free delivery"
@@ -144,14 +142,14 @@ export function ProductDetails({ product }: { product: ProductDetail }) {
             />
           </ul>
 
-          <div className="mt-6 border-t border-sand pt-6 dark:border-white/10">
+          <div className="mt-6 border-t border-line pt-6">
             <h2 className="text-sm font-extrabold">Product details</h2>
-            <p className="mt-2 whitespace-pre-line text-sm leading-7 text-gray-600 dark:text-gray-300">
+            <p className="mt-2 whitespace-pre-line text-sm leading-7 text-gray-600">
               {product.description}
             </p>
           </div>
 
-          <dl className="mt-5 grid grid-cols-2 gap-2 rounded-2xl bg-mist/70 p-4 text-xs dark:bg-white/[0.05]">
+          <dl className="mt-5 grid grid-cols-2 gap-2 rounded-2xl bg-ground/70 p-4 text-xs">
             <ProductFact label="Category" value={product.category.name} />
             {product.brand && (
               <ProductFact label="Brand" value={product.brand.name} />
@@ -202,9 +200,7 @@ function ProductFact({ label, value }: { label: string; value: string }) {
       <dt className="text-[10px] font-extrabold uppercase tracking-wide text-gray-400">
         {label}
       </dt>
-      <dd className="mt-1 truncate font-bold text-gray-700 dark:text-gray-200">
-        {value}
-      </dd>
+      <dd className="mt-1 truncate font-bold text-gray-700">{value}</dd>
     </div>
   );
 }

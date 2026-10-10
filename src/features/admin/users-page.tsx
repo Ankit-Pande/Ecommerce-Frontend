@@ -18,12 +18,12 @@ import { Button } from "@/components/ui/button";
 // Pill colour for a role.
 function roleStyle(role: UserRole) {
   if (role === "SUPER_ADMIN") {
-    return "bg-purple-100 text-purple-700 dark:bg-purple-400/10 dark:text-purple-300";
+    return "bg-purple-100 text-purple-700";
   }
   if (role === "ADMIN") {
-    return "bg-blue-100 text-blue-700 dark:bg-blue-400/10 dark:text-blue-300";
+    return "bg-blue-100 text-blue-700";
   }
-  return "bg-gray-100 text-gray-500 dark:bg-white/10";
+  return "bg-gray-100 text-gray-500";
 }
 
 // Customer list with block and role actions.
@@ -122,7 +122,7 @@ export default function AdminUsers() {
         ) : failed ? (
           <OfflineNotice onRetry={reload} />
         ) : items.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-black/15 py-12 text-center dark:border-white/15">
+          <div className="rounded-2xl border border-dashed border-black/15 py-12 text-center">
             <UsersRound className="mx-auto h-8 w-8 text-gray-300" />
             <p className="mt-3 text-sm font-extrabold">No customers found</p>
           </div>
@@ -131,12 +131,12 @@ export default function AdminUsers() {
             {items.map((user) => (
               <article
                 key={user.id}
-                className="flex flex-wrap items-center gap-3 rounded-2xl border border-sand p-4 transition hover:border-accent/15 hover:shadow-card dark:border-white/10"
+                className="flex flex-wrap items-center gap-3 rounded-2xl border border-line p-4 transition hover:border-accent/15 hover:shadow-card"
               >
                 <span
                   className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${
                     user.isBlocked
-                      ? "bg-deal/10 text-deal"
+                      ? "bg-discount/10 text-discount"
                       : "bg-accent/10 text-accent"
                   }`}
                 >
@@ -166,7 +166,7 @@ export default function AdminUsers() {
                   {user.role.replace("_", " ")}
                 </span>
                 {user.isBlocked && (
-                  <span className="status-pill bg-deal/10 text-deal">
+                  <span className="status-pill bg-discount/10 text-discount">
                     Blocked
                   </span>
                 )}
@@ -199,7 +199,7 @@ export default function AdminUsers() {
                       className={`btn-ghost px-2.5 text-xs ${
                         user.isBlocked
                           ? "text-accent"
-                          : "text-deal hover:text-deal"
+                          : "text-discount hover:text-discount"
                       }`}
                     >
                       {busyId === user.id ? (

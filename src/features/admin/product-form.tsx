@@ -153,10 +153,10 @@ export function ProductForm({
   return (
     <form
       onSubmit={submit}
-      className="grid max-w-3xl gap-5 rounded-2xl border border-sand p-5 dark:border-white/10 sm:grid-cols-2 sm:p-6"
+      className="grid max-w-3xl gap-5 rounded-2xl border border-line p-5 sm:grid-cols-2 sm:p-6"
     >
       {failed && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-deal/10 p-3 text-xs font-bold text-deal sm:col-span-2">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-discount/10 p-3 text-xs font-bold text-discount sm:col-span-2">
           <span>Could not load categories.</span>
           <Button
             variant="danger"
@@ -169,12 +169,12 @@ export function ProductForm({
       )}
 
       {brandsFailed && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-amber-100 p-3 text-xs font-bold text-amber-800 sm:col-span-2 dark:bg-amber-400/10 dark:text-amber-300">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-amber-100 p-3 text-xs font-bold text-amber-800 sm:col-span-2">
           <span>Brands are unavailable. You can save without a brand.</span>
           <Button
             variant="ghost"
             onClick={reloadBrands}
-            className="min-h-9 py-1 text-amber-800 dark:text-amber-300"
+            className="min-h-9 py-1 text-amber-800"
           >
             <RefreshCw className="h-3.5 w-3.5" /> Retry
           </Button>

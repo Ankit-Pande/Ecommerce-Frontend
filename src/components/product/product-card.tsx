@@ -11,10 +11,10 @@ export function ProductCard({ product }: { product: Product }) {
   const soldOut = product.stockStatus === "OUT_OF_STOCK";
 
   return (
-    <article className="group flex h-full flex-col rounded-2xl border border-sand/70 bg-white p-2.5 transition duration-300 hover:-translate-y-1 hover:border-accent/20 hover:shadow-soft dark:border-white/10 dark:bg-white/[0.04]">
+    <article className="group flex h-full flex-col rounded-2xl border border-line/70 bg-white p-2.5 transition duration-300 hover:-translate-y-1 hover:border-accent/20 hover:shadow-soft">
       <Link
         href={href}
-        className="relative block aspect-square overflow-hidden rounded-xl bg-mist dark:bg-white/[0.06]"
+        className="relative block aspect-square overflow-hidden rounded-xl bg-ground"
       >
         <SafeImage
           src={product.image}
@@ -23,12 +23,12 @@ export function ProductCard({ product }: { product: Product }) {
           className={`object-contain p-4 transition-transform duration-500 group-hover:scale-105 ${soldOut ? "opacity-50" : ""}`}
         />
         {product.discountPercent > 0 && (
-          <span className="absolute left-2 top-2 rounded-lg bg-deal px-2 py-1 text-[10px] font-extrabold text-white">
+          <span className="absolute left-2 top-2 rounded-lg bg-discount px-2 py-1 text-[10px] font-extrabold text-white">
             -{product.discountPercent}%
           </span>
         )}
         {product.stockStatus !== "IN_STOCK" && (
-          <span className="absolute bottom-2 left-2 rounded-lg bg-white/90 px-2 py-1 text-[10px] font-bold text-deal">
+          <span className="absolute bottom-2 left-2 rounded-lg bg-white/90 px-2 py-1 text-[10px] font-bold text-discount">
             {soldOut ? "Sold out" : "Only few left"}
           </span>
         )}
@@ -37,7 +37,7 @@ export function ProductCard({ product }: { product: Product }) {
       <div className="flex flex-1 flex-col px-1 pt-3">
         <Link
           href={href}
-          className="line-clamp-2 min-h-10 text-sm font-semibold leading-5 text-ink transition hover:text-accent dark:text-gray-100"
+          className="line-clamp-2 min-h-10 text-sm font-semibold leading-5 text-ink transition hover:text-accent"
         >
           {product.name}
         </Link>
@@ -54,7 +54,7 @@ export function ProductCard({ product }: { product: Product }) {
                 <span className="text-gray-400 line-through">
                   {inr(product.pricePaise)}
                 </span>{" "}
-                <span className="text-leaf">
+                <span className="text-accent">
                   {product.discountPercent}% off
                 </span>
               </p>

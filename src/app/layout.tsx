@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
-import { Roboto } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import { AppShell } from "@/components/layout/app-shell";
 import { Providers } from "@/components/layout/providers";
 import { getHomeOnServer } from "@/api/catalog";
 import "./globals.css";
 import { SITE_URL } from "@/lib/site";
 
-const roboto = Roboto({
-  weight: ["400", "500", "700", "900"],
+const font = Plus_Jakarta_Sans({
+  weight: ["400", "600", "800"],
   subsets: ["latin"],
   variable: "--font-body",
   display: "swap",
@@ -49,7 +49,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${roboto.variable} font-body antialiased`}>
+      <body className={`${font.variable} font-body antialiased`}>
         <Providers>
           <AppShell categories={categories}>{children}</AppShell>
         </Providers>

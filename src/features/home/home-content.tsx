@@ -48,7 +48,7 @@ export function HomeContent({ home }: { home: HomeData }) {
         {PROMISES.map((item) => (
           <li
             key={item.title}
-            className="flex min-w-[200px] items-center gap-3 rounded-2xl border border-sand bg-white px-4 py-3 dark:border-white/10 dark:bg-white/[0.04] lg:min-w-0"
+            className="flex min-w-[200px] items-center gap-3 rounded-2xl border border-line bg-white px-4 py-3 lg:min-w-0"
           >
             <span
               className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${item.className}`}
@@ -74,7 +74,7 @@ export function HomeContent({ home }: { home: HomeData }) {
       />
 
       {home.offers.length > 0 && (
-        <section className="mt-10 rounded-3xl bg-gradient-to-br from-orange-50 to-pink-50 px-4 pb-5 pt-1 dark:from-white/[0.04] dark:to-white/[0.02] sm:mt-14 sm:px-6">
+        <section className="mt-10 rounded-3xl bg-gradient-to-br from-orange-50 to-pink-50 px-4 pb-5 pt-1 sm:mt-14 sm:px-6">
           <SectionHeader
             title="Festival sale & best deals"
             href="/products?discount=true"

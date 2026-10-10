@@ -85,7 +85,7 @@ export function AddToCart({
         }}
         loading={buying}
         disabled={!hydrated}
-        className="bg-deal px-3 shadow-none hover:bg-orange-600 sm:px-5"
+        className="bg-discount px-3 shadow-none hover:bg-orange-600 sm:px-5"
       >
         {!buying && <Zap className="h-4 w-4" />} Buy now
       </Button>
