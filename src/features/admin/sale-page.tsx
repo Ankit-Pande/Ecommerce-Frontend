@@ -46,14 +46,14 @@ export default function AdminSale() {
     Number.isInteger(percent) && percent >= 1 && percent <= 90;
 
   return (
-    <div className="max-w-xl rounded-2xl border border-line p-5">
+    <div className="max-w-xl card p-5">
       <div className="flex items-center gap-3">
         <span className="grid h-10 w-10 place-items-center rounded-xl bg-accent/10 text-accent">
           <BadgePercent className="h-4 w-4" />
         </span>
         <div>
           <h2 className="text-sm font-extrabold">Festival sale</h2>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-muted">
             Replaces the current discount on every selected product.
           </p>
         </div>
@@ -61,9 +61,7 @@ export default function AdminSale() {
 
       <div className="mt-5 space-y-4">
         <label className="block">
-          <span className="mb-1.5 block text-xs font-bold text-gray-600">
-            Products
-          </span>
+          <span className="mb-1.5 block text-sm font-semibold">Products</span>
           <select
             className="field"
             value={categoryId}
@@ -85,7 +83,7 @@ export default function AdminSale() {
 
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block">
-            <span className="mb-1.5 block text-xs font-bold text-gray-600">
+            <span className="mb-1.5 block text-sm font-semibold">
               Discount %
             </span>
             <input
@@ -98,9 +96,9 @@ export default function AdminSale() {
             />
           </label>
           <label className="block">
-            <span className="mb-1.5 block text-xs font-bold text-gray-600">
+            <span className="mb-1.5 block text-sm font-semibold">
               Sale ends{" "}
-              <span className="font-medium text-gray-400">(optional)</span>
+              <span className="font-medium text-muted">(optional)</span>
             </span>
             <input
               className="field"

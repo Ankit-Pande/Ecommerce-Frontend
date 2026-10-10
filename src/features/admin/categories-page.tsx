@@ -1,10 +1,9 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Eye, EyeOff, FolderTree, ImageUp, Plus, Trash2 } from "lucide-react";
 import { OfflineNotice } from "@/components/ui/offline-notice";
 import { ListSkeleton } from "@/components/ui/skeletons";
-import { Spinner } from "@/components/ui/spinner";
+import { StatusPill } from "@/components/ui/status-pill";
 import { useAdminData } from "@/features/admin/use-admin-data";
 import {
   createCategory,
@@ -86,198 +85,116 @@ export default function AdminCategories() {
     }
   }
 
+  const rows = categories.flatMap((category) => [
+    { ...category, parent: "" },
+    ...category.children.map((child) => ({ ...child, parent: category.name })),
+  ]);
+
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
+    <div className="flex flex-wrap items-start gap-6">
       <form
         onSubmit={create}
-        className="rounded-2xl border border-line p-5 xl:sticky xl:top-32"
+        className="card flex flex-[1_1_280px] flex-col gap-3 p-5 xl:max-w-[360px]"
       >
-        <div className="flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-accent/10 text-accent">
-            <Plus className="h-4 w-4" />
-          </span>
-          <h2 className="text-sm font-extrabold">Add category</h2>
-        </div>
-
-        <div className="mt-5 space-y-4">
-          <label className="block">
-            <span className="mb-1.5 block text-xs font-bold text-gray-600">
-              Category name
-            </span>
-            <input
-              className="field"
-              required
-              minLength={2}
-              maxLength={80}
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              placeholder="e.g. Laptops"
-            />
-          </label>
-
-          <label className="block">
-            <span className="mb-1.5 block text-xs font-bold text-gray-600">
-              Parent
-            </span>
-            <select
-              className="field"
-              value={parentId}
-              onChange={(event) => setParentId(event.target.value)}
-            >
-              <option value="">None - top level</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="block">
-            <span className="mb-1.5 block text-xs font-bold text-gray-600">
-              Category image{" "}
-              <span className="font-medium text-gray-400">(optional)</span>
-            </span>
-            <span className="flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-dashed border-black/15 px-3.5 text-xs font-bold text-gray-500 hover:border-accent/30">
-              <ImageUp className="h-4 w-4" />
-              {image?.name ?? "Choose image"}
-              <input
-                ref={fileInput}
-                type="file"
-                accept="image/*"
-                className="sr-only"
-                onChange={(event) => setImage(event.target.files?.[0] ?? null)}
-              />
-            </span>
-          </label>
-
-          <Button
-            type="submit"
-            loading={saving}
-            disabled={failed}
-            className="w-full"
+        <h2 className="text-xl font-extrabold">Add category</h2>
+        <label className="flex flex-col gap-1.5 font-semibold">
+          Category name
+          <input
+            className="field"
+            required
+            minLength={2}
+            maxLength={80}
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            placeholder="e.g. Laptops"
+          />
+        </label>
+        <label className="flex flex-col gap-1.5 font-semibold">
+          Parent
+          <select
+            className="field"
+            value={parentId}
+            onChange={(event) => setParentId(event.target.value)}
           >
-            Create category
-          </Button>
-        </div>
+            <option value="">None (top level)</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex flex-col gap-1.5 font-semibold">
+          Image (optional)
+          <input
+            ref={fileInput}
+            type="file"
+            accept="image/*"
+            className="field py-2.5"
+            onChange={(event) => setImage(event.target.files?.[0] ?? null)}
+          />
+        </label>
+        <Button type="submit" loading={saving} disabled={failed}>
+          Add category
+        </Button>
       </form>
 
-      <section>
-        <div className="mb-3">
-          <h2 className="text-sm font-extrabold">Category tree</h2>
-          <p className="mt-1 text-xs text-gray-500">
-            Delete is blocked while a category has products or children.
-          </p>
-        </div>
-
+      <section className="flex min-w-0 flex-[2_1_480px] flex-col gap-3">
+        <p className="text-muted">
+          Delete is blocked while a category has products or subcategories.
+        </p>
         {loading ? (
           <ListSkeleton count={3} />
         ) : failed ? (
           <OfflineNotice onRetry={load} />
-        ) : categories.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-black/15 py-12 text-center">
-            <FolderTree className="mx-auto h-8 w-8 text-gray-300" />
-            <p className="mt-3 text-sm font-extrabold">No categories yet</p>
-          </div>
+        ) : rows.length === 0 ? (
+          <p className="card p-8 text-center font-semibold">
+            No categories yet
+          </p>
         ) : (
-          <div className="space-y-2.5">
-            {categories.map((category) => (
-              <article
-                key={category.id}
-                className="rounded-2xl border border-line p-4"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="grid h-9 w-9 place-items-center rounded-xl bg-ground text-accent">
-                    <FolderTree className="h-4 w-4" />
+          <div className="table-box">
+            <div className="min-w-[820px]">
+              <div className="table-head">
+                <span>Category</span>
+                <span>Parent</span>
+                <span>Status</span>
+                <span>Actions</span>
+              </div>
+              {rows.map((row) => (
+                <div key={row.id} className="data-row">
+                  <span className={row.parent ? "" : "font-semibold"}>
+                    {row.parent ? `› ${row.name}` : row.name}
                   </span>
-                  <h3 className="flex-1 text-sm font-extrabold">
-                    {category.name}
-                    {!category.isActive && (
-                      <span className="ml-2 text-[10px] text-gray-400">
-                        Hidden
-                      </span>
-                    )}
-                  </h3>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      toggleVisible(category.id, category.isActive)
-                    }
-                    disabled={busyId === category.id}
-                    className="icon-button text-gray-400 hover:text-accent"
-                    aria-label={`${category.isActive ? "Hide" : "Show"} ${category.name}`}
-                  >
-                    {category.isActive ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => remove(category.id, category.name)}
-                    disabled={busyId === category.id}
-                    className="icon-button text-gray-400 hover:text-discount"
-                    aria-label={`Delete ${category.name}`}
-                  >
-                    {busyId === category.id ? (
-                      <Spinner />
-                    ) : (
-                      <Trash2 className="h-4 w-4" />
-                    )}
-                  </button>
+                  <span className="text-muted">
+                    {row.parent || "Top level"}
+                  </span>
+                  <span>
+                    <StatusPill
+                      tone={row.isActive ? "green" : "red"}
+                      label={row.isActive ? "Visible" : "Hidden"}
+                    />
+                  </span>
+                  <span className="flex flex-wrap gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => toggleVisible(row.id, row.isActive)}
+                      disabled={busyId === row.id}
+                      className="btn-table"
+                    >
+                      {row.isActive ? "Hide" : "Unhide"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => remove(row.id, row.name)}
+                      disabled={busyId === row.id}
+                      className="btn-table text-danger"
+                    >
+                      Delete
+                    </button>
+                  </span>
                 </div>
-
-                {category.children.length > 0 && (
-                  <div className="ml-4 mt-3 space-y-1.5 border-l border-black/10 pl-5">
-                    {category.children.map((child) => (
-                      <div
-                        key={child.id}
-                        className="flex min-h-9 items-center gap-2 rounded-lg px-2 hover:bg-ground/70"
-                      >
-                        <span className="h-1.5 w-1.5 rounded-full bg-sunny" />
-                        <span className="flex-1 text-xs font-bold text-gray-600">
-                          {child.name}
-                          {!child.isActive && (
-                            <span className="ml-2 text-[10px] text-gray-400">
-                              Hidden
-                            </span>
-                          )}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            toggleVisible(child.id, child.isActive)
-                          }
-                          disabled={busyId === child.id}
-                          className="icon-button h-8 w-8 text-gray-400 hover:text-accent"
-                          aria-label={`${child.isActive ? "Hide" : "Show"} ${child.name}`}
-                        >
-                          {child.isActive ? (
-                            <EyeOff className="h-3.5 w-3.5" />
-                          ) : (
-                            <Eye className="h-3.5 w-3.5" />
-                          )}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => remove(child.id, child.name)}
-                          disabled={busyId === child.id}
-                          className="icon-button h-8 w-8 text-gray-400 hover:text-discount"
-                          aria-label={`Delete ${child.name}`}
-                        >
-                          {busyId === child.id ? (
-                            <Spinner />
-                          ) : (
-                            <Trash2 className="h-3.5 w-3.5" />
-                          )}
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </article>
-            ))}
+              ))}
+            </div>
           </div>
         )}
       </section>

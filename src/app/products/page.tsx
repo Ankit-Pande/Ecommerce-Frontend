@@ -6,8 +6,7 @@ import { GridSkeleton } from "@/components/ui/skeletons";
 
 export const metadata: Metadata = {
   title: "Products",
-  description:
-    "Browse all products with price, rating and sort filters.",
+  description: "Browse all products with price, rating and sort filters.",
 };
 
 // Product list with search and filters; categories give the page its title.

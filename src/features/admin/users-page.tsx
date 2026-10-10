@@ -1,30 +1,24 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { Search, Shield, ShieldOff, UserRound, UsersRound } from "lucide-react";
 import { LoadMoreButton } from "@/components/ui/load-more-button";
 import { OfflineNotice } from "@/components/ui/offline-notice";
 import { ListSkeleton } from "@/components/ui/skeletons";
-import { Spinner } from "@/components/ui/spinner";
+import { StatusPill } from "@/components/ui/status-pill";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { usePaginatedList } from "@/hooks/use-paginated-list";
 import { listUsers, setUserBlocked, setUserRole } from "@/api/admin";
 import { errorMessage } from "@/api/http";
-import type { AdminUser, UserRole } from "@/lib/types";
+import type { AdminUser } from "@/lib/types";
 import { useAuthStore } from "@/store/auth-store";
 import { toast } from "@/store/toast-store";
-import { Button } from "@/components/ui/button";
+import { formatDate } from "@/lib/format";
 
-// Pill colour for a role.
-function roleStyle(role: UserRole) {
-  if (role === "SUPER_ADMIN") {
-    return "bg-purple-100 text-purple-700";
-  }
-  if (role === "ADMIN") {
-    return "bg-blue-100 text-blue-700";
-  }
-  return "bg-gray-100 text-gray-500";
-}
+const ROLE_TEXT = {
+  SUPER_ADMIN: "Super admin",
+  ADMIN: "Admin",
+  USER: "Customer",
+};
 
 // Customer list with block and role actions.
 export default function AdminUsers() {
@@ -97,98 +91,51 @@ export default function AdminUsers() {
   }
 
   return (
-    <div>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-sm font-extrabold">Customer accounts</h2>
+    <div className="flex flex-col gap-4">
+      <input
+        value={search}
+        onChange={(event) => setSearch(event.target.value.replace(/\D/g, ""))}
+        inputMode="numeric"
+        placeholder="Search phone number"
+        aria-label="Search phone number"
+        className="field max-w-sm"
+      />
 
-        <label className="relative w-full sm:w-72">
-          <span className="sr-only">Search phone number</span>
-          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-          <input
-            value={search}
-            onChange={(event) =>
-              setSearch(event.target.value.replace(/\D/g, ""))
-            }
-            inputMode="numeric"
-            placeholder="Search phone number"
-            className="field pl-10"
-          />
-        </label>
-      </div>
-
-      <div className="mt-5">
-        {loading ? (
-          <ListSkeleton />
-        ) : failed ? (
-          <OfflineNotice onRetry={reload} />
-        ) : items.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-black/15 py-12 text-center">
-            <UsersRound className="mx-auto h-8 w-8 text-gray-300" />
-            <p className="mt-3 text-sm font-extrabold">No customers found</p>
-          </div>
-        ) : (
-          <div className="space-y-2.5">
+      {loading ? (
+        <ListSkeleton />
+      ) : failed ? (
+        <OfflineNotice onRetry={reload} />
+      ) : items.length === 0 ? (
+        <p className="card p-8 text-center font-semibold">No users found</p>
+      ) : (
+        <div className="table-box">
+          <div className="min-w-[820px]">
+            <div className="table-head">
+              <span>Name</span>
+              <span>Mobile</span>
+              <span>Joined</span>
+              <span>Role</span>
+              <span>Status</span>
+              <span>Actions</span>
+            </div>
             {items.map((user) => (
-              <article
-                key={user.id}
-                className="flex flex-wrap items-center gap-3 rounded-2xl border border-line p-4 transition hover:border-accent/15 hover:shadow-card"
-              >
-                <span
-                  className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${
-                    user.isBlocked
-                      ? "bg-discount/10 text-discount"
-                      : "bg-accent/10 text-accent"
-                  }`}
-                >
-                  <UserRound className="h-4 w-4" />
-                </span>
-
-                <div className="min-w-[180px] flex-1">
-                  <h2 className="text-sm font-extrabold">
-                    +91 {user.phone}
-                    {user.name && (
-                      <span className="font-semibold text-gray-400">
-                        {" "}
-                        - {user.name}
-                      </span>
-                    )}
-                  </h2>
-                  <p className="mt-1 text-xs font-semibold text-gray-500">
-                    {user.email ?? "No email"} - Joined{" "}
-                    {new Date(user.createdAt).toLocaleDateString("en-IN", {
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </p>
-                </div>
-
-                <span className={`status-pill ${roleStyle(user.role)}`}>
-                  {user.role.replace("_", " ")}
-                </span>
-                {user.isBlocked && (
-                  <span className="status-pill bg-discount/10 text-discount">
-                    Blocked
+              <div key={user.id} className="data-row">
+                <span className="truncate font-semibold">
+                  {user.name ?? "No name"}
+                  <span className="block truncate text-sm font-normal text-muted">
+                    {user.email ?? "No email"}
                   </span>
-                )}
-
-                <div className="flex items-center gap-1">
-                  {currentRole === "SUPER_ADMIN" &&
-                    user.role !== "SUPER_ADMIN" && (
-                      <Button
-                        variant="ghost"
-                        onClick={() => toggleAdmin(user)}
-                        disabled={busyId === user.id}
-                        className="px-2.5 text-xs text-accent"
-                      >
-                        {busyId === user.id ? (
-                          <Spinner />
-                        ) : (
-                          <Shield className="h-3.5 w-3.5" />
-                        )}
-                        {user.role === "ADMIN" ? "Remove admin" : "Make admin"}
-                      </Button>
-                    )}
-
+                </span>
+                <span>+91 {user.phone}</span>
+                <span>{formatDate(user.createdAt)}</span>
+                <span>{ROLE_TEXT[user.role]}</span>
+                <span>
+                  <StatusPill
+                    tone={user.isBlocked ? "red" : "green"}
+                    label={user.isBlocked ? "Blocked" : "Active"}
+                  />
+                </span>
+                <span className="flex flex-wrap gap-1.5">
                   {(user.role === "USER" ||
                     (currentRole === "SUPER_ADMIN" &&
                       user.role === "ADMIN")) && (
@@ -196,34 +143,29 @@ export default function AdminUsers() {
                       type="button"
                       onClick={() => toggleBlock(user)}
                       disabled={busyId === user.id}
-                      className={`btn-ghost px-2.5 text-xs ${
-                        user.isBlocked
-                          ? "text-accent"
-                          : "text-discount hover:text-discount"
-                      }`}
+                      className="btn-table"
                     >
-                      {busyId === user.id ? (
-                        <Spinner />
-                      ) : user.isBlocked ? (
-                        <Shield className="h-3.5 w-3.5" />
-                      ) : (
-                        <ShieldOff className="h-3.5 w-3.5" />
-                      )}
                       {user.isBlocked ? "Unblock" : "Block"}
                     </button>
                   )}
-                </div>
-              </article>
-            ))}
-
-            {cursor && (
-              <div className="pt-3">
-                <LoadMoreButton onClick={loadMore} loading={loadingMore} />
+                  {currentRole === "SUPER_ADMIN" &&
+                    user.role !== "SUPER_ADMIN" && (
+                      <button
+                        type="button"
+                        onClick={() => toggleAdmin(user)}
+                        disabled={busyId === user.id}
+                        className="btn-table"
+                      >
+                        {user.role === "ADMIN" ? "Remove admin" : "Make admin"}
+                      </button>
+                    )}
+                </span>
               </div>
-            )}
+            ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
+      {cursor && <LoadMoreButton onClick={loadMore} loading={loadingMore} />}
     </div>
   );
 }

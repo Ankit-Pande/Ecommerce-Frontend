@@ -1,17 +1,17 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { AlertTriangle, PackageCheck } from "lucide-react";
 import { listOrders, markOrderRefunded, updateOrderStatus } from "@/api/admin";
 import { errorMessage } from "@/api/http";
-import { Button } from "@/components/ui/button";
+import { StatusPill } from "@/components/ui/status-pill";
+import { OrderStatusPill } from "@/features/orders/order-parts";
 import { LoadMoreButton } from "@/components/ui/load-more-button";
 import { OfflineNotice } from "@/components/ui/offline-notice";
 import { ListSkeleton } from "@/components/ui/skeletons";
 import { usePaginatedList } from "@/hooks/use-paginated-list";
 import { formatDate, formatTime, inr } from "@/lib/format";
 import { toast } from "@/store/toast-store";
-import type { AdminOrder, OrderStatus, PaymentStatus } from "@/lib/types";
+import type { AdminOrder, OrderStatus } from "@/lib/types";
 
 const TABS = [
   { value: "", label: "All" },
@@ -23,18 +23,16 @@ const TABS = [
   { value: "REVIEW", label: "Needs review" },
 ];
 
-const STATUS_STYLE: Record<OrderStatus, string> = {
-  PENDING: "bg-amber-100 text-amber-700",
-  CONFIRMED: "bg-accent/10 text-accent",
-  SHIPPED: "bg-violet-100 text-violet-700",
-  DELIVERED: "bg-accent/10 text-accent",
-  CANCELLED: "bg-discount/10 text-discount",
-};
+const PAYMENT_PILL = {
+  PENDING: { tone: "yellow", label: "Unpaid" },
+  COMPLETED: { tone: "green", label: "Paid" },
+  REFUNDED: { tone: "red", label: "Refunded" },
+} as const;
 
-const PAYMENT_STYLE: Record<PaymentStatus, string> = {
-  PENDING: "bg-gray-100 text-gray-600",
-  COMPLETED: "bg-accent/10 text-accent",
-  REFUNDED: "bg-discount/10 text-discount",
+const ACTION_LABEL: Partial<Record<OrderStatus, string>> = {
+  SHIPPED: "Ship",
+  DELIVERED: "Mark delivered",
+  CANCELLED: "Cancel",
 };
 
 // Statuses the admin can move an order to.
@@ -46,9 +44,6 @@ function nextStatuses(order: AdminOrder): OrderStatus[] {
   if (order.status === "SHIPPED") return ["DELIVERED"];
   return [];
 }
-
-const ROW =
-  "grid gap-x-4 gap-y-2 md:grid-cols-[minmax(0,2fr)_1fr_1.3fr_1fr_1.1fr_150px] md:items-center";
 
 // Orders table with status tabs and actions.
 export default function AdminOrders() {
@@ -93,11 +88,11 @@ export default function AdminOrders() {
   }
 
   return (
-    <div>
+    <div className="flex flex-col gap-4">
       <div
         role="tablist"
         aria-label="Filter orders"
-        className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 scrollbar-thin"
+        className="flex flex-wrap gap-1.5"
       >
         {TABS.map((item) => (
           <button
@@ -106,145 +101,100 @@ export default function AdminOrders() {
             role="tab"
             aria-selected={tab === item.value}
             onClick={() => setTab(item.value)}
-            className={`shrink-0 rounded-full px-3.5 py-2 text-xs font-bold transition ${
-              tab === item.value
-                ? "bg-accent text-white"
-                : "bg-ground text-gray-600 hover:text-ink"
-            }`}
+            className="chip"
           >
             {item.label}
           </button>
         ))}
       </div>
 
-      <div className="mt-5">
-        {loading ? (
-          <ListSkeleton />
-        ) : failed ? (
-          <OfflineNotice onRetry={reload} />
-        ) : items.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-line py-12 text-center">
-            <PackageCheck className="mx-auto h-8 w-8 text-gray-300" />
-            <p className="mt-3 text-sm font-bold">No orders here</p>
-          </div>
-        ) : (
-          <>
-            <div
-              className={`${ROW} hidden border-b border-line px-4 pb-3 text-xs font-semibold text-gray-500 md:grid`}
-            >
+      {loading ? (
+        <ListSkeleton />
+      ) : failed ? (
+        <OfflineNotice onRetry={reload} />
+      ) : items.length === 0 ? (
+        <p className="card p-8 text-center font-semibold">No orders here</p>
+      ) : (
+        <div className="table-box">
+          <div className="min-w-[820px]">
+            <div className="table-head">
+              <span>Order</span>
               <span>Customer</span>
               <span>Total</span>
               <span>Payment</span>
               <span>Status</span>
-              <span>Date</span>
-              <span>Action</span>
+              <span>Actions</span>
             </div>
-            <ul className="space-y-2.5 md:space-y-0 md:divide-y md:divide-line md:">
-              {items.map((order) => {
-                const options = nextStatuses(order);
-                return (
-                  <li
-                    key={order.id}
-                    className="rounded-2xl border border-line p-4 md:rounded-none md:border-0 md:px-4 md:py-3.5"
-                  >
-                    <div className={ROW}>
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-bold">
-                          {order.shipName}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          +91 {order.shipPhone} · #
-                          {order.id.slice(0, 8).toUpperCase()}
-                        </p>
-                      </div>
-                      <p className="text-sm font-bold">
-                        {inr(order.totalPaise)}
-                      </p>
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="text-xs text-gray-500">
-                          {order.paymentMethod === "COD" ? "COD" : "Online"}
-                        </span>
-                        <span
-                          className={`status-pill ${PAYMENT_STYLE[order.paymentStatus]}`}
-                        >
-                          {order.paymentStatus === "COMPLETED"
-                            ? "Paid"
-                            : order.paymentStatus === "REFUNDED"
-                              ? "Refunded"
-                              : "Unpaid"}
-                        </span>
-                      </div>
-                      <span>
-                        <span
-                          className={`status-pill w-fit ${STATUS_STYLE[order.status]}`}
-                        >
-                          {order.status}
-                        </span>
-                        {order.cancelledBy && (
-                          <span className="mt-1 block text-[11px] text-gray-500">
-                            by {order.cancelledBy.toLowerCase()}
-                          </span>
-                        )}
+            {items.map((order) => (
+              <div
+                key={order.id}
+                className="border-b border-line last:border-b-0"
+              >
+                <div className="data-row border-b-0">
+                  <span>
+                    <span className="block font-semibold">
+                      #{order.id.slice(0, 8).toUpperCase()}
+                    </span>
+                    <span className="text-sm text-muted">
+                      {formatDate(order.createdAt)},{" "}
+                      {formatTime(order.createdAt)}
+                    </span>
+                  </span>
+                  <span>
+                    <span className="block truncate">{order.shipName}</span>
+                    <span className="text-sm text-muted">
+                      +91 {order.shipPhone}
+                    </span>
+                  </span>
+                  <span className="font-semibold">{inr(order.totalPaise)}</span>
+                  <span className="flex flex-wrap items-center gap-1.5">
+                    {order.paymentMethod === "COD" ? "COD" : "Online"}
+                    <StatusPill {...PAYMENT_PILL[order.paymentStatus]} />
+                  </span>
+                  <span>
+                    <OrderStatusPill status={order.status} />
+                    {order.cancelledBy && (
+                      <span className="block text-sm text-muted">
+                        by {order.cancelledBy.toLowerCase()}
                       </span>
-                      <p className="text-xs text-gray-500">
-                        {formatDate(order.createdAt)}
-                        <span className="block">
-                          {formatTime(order.createdAt)}
-                        </span>
-                      </p>
-                      <select
-                        value={order.status}
-                        disabled={busyId === order.id || options.length === 0}
-                        onChange={(event) =>
-                          void updateStatus(
-                            order.id,
-                            event.target.value as OrderStatus,
-                          )
-                        }
-                        aria-label={`Status for order ${order.id}`}
-                        className="field min-h-9 py-1.5 text-xs font-bold"
-                      >
-                        <option value={order.status} disabled>
-                          {options.length ? "Move to…" : "No action"}
-                        </option>
-                        {options.map((status) => (
-                          <option key={status} value={status}>
-                            {status}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {order.needsReview && (
-                      <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-discount/10 px-3 py-2 text-xs font-bold text-discount">
-                        <AlertTriangle className="h-4 w-4" />
-                        <span className="flex-1">
-                          Payment needs review — refund it from the Razorpay
-                          dashboard.
-                        </span>
-                        <Button
-                          variant="outline"
-                          onClick={() => markRefunded(order.id)}
-                          disabled={busyId === order.id}
-                          className="min-h-8 px-3 py-1 text-xs"
-                        >
-                          Mark refunded
-                        </Button>
-                      </div>
                     )}
-                  </li>
-                );
-              })}
-            </ul>
-
-            {cursor && (
-              <div className="pt-5">
-                <LoadMoreButton onClick={loadMore} loading={loadingMore} />
+                  </span>
+                  <span className="flex flex-wrap gap-1.5">
+                    {nextStatuses(order).map((status) => (
+                      <button
+                        key={status}
+                        type="button"
+                        onClick={() => updateStatus(order.id, status)}
+                        disabled={busyId === order.id}
+                        className={`btn-table ${status === "CANCELLED" ? "text-danger" : ""}`}
+                      >
+                        {ACTION_LABEL[status]}
+                      </button>
+                    ))}
+                  </span>
+                </div>
+                {order.needsReview && (
+                  <div className="mb-2.5 flex flex-wrap items-center gap-2 rounded-xl bg-[#FFD9D9] px-3 py-2 font-semibold text-[#8E1B1B]">
+                    <span className="flex-1">
+                      Payment needs review. Refund it from the Razorpay
+                      dashboard.
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => markRefunded(order.id)}
+                      disabled={busyId === order.id}
+                      className="btn-table"
+                    >
+                      Mark refunded
+                    </button>
+                  </div>
+                )}
               </div>
-            )}
-          </>
-        )}
-      </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {cursor && <LoadMoreButton onClick={loadMore} loading={loadingMore} />}
     </div>
   );
 }

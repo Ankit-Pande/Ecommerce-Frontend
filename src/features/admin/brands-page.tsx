@@ -1,11 +1,10 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Eye, EyeOff, ImageUp, Plus, Tags, Trash2 } from "lucide-react";
 import { OfflineNotice } from "@/components/ui/offline-notice";
 import { SafeImage } from "@/components/ui/safe-image";
 import { ListSkeleton } from "@/components/ui/skeletons";
-import { Spinner } from "@/components/ui/spinner";
+import { StatusPill } from "@/components/ui/status-pill";
 import { useAdminData } from "@/features/admin/use-admin-data";
 import {
   createBrand,
@@ -89,131 +88,96 @@ export default function AdminBrands() {
   }
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
+    <div className="flex flex-wrap items-start gap-6">
       <form
         onSubmit={create}
-        className="rounded-2xl border border-line p-5 xl:sticky xl:top-32"
+        className="card flex flex-[1_1_280px] flex-col gap-3 p-5 xl:max-w-[360px]"
       >
-        <div className="flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-accent/10 text-accent">
-            <Plus className="h-4 w-4" />
-          </span>
-          <h2 className="text-sm font-extrabold">Add brand</h2>
-        </div>
-
-        <div className="mt-5 space-y-4">
-          <label className="block">
-            <span className="mb-1.5 block text-xs font-bold text-gray-600">
-              Brand name
-            </span>
-            <input
-              className="field"
-              required
-              minLength={2}
-              maxLength={80}
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              placeholder="e.g. Samsung"
-            />
-          </label>
-
-          <label className="block">
-            <span className="mb-1.5 block text-xs font-bold text-gray-600">
-              Logo <span className="font-medium text-gray-400">(optional)</span>
-            </span>
-            <span className="flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-dashed border-black/15 px-3.5 text-xs font-bold text-gray-500 hover:border-accent/30">
-              <ImageUp className="h-4 w-4" />
-              {logo?.name ?? "Choose logo"}
-              <input
-                ref={fileInput}
-                type="file"
-                accept="image/*"
-                className="sr-only"
-                onChange={(event) => setLogo(event.target.files?.[0] ?? null)}
-              />
-            </span>
-          </label>
-
-          <Button type="submit" loading={saving} className="w-full">
-            Create brand
-          </Button>
-        </div>
+        <h2 className="text-xl font-extrabold">Add brand</h2>
+        <label className="flex flex-col gap-1.5 font-semibold">
+          Brand name
+          <input
+            className="field"
+            required
+            minLength={2}
+            maxLength={80}
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            placeholder="e.g. Samsung"
+          />
+        </label>
+        <label className="flex flex-col gap-1.5 font-semibold">
+          Logo (optional)
+          <input
+            ref={fileInput}
+            type="file"
+            accept="image/*"
+            className="field py-2.5"
+            onChange={(event) => setLogo(event.target.files?.[0] ?? null)}
+          />
+        </label>
+        <Button type="submit" loading={saving}>
+          Add brand
+        </Button>
       </form>
 
-      <section>
-        <h2 className="mb-3 text-sm font-extrabold">Available brands</h2>
-
+      <section className="flex min-w-0 flex-[2_1_480px] flex-col gap-3">
         {loading ? (
           <ListSkeleton count={3} />
         ) : failed ? (
           <OfflineNotice onRetry={load} />
         ) : brands.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-black/15 py-12 text-center">
-            <Tags className="mx-auto h-8 w-8 text-gray-300" />
-            <p className="mt-3 text-sm font-extrabold">No brands yet</p>
-          </div>
+          <p className="card p-8 text-center font-semibold">No brands yet</p>
         ) : (
-          <div className="grid gap-2.5 sm:grid-cols-2">
-            {brands.map((brand) => (
-              <article
-                key={brand.id}
-                className="flex items-center gap-3 rounded-2xl border border-line p-3.5"
-              >
-                <span className="relative grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-ground text-accent">
-                  {brand.logo ? (
-                    <SafeImage
-                      src={brand.logo}
-                      alt={`${brand.name} logo`}
-                      sizes="44px"
-                      className="object-contain p-1.5"
+          <div className="table-box">
+            <div className="min-w-[820px]">
+              <div className="table-head">
+                <span>Brand</span>
+                <span>Slug</span>
+                <span>Status</span>
+                <span>Actions</span>
+              </div>
+              {brands.map((brand) => (
+                <div key={brand.id} className="data-row">
+                  <span className="flex items-center gap-2.5 font-semibold">
+                    <span className="relative h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-ground">
+                      <SafeImage
+                        src={brand.logo}
+                        alt=""
+                        sizes="40px"
+                        className="object-contain p-1"
+                      />
+                    </span>
+                    <span className="truncate">{brand.name}</span>
+                  </span>
+                  <span className="truncate text-muted">{brand.slug}</span>
+                  <span>
+                    <StatusPill
+                      tone={brand.isActive ? "green" : "red"}
+                      label={brand.isActive ? "Visible" : "Hidden"}
                     />
-                  ) : (
-                    <Tags className="h-4 w-4" />
-                  )}
-                </span>
-
-                <div className="min-w-0 flex-1">
-                  <h3 className="truncate text-sm font-extrabold">
-                    {brand.name}
-                    {!brand.isActive && (
-                      <span className="ml-2 text-[10px] text-gray-400">
-                        Hidden
-                      </span>
-                    )}
-                  </h3>
-                  <p className="truncate text-[11px] text-gray-400">
-                    /{brand.slug}
-                  </p>
+                  </span>
+                  <span className="flex flex-wrap gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => toggleActive(brand)}
+                      disabled={busyId === brand.id}
+                      className="btn-table"
+                    >
+                      {brand.isActive ? "Hide" : "Unhide"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => remove(brand)}
+                      disabled={busyId === brand.id}
+                      className="btn-table text-danger"
+                    >
+                      Delete
+                    </button>
+                  </span>
                 </div>
-
-                <button
-                  type="button"
-                  onClick={() => toggleActive(brand)}
-                  disabled={busyId === brand.id}
-                  className="icon-button text-gray-400 hover:text-accent"
-                  aria-label={`${brand.isActive ? "Hide" : "Show"} ${brand.name}`}
-                >
-                  {brand.isActive ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => remove(brand)}
-                  disabled={busyId === brand.id}
-                  className="icon-button text-gray-400 hover:text-discount"
-                  aria-label={`Delete ${brand.name}`}
-                >
-                  {busyId === brand.id ? (
-                    <Spinner />
-                  ) : (
-                    <Trash2 className="h-4 w-4" />
-                  )}
-                </button>
-              </article>
-            ))}
+              ))}
+            </div>
           </div>
         )}
       </section>

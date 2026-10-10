@@ -9,7 +9,7 @@ export default function NewProductPage() {
       <Link href="/admin/products" className="btn-ghost -ml-3 mb-3">
         <ArrowLeft className="h-4 w-4" /> Products
       </Link>
-      <h2 className="mb-5 font-display text-2xl font-bold">Create product</h2>
+      <h2 className="mb-5 text-[26px] font-extrabold">Create product</h2>
       <ProductForm initial={emptyProduct} />
     </div>
   );

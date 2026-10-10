@@ -153,7 +153,7 @@ export function ProductForm({
   return (
     <form
       onSubmit={submit}
-      className="grid max-w-3xl gap-5 rounded-2xl border border-line p-5 sm:grid-cols-2 sm:p-6"
+      className="grid max-w-3xl gap-5 card p-5 sm:grid-cols-2 sm:p-6"
     >
       {failed && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-discount/10 p-3 text-xs font-bold text-discount sm:col-span-2">
@@ -169,12 +169,12 @@ export function ProductForm({
       )}
 
       {brandsFailed && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-amber-100 p-3 text-xs font-bold text-amber-800 sm:col-span-2">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[#FFF0B8] p-3 text-xs font-bold text-[#5C4300] sm:col-span-2">
           <span>Brands are unavailable. You can save without a brand.</span>
           <Button
             variant="ghost"
             onClick={reloadBrands}
-            className="min-h-9 py-1 text-amber-800"
+            className="min-h-9 py-1 text-[#5C4300]"
           >
             <RefreshCw className="h-3.5 w-3.5" /> Retry
           </Button>
@@ -182,7 +182,7 @@ export function ProductForm({
       )}
 
       <label className="sm:col-span-2">
-        <span className="text-xs font-bold text-gray-500">Product name</span>
+        <span className="text-sm font-semibold">Product name</span>
         <input
           className="field mt-1"
           required
@@ -193,7 +193,7 @@ export function ProductForm({
       </label>
 
       <label className="sm:col-span-2">
-        <span className="text-xs font-bold text-gray-500">Slug (URL)</span>
+        <span className="text-sm font-semibold">Slug (URL)</span>
         <input
           className="field mt-1"
           required
@@ -206,7 +206,7 @@ export function ProductForm({
       </label>
 
       <label className="sm:col-span-2">
-        <span className="text-xs font-bold text-gray-500">Description</span>
+        <span className="text-sm font-semibold">Description</span>
         <textarea
           className="field mt-1"
           rows={4}
@@ -218,7 +218,7 @@ export function ProductForm({
       </label>
 
       <label className="sm:col-span-2">
-        <span className="text-xs font-bold text-gray-500">
+        <span className="text-sm font-semibold">
           Specs (one per line, like RAM: 16GB)
         </span>
         <textarea
@@ -231,7 +231,7 @@ export function ProductForm({
       </label>
 
       <label>
-        <span className="text-xs font-bold text-gray-500">Price (INR)</span>
+        <span className="text-sm font-semibold">Price (INR)</span>
         <input
           className="field mt-1"
           required
@@ -244,7 +244,7 @@ export function ProductForm({
       </label>
 
       <label>
-        <span className="text-xs font-bold text-gray-500">Discount %</span>
+        <span className="text-sm font-semibold">Discount %</span>
         <input
           className="field mt-1"
           inputMode="numeric"
@@ -259,9 +259,7 @@ export function ProductForm({
       </label>
 
       <label>
-        <span className="text-xs font-bold text-gray-500">
-          Offer ends (optional)
-        </span>
+        <span className="text-sm font-semibold">Offer ends (optional)</span>
         <input
           type="datetime-local"
           className="field mt-1"
@@ -271,7 +269,7 @@ export function ProductForm({
       </label>
 
       <label>
-        <span className="text-xs font-bold text-gray-500">Stock</span>
+        <span className="text-sm font-semibold">Stock</span>
         <input
           className="field mt-1"
           inputMode="numeric"
@@ -283,7 +281,7 @@ export function ProductForm({
       </label>
 
       <label>
-        <span className="text-xs font-bold text-gray-500">Colour</span>
+        <span className="text-sm font-semibold">Colour</span>
         <input
           className="field mt-1"
           placeholder="e.g. black"
@@ -293,7 +291,7 @@ export function ProductForm({
       </label>
 
       <label>
-        <span className="text-xs font-bold text-gray-500">Gender</span>
+        <span className="text-sm font-semibold">Gender</span>
         <select
           className="field mt-1"
           value={values.gender}
@@ -309,7 +307,7 @@ export function ProductForm({
       </label>
 
       <label>
-        <span className="text-xs font-bold text-gray-500">Age group</span>
+        <span className="text-sm font-semibold">Age group</span>
         <select
           className="field mt-1"
           value={values.ageGroup}
@@ -325,7 +323,7 @@ export function ProductForm({
       </label>
 
       <label>
-        <span className="text-xs font-bold text-gray-500">Category</span>
+        <span className="text-sm font-semibold">Category</span>
         <select
           className="field mt-1"
           required
@@ -353,9 +351,7 @@ export function ProductForm({
       </label>
 
       <label>
-        <span className="text-xs font-bold text-gray-500">
-          Brand (optional)
-        </span>
+        <span className="text-sm font-semibold">Brand (optional)</span>
         <select
           className="field mt-1"
           disabled={brandsLoading}
@@ -377,11 +373,11 @@ export function ProductForm({
       </label>
 
       <label className="sm:col-span-2">
-        <span className="text-xs font-bold text-gray-500">
+        <span className="text-sm font-semibold">
           Images (up to {MAX_IMAGES}, 2 MB each)
         </span>
         {existingImageCount > 0 && (
-          <span className="mt-1 block text-xs text-gray-500">
+          <span className="mt-1 block text-xs text-muted">
             {existingImageCount} image(s) uploaded. New files will replace them.
           </span>
         )}

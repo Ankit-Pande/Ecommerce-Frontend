@@ -59,7 +59,7 @@ export default function EditProductPage({ productId }: { productId: string }) {
       <Link href="/admin/products" className="btn-ghost -ml-3 mb-3">
         <ArrowLeft className="h-4 w-4" /> Products
       </Link>
-      <h2 className="mb-5 font-display text-2xl font-bold">Edit product</h2>
+      <h2 className="mb-5 text-[26px] font-extrabold">Edit product</h2>
       <ProductForm
         productId={productId}
         initial={formValues(product)}

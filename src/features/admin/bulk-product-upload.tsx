@@ -158,7 +158,7 @@ export default function BulkUpload() {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 className="font-display text-lg font-bold">Bulk upload</h2>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-muted">
             Up to {MAX_ROWS} products at once.
           </p>
         </div>
@@ -190,7 +190,7 @@ export default function BulkUpload() {
       )}
 
       {brandsFailed && (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-amber-100 p-3 text-xs font-bold text-amber-800">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[#FFF0B8] p-3 text-xs font-bold text-[#5C4300]">
           <span>
             Brands are unavailable. Products can still be created without a
             brand.
@@ -198,7 +198,7 @@ export default function BulkUpload() {
           <Button
             variant="ghost"
             onClick={reloadBrands}
-            className="min-h-9 py-1 text-amber-800"
+            className="min-h-9 py-1 text-[#5C4300]"
           >
             <RefreshCw className="h-3.5 w-3.5" /> Retry
           </Button>
@@ -221,7 +221,7 @@ export default function BulkUpload() {
                 }
                 disabled={anyUploading || saving}
                 aria-label={`Remove product row ${index + 1}`}
-                className="icon-button absolute right-2 top-2 z-10 h-8 w-8 bg-white text-gray-400 shadow-sm hover:text-discount"
+                className="icon-button absolute right-2 top-2 z-10 h-8 w-8 bg-white text-muted shadow-sm hover:text-discount"
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </button>

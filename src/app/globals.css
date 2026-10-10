@@ -71,6 +71,26 @@
     @apply grid grid-cols-[repeat(auto-fill,minmax(190px,1fr))] gap-4;
   }
 
+  .chip {
+    @apply min-h-9 rounded-full border border-line bg-white px-3 text-sm font-semibold aria-pressed:border-accent aria-pressed:bg-accent aria-pressed:text-white aria-selected:border-accent aria-selected:bg-accent aria-selected:text-white;
+  }
+
+  .table-box {
+    @apply overflow-x-auto rounded-3xl bg-white px-4 py-2 shadow-card;
+  }
+
+  .table-head {
+    @apply flex gap-3 border-b-2 border-line py-3 font-extrabold text-muted [&>*]:min-w-0 [&>*]:flex-1;
+  }
+
+  .data-row {
+    @apply flex items-center gap-3 border-b border-line py-2.5 last:border-b-0 [&>*]:min-w-0 [&>*]:flex-1;
+  }
+
+  .btn-table {
+    @apply inline-flex min-h-11 items-center justify-center rounded-[10px] border border-field bg-white px-3 text-sm font-semibold transition hover:border-accent disabled:opacity-50;
+  }
+
   .page {
     @apply mx-auto w-full max-w-page p-6;
   }

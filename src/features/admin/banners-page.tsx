@@ -1,18 +1,10 @@
 "use client";
 
 import { useRef, useState } from "react";
-import {
-  Eye,
-  EyeOff,
-  Image as ImageIcon,
-  ImageUp,
-  Plus,
-  Trash2,
-} from "lucide-react";
 import { OfflineNotice } from "@/components/ui/offline-notice";
 import { SafeImage } from "@/components/ui/safe-image";
 import { ListSkeleton } from "@/components/ui/skeletons";
-import { Spinner } from "@/components/ui/spinner";
+import { StatusPill } from "@/components/ui/status-pill";
 import { useAdminData } from "@/features/admin/use-admin-data";
 import {
   createBanner,
@@ -103,143 +95,109 @@ export default function AdminBanners() {
   }
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-6 xl:grid-cols-[380px_minmax(0,1fr)]">
+    <div className="flex flex-wrap items-start gap-6">
       <form
         onSubmit={create}
-        className="rounded-2xl border border-line p-5 xl:sticky xl:top-32"
+        className="card flex flex-[1_1_280px] flex-col gap-3 p-5 xl:max-w-[380px]"
       >
-        <div className="flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-accent/10 text-accent">
-            <Plus className="h-4 w-4" />
-          </span>
-          <h2 className="text-sm font-extrabold">Publish banner</h2>
-        </div>
-
-        <div className="mt-5 space-y-4">
-          <label className="block">
-            <span className="mb-1.5 block text-xs font-bold text-gray-600">
-              Banner image
-            </span>
-            <span className="flex min-h-20 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-black/15 px-3 text-center text-xs font-bold text-gray-500 hover:border-accent/30">
-              <ImageUp className="h-5 w-5" />
-              {image?.name ?? "Choose a wide image"}
-              <input
-                ref={fileInput}
-                type="file"
-                accept="image/*"
-                required
-                className="sr-only"
-                onChange={(event) => setImage(event.target.files?.[0] ?? null)}
-              />
-            </span>
-          </label>
-
-          <label className="block">
-            <span className="mb-1.5 block text-xs font-bold text-gray-600">
-              Link <span className="font-medium text-gray-400">(optional)</span>
-            </span>
-            <input
-              className="field"
-              type="url"
-              placeholder="https://apnakart.in/products"
-              value={link}
-              onChange={(event) => setLink(event.target.value)}
-            />
-            <span className="mt-1.5 block text-[10px] leading-4 text-gray-400">
-              Enter the full URL, including https://.
-            </span>
-          </label>
-
-          <label className="block">
-            <span className="mb-1.5 block text-xs font-bold text-gray-600">
-              Display order
-            </span>
-            <input
-              className="field"
-              inputMode="numeric"
-              value={position}
-              onChange={(event) =>
-                setPosition(event.target.value.replace(/\D/g, ""))
-              }
-            />
-          </label>
-
-          <Button type="submit" loading={saving} className="w-full">
-            Publish banner
-          </Button>
-        </div>
+        <h2 className="text-xl font-extrabold">Add banner</h2>
+        <label className="flex flex-col gap-1.5 font-semibold">
+          Banner image
+          <input
+            ref={fileInput}
+            type="file"
+            accept="image/*"
+            required
+            className="field py-2.5"
+            onChange={(event) => setImage(event.target.files?.[0] ?? null)}
+          />
+        </label>
+        <label className="flex flex-col gap-1.5 font-semibold">
+          Opens (optional, full URL or /products?category=…)
+          <input
+            className="field"
+            placeholder="/products?category=laptops"
+            value={link}
+            onChange={(event) => setLink(event.target.value)}
+          />
+        </label>
+        <label className="flex flex-col gap-1.5 font-semibold">
+          Display order
+          <input
+            className="field"
+            inputMode="numeric"
+            value={position}
+            onChange={(event) =>
+              setPosition(event.target.value.replace(/\D/g, ""))
+            }
+          />
+        </label>
+        <Button type="submit" loading={saving}>
+          Add banner
+        </Button>
       </form>
 
-      <section>
-        <div className="mb-3">
-          <h2 className="text-sm font-extrabold">Active home banners</h2>
-          <p className="mt-1 text-xs text-gray-500">
-            Home updates can take up to 10 minutes to appear.
-          </p>
-        </div>
-
+      <section className="flex min-w-0 flex-[2_1_480px] flex-col gap-3">
+        <p className="text-muted">
+          Home updates can take up to 10 minutes to appear.
+        </p>
         {loading ? (
           <ListSkeleton count={3} />
         ) : failed ? (
           <OfflineNotice onRetry={load} />
         ) : banners.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-black/15 py-12 text-center">
-            <ImageIcon className="mx-auto h-8 w-8 text-gray-300" />
-            <p className="mt-3 text-sm font-extrabold">No banners yet</p>
-          </div>
+          <p className="card p-8 text-center font-semibold">No banners yet</p>
         ) : (
-          <div className="space-y-3">
-            {banners.map((banner, index) => (
-              <article
-                key={banner.id}
-                className="overflow-hidden rounded-2xl border border-line"
-              >
-                <div className="relative aspect-[16/5] bg-ground">
-                  <SafeImage
-                    src={banner.image}
-                    alt={`Home banner ${index + 1}`}
-                    sizes="800px"
-                    className="object-cover"
-                  />
-                </div>
-                <div className="flex items-center gap-3 px-4 py-3">
-                  <span
-                    className={`status-pill ${banner.isActive ? "bg-accent/10 text-accent" : "bg-gray-100 text-gray-500"}`}
-                  >
-                    {banner.isActive ? "Live" : "Hidden"}
+          <div className="table-box">
+            <div className="min-w-[820px]">
+              <div className="table-head">
+                <span>Banner</span>
+                <span>Order</span>
+                <span>Opens</span>
+                <span>Status</span>
+                <span>Actions</span>
+              </div>
+              {banners.map((banner, index) => (
+                <div key={banner.id} className="data-row">
+                  <span className="relative block h-14 overflow-hidden rounded-xl bg-ground">
+                    <SafeImage
+                      src={banner.image}
+                      alt={`Home banner ${index + 1}`}
+                      sizes="200px"
+                      className="object-cover"
+                    />
                   </span>
-                  <span className="min-w-0 flex-1 truncate text-xs font-semibold text-gray-500">
-                    {safeHttpUrl(banner.link) ?? "No destination link"}
+                  <span>{banner.position}</span>
+                  <span className="truncate text-muted">
+                    {safeHttpUrl(banner.link) ?? "No link"}
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => toggleActive(banner)}
-                    disabled={busyId === banner.id}
-                    className="icon-button text-gray-400 hover:text-accent"
-                    aria-label={banner.isActive ? "Hide banner" : "Show banner"}
-                  >
-                    {banner.isActive ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => remove(banner.id)}
-                    disabled={busyId === banner.id}
-                    className="icon-button text-gray-400 hover:text-discount"
-                    aria-label="Delete banner"
-                  >
-                    {busyId === banner.id ? (
-                      <Spinner />
-                    ) : (
-                      <Trash2 className="h-4 w-4" />
-                    )}
-                  </button>
+                  <span>
+                    <StatusPill
+                      tone={banner.isActive ? "green" : "red"}
+                      label={banner.isActive ? "Live" : "Hidden"}
+                    />
+                  </span>
+                  <span className="flex flex-wrap gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => toggleActive(banner)}
+                      disabled={busyId === banner.id}
+                      className="btn-table"
+                    >
+                      {banner.isActive ? "Hide" : "Unhide"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => remove(banner.id)}
+                      disabled={busyId === banner.id}
+                      className="btn-table text-danger"
+                    >
+                      Remove
+                    </button>
+                  </span>
                 </div>
-              </article>
-            ))}
+              ))}
+            </div>
           </div>
         )}
       </section>

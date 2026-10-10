@@ -30,7 +30,7 @@ export function SafeImage({
 
   if (!src || failed) {
     return (
-      <span className="absolute inset-0 grid place-items-center text-gray-300">
+      <span className="absolute inset-0 grid place-items-center text-muted">
         <ImageIcon
           className="h-1/2 max-h-10 w-1/2 max-w-10"
           strokeWidth={1.25}

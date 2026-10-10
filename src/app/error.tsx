@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import { CircleAlert, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 // Shown when a page crashes.
 export default function ErrorPage({
@@ -17,18 +15,15 @@ export default function ErrorPage({
   }, [error]);
 
   return (
-    <div className="grid min-h-[60vh] place-items-center py-12 text-center">
-      <div className="max-w-md">
-        <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-discount/10 text-discount">
-          <CircleAlert className="h-7 w-7" />
-        </span>
-        <h1 className="mt-5 font-display text-2xl font-bold">
-          Something went wrong
-        </h1>
-        <Button onClick={reset} className="mt-6">
-          <RefreshCw className="h-4 w-4" /> Try again
-        </Button>
-      </div>
+    <div className="flex flex-col items-center gap-4 rounded-3xl bg-white p-10 text-center">
+      <h1 className="text-[32px] font-extrabold">Something went wrong</h1>
+      <button
+        type="button"
+        onClick={reset}
+        className="btn-primary min-h-12 px-7"
+      >
+        Try again
+      </button>
     </div>
   );
 }
