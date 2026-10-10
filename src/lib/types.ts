@@ -57,11 +57,6 @@ export type Review = {
   user: { id: string; name: string | null };
 };
 
-export type ProductFacets = {
-  brands: { id: string; name: string; slug: string }[];
-  colors: string[];
-};
-
 export type HomeData = {
   banners: Banner[];
   categories: Category[];

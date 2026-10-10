@@ -1,338 +1,262 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { SearchX, SlidersHorizontal } from "lucide-react";
-import { getCatalog, getCatalogFilters } from "@/api/catalog";
-import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { getCatalog } from "@/api/catalog";
 import { usePaginatedList } from "@/hooks/use-paginated-list";
 import { LoadMoreButton } from "@/components/ui/load-more-button";
 import { OfflineNotice } from "@/components/ui/offline-notice";
 import { GridSkeleton } from "@/components/ui/skeletons";
 import { ProductCard } from "@/components/product/product-card";
-import {
-  MobileProductFilters,
-  ProductFilters,
-} from "@/features/shop/product-filters";
-import type { Category, Product, ProductFacets } from "@/lib/types";
-import { Button } from "@/components/ui/button";
+import type { Category, Product } from "@/lib/types";
 
 const PAGE_SIZE = 20;
 const MIN_SEARCH_LENGTH = 2;
 
+const PRICE_OPTIONS = [
+  { label: "All", value: 0 },
+  { label: "Under ₹1,000", value: 1000 },
+  { label: "Under ₹5,000", value: 5000 },
+  { label: "Under ₹20,000", value: 20000 },
+];
+const RATING_OPTIONS = [
+  { label: "All", value: 0 },
+  { label: "3★ and up", value: 3 },
+  { label: "4★ and up", value: 4 },
+];
 const SORT_OPTIONS = [
-  { value: "latest", label: "Newest first" },
-  { value: "price_asc", label: "Price: low to high" },
-  { value: "price_desc", label: "Price: high to low" },
-  { value: "discount", label: "Biggest discount" },
-  { value: "rating", label: "Top rated" },
-] as const;
+  { label: "Newest", value: "latest" },
+  { label: "Price: low to high", value: "price_asc" },
+  { label: "Price: high to low", value: "price_desc" },
+  { label: "Discount", value: "discount" },
+  { label: "Top rated", value: "rating" },
+];
 
-type Sort = (typeof SORT_OPTIONS)[number]["value"];
-
-// Product list page with search, filters, sort and load more.
+// Product list page; filters start fresh whenever the URL changes.
 export function ProductListing({ categories }: { categories: Category[] }) {
   const urlParams = useSearchParams();
+  return (
+    <Listing
+      key={urlParams.toString()}
+      categories={categories}
+      urlParams={urlParams}
+    />
+  );
+}
+
+function Listing({
+  categories,
+  urlParams,
+}: {
+  categories: Category[];
+  urlParams: URLSearchParams;
+}) {
   const query = urlParams.get("q")?.trim() ?? "";
   const searchText = query.length >= MIN_SEARCH_LENGTH ? query : "";
   const category = urlParams.get("category") ?? "";
   const subcategory = urlParams.get("subcategory") ?? "";
-  const section = urlParams.get("section") ?? "";
-  const requestedDiscount = urlParams.get("discount") === "true";
-  const requestedBrand = urlParams.get("brand") ?? "";
-  const requestedColor = urlParams.get("color") ?? "";
-  const requestedMinPrice = readPrice(urlParams.get("minPrice"));
-  const requestedMaxPrice = readPrice(urlParams.get("maxPrice"));
-  const requestedSort = urlParams.get("sort");
 
-  const [brand, setBrand] = useState(requestedBrand);
-  const [color, setColor] = useState(requestedColor);
-  const [discountOnly, setDiscountOnly] = useState(requestedDiscount);
-  const [minPrice, setMinPrice] = useState(requestedMinPrice);
-  const [maxPrice, setMaxPrice] = useState(requestedMaxPrice);
-  const [sort, setSort] = useState<Sort>(() => readSort(requestedSort));
-  const [filtersOpen, setFiltersOpen] = useState(false);
-  const [facets, setFacets] = useState<ProductFacets>({
-    brands: [],
-    colors: [],
-  });
-
-  const debouncedMinPrice = useDebouncedValue(minPrice);
-  const debouncedMaxPrice = useDebouncedValue(maxPrice);
-
-  useEffect(() => {
-    setBrand(requestedBrand);
-    setColor(requestedColor);
-    setDiscountOnly(requestedDiscount);
-    setMinPrice(requestedMinPrice);
-    setMaxPrice(requestedMaxPrice);
-  }, [
-    category,
-    subcategory,
-    query,
-    requestedBrand,
-    requestedColor,
-    requestedDiscount,
-    requestedMaxPrice,
-    requestedMinPrice,
-  ]);
-
-  useEffect(() => {
-    setSort(readSort(requestedSort));
-  }, [requestedSort]);
-
-  useEffect(() => {
-    const params = new URLSearchParams();
-    if (category) params.set("category", category);
-    if (subcategory) params.set("subcategory", subcategory);
-
-    let active = true;
-    getCatalogFilters(params)
-      .then((found) => {
-        if (active) setFacets(found);
-      })
-      .catch(() => {
-        if (active) setFacets({ brands: [], colors: [] });
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [category, subcategory]);
+  const [maxPrice, setMaxPrice] = useState(0);
+  const [minStars, setMinStars] = useState(0);
+  const [sort, setSort] = useState(
+    () =>
+      SORT_OPTIONS.find((option) => option.value === urlParams.get("sort"))
+        ?.value ?? "latest",
+  );
+  // null: shown on wide screens, hidden on narrow ones, until the user toggles it.
+  const [sideOpen, setSideOpen] = useState<boolean | null>(null);
 
   const loadProducts = useCallback(
     (cursor?: string) => {
       const params = new URLSearchParams();
       if (searchText) params.set("q", searchText);
-      if (category) params.set("category", category);
-      if (subcategory) params.set("subcategory", subcategory);
-      if (section) params.set("section", section);
-      if (discountOnly) params.set("discount", "true");
-      if (brand) params.set("brand", brand);
-      if (color) params.set("color", color);
-      const priceRangeValid =
-        !debouncedMinPrice ||
-        !debouncedMaxPrice ||
-        Number(debouncedMinPrice) <= Number(debouncedMaxPrice);
-      if (debouncedMinPrice && priceRangeValid)
-        params.set("minPricePaise", rupeesToPaise(debouncedMinPrice));
-      if (debouncedMaxPrice && priceRangeValid)
-        params.set("maxPricePaise", rupeesToPaise(debouncedMaxPrice));
+      for (const key of [
+        "category",
+        "subcategory",
+        "section",
+        "brand",
+        "color",
+      ]) {
+        const value = urlParams.get(key);
+        if (value) params.set(key, value);
+      }
+      if (urlParams.get("discount") === "true") params.set("discount", "true");
+      if (maxPrice) params.set("maxPricePaise", String(maxPrice * 100));
       if (cursor) params.set("cursor", cursor);
       params.set("sort", sort);
       params.set("limit", String(PAGE_SIZE));
       return getCatalog(params);
     },
-    [
-      brand,
-      category,
-      color,
-      debouncedMaxPrice,
-      debouncedMinPrice,
-      discountOnly,
-      searchText,
-      section,
-      sort,
-      subcategory,
-    ],
+    [maxPrice, searchText, sort, urlParams],
   );
 
-  const {
-    items: products,
-    cursor,
-    loading,
-    loadingMore,
-    failed,
-    loadMore,
-    reload,
-  } = usePaginatedList<Product>(loadProducts);
-
-  // Removes all filters but keeps the search.
-  function clearFilters() {
-    setBrand("");
-    setColor("");
-    setDiscountOnly(false);
-    setMinPrice("");
-    setMaxPrice("");
-  }
-
-  const activeFilterCount = [
-    brand,
-    color,
-    discountOnly,
-    minPrice,
-    maxPrice,
-  ].filter(Boolean).length;
-
-  const filterPanel = (
-    <ProductFilters
-      facets={facets}
-      brand={brand}
-      color={color}
-      discountOnly={discountOnly}
-      minPrice={minPrice}
-      maxPrice={maxPrice}
-      activeFilterCount={activeFilterCount}
-      onBrandChange={setBrand}
-      onColorChange={setColor}
-      onDiscountChange={setDiscountOnly}
-      onMinPriceChange={setMinPrice}
-      onMaxPriceChange={setMaxPrice}
-      onClear={clearFilters}
-    />
-  );
+  const { items, cursor, loading, loadingMore, failed, loadMore, reload } =
+    usePaginatedList<Product>(loadProducts);
+  // The catalog API has no rating filter, so it runs on the loaded products.
+  const products = minStars
+    ? items.filter((product) => product.rating.average >= minStars)
+    : items;
 
   return (
-    <div className="pb-12 pt-6 sm:pt-8">
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-4 rounded-2xl bg-gradient-to-r from-accent/10 via-violet-100/60 to-orange-100/70 p-5 sm:p-6">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-discount">
-            {searchText ? "Search" : "Shop"}
-          </p>
-          <h1 className="mt-1 font-display text-2xl font-extrabold sm:text-3xl">
-            {searchText
-              ? `Results for “${searchText}”`
-              : pageTitle(
-                  categories,
-                  category,
-                  subcategory,
-                  section,
-                  requestedDiscount,
-                )}
-          </h1>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setFiltersOpen(true)}
-            className="relative px-4 md:hidden"
-          >
-            <SlidersHorizontal className="h-4 w-4" /> Filters
-            {activeFilterCount > 0 && (
-              <span className="grid h-5 min-w-5 place-items-center rounded-full bg-accent px-1 text-[10px] text-white">
-                {activeFilterCount}
-              </span>
-            )}
-          </Button>
-
-          <select
-            value={sort}
-            onChange={(event) => setSort(event.target.value as Sort)}
-            aria-label="Sort products"
-            className="field w-auto pr-9 text-xs font-bold sm:text-sm"
-          >
-            {SORT_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      <div className="grid items-start gap-6 md:grid-cols-[240px_minmax(0,1fr)] lg:grid-cols-[260px_minmax(0,1fr)]">
+    <div className="flex flex-wrap items-start gap-6">
+      {sideOpen !== false && (
         <aside
-          className="card sticky top-32 hidden p-5 md:block"
-          aria-label="Product filters"
+          aria-label="Subcategories"
+          className={`card flex-[1_1_260px] flex-col gap-1 p-4 max-w-[320px] ${sideOpen ? "flex" : "hidden min-[900px]:flex"}`}
         >
-          {filterPanel}
+          <div className="flex items-center justify-between gap-2 border-b-2 border-ground px-2 pb-1.5">
+            <span className="text-xl font-extrabold text-accent">
+              Categories
+            </span>
+            <button
+              type="button"
+              onClick={() => setSideOpen(false)}
+              className="min-h-10 rounded-[10px] bg-ground px-3.5 text-sm font-semibold"
+            >
+              Hide
+            </button>
+          </div>
+          {categories.map((parent) => {
+            const active =
+              parent.slug === category ||
+              parent.children.some((child) => child.slug === subcategory);
+            return (
+              <div key={parent.id}>
+                <Link
+                  href={`/products?category=${encodeURIComponent(parent.slug)}`}
+                  className={`flex min-h-11 items-center px-2 font-extrabold ${active ? "text-accent" : ""}`}
+                >
+                  {parent.name}
+                </Link>
+                {active && (
+                  <div className="flex flex-col gap-1 pb-2">
+                    {parent.children.map((child) => (
+                      <Link
+                        key={child.id}
+                        href={`/products?subcategory=${encodeURIComponent(child.slug)}`}
+                        className={`flex min-h-11 items-center rounded-[10px] px-3.5 ${child.slug === subcategory ? "bg-soft font-extrabold text-accent" : ""}`}
+                      >
+                        {child.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </aside>
+      )}
 
-        <section aria-label="Products">
-          {loading ? (
-            <GridSkeleton count={12} />
-          ) : failed ? (
-            <OfflineNotice onRetry={reload} />
-          ) : products.length === 0 ? (
-            <EmptyProducts
-              hasFilters={activeFilterCount > 0}
-              onClear={clearFilters}
-            />
-          ) : (
-            <>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-4">
+      <div className="flex min-w-0 flex-[999_1_560px] flex-col gap-7">
+        {sideOpen !== true && (
+          <button
+            type="button"
+            onClick={() => setSideOpen(true)}
+            className={`btn-primary self-start px-[18px] ${sideOpen === null ? "min-[900px]:hidden" : ""}`}
+          >
+            ☰ Categories
+          </button>
+        )}
+
+        <h1 className="text-[32px] font-extrabold leading-tight">
+          {searchText
+            ? `Results for "${searchText}"`
+            : pageTitle(categories, urlParams)}
+        </h1>
+
+        <section
+          aria-label="Filters"
+          className="card flex flex-wrap gap-x-6 gap-y-2 px-4 py-3"
+        >
+          <ChipGroup
+            title="Price"
+            options={PRICE_OPTIONS}
+            value={maxPrice}
+            onPick={setMaxPrice}
+          />
+          <ChipGroup
+            title="Rating"
+            options={RATING_OPTIONS}
+            value={minStars}
+            onPick={setMinStars}
+          />
+          <ChipGroup
+            title="Sort by"
+            options={SORT_OPTIONS}
+            value={sort}
+            onPick={setSort}
+          />
+        </section>
+
+        {loading ? (
+          <GridSkeleton count={12} />
+        ) : failed ? (
+          <OfflineNotice onRetry={reload} />
+        ) : (
+          <>
+            {products.length === 0 ? (
+              <p className="card p-8 text-center font-semibold">
+                No products found
+              </p>
+            ) : (
+              <div className="product-grid">
                 {products.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>
-              {cursor && (
-                <div className="mt-8">
-                  <LoadMoreButton onClick={loadMore} loading={loadingMore} />
-                </div>
-              )}
-            </>
-          )}
-        </section>
+            )}
+            {cursor && (
+              <LoadMoreButton onClick={loadMore} loading={loadingMore} />
+            )}
+          </>
+        )}
       </div>
-
-      <MobileProductFilters
-        open={filtersOpen}
-        onClose={() => setFiltersOpen(false)}
-      >
-        {filterPanel}
-      </MobileProductFilters>
     </div>
   );
 }
 
-// Shown when no product matches.
-function EmptyProducts({
-  hasFilters,
-  onClear,
+// One filter row: a title and chips, the picked chip filled.
+function ChipGroup<T extends string | number>({
+  title,
+  options,
+  value,
+  onPick,
 }: {
-  hasFilters: boolean;
-  onClear: () => void;
+  title: string;
+  options: { label: string; value: T }[];
+  value: T;
+  onPick: (value: T) => void;
 }) {
   return (
-    <div className="card py-16 text-center">
-      <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-ground text-gray-400">
-        <SearchX className="h-7 w-7" />
-      </span>
-      <h2 className="mt-4 font-display text-xl font-bold">
-        No matching products
-      </h2>
-      {hasFilters && (
-        <Button variant="outline" onClick={onClear} className="mt-5">
-          Clear filters
-        </Button>
-      )}
+    <div className="flex flex-wrap items-center gap-1.5">
+      <span className="font-extrabold">{title}</span>
+      {options.map((option) => (
+        <button
+          key={option.label}
+          type="button"
+          aria-pressed={option.value === value}
+          onClick={() => onPick(option.value)}
+          className={`min-h-9 rounded-full border px-3 text-sm font-semibold ${option.value === value ? "border-accent bg-accent text-white" : "border-line bg-white"}`}
+        >
+          {option.label}
+        </button>
+      ))}
     </div>
   );
 }
 
-// Reads a valid sort from the URL.
-function readSort(value: string | null): Sort {
-  return SORT_OPTIONS.some((option) => option.value === value)
-    ? (value as Sort)
-    : "latest";
-}
-
-// Reads a price filter from the URL.
-function readPrice(value: string | null) {
-  return value?.replace(/\D/g, "") ?? "";
-}
-
-// Converts rupees typed by the user to paise.
-function rupeesToPaise(value: string) {
-  return String(Number(value) * 100);
-}
-
-// Page heading from the URL: subcategory, category, section or offers.
-function pageTitle(
-  categories: Category[],
-  category: string,
-  subcategory: string,
-  section: string,
-  discount: boolean,
-) {
+// Page heading from the URL: "Category › Subcategory", category, section or offers.
+function pageTitle(categories: Category[], urlParams: URLSearchParams) {
+  const category = urlParams.get("category");
+  const subcategory = urlParams.get("subcategory");
   for (const parent of categories) {
     if (parent.slug === category && !subcategory) return parent.name;
     const child = parent.children.find((item) => item.slug === subcategory);
-    if (child) return child.name;
+    if (child) return `${parent.name} › ${child.name}`;
   }
-  if (section === "trending") return "Trending now";
-  if (section === "featured") return "Featured for you";
-  if (discount) return "Festival sale & best deals";
+  if (urlParams.get("section") === "trending") return "Trending";
+  if (urlParams.get("section") === "featured") return "Featured";
+  if (urlParams.get("discount") === "true") return "Top discounts";
   return "All products";
 }

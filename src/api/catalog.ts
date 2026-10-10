@@ -5,7 +5,6 @@ import type {
   Paginated,
   Product,
   ProductDetail,
-  ProductFacets,
 } from "@/lib/types";
 
 const HOME_REVALIDATE_SECONDS = 60;
@@ -37,13 +36,6 @@ export function getCatalog(params: URLSearchParams) {
   return publicGet<Paginated<Product>>(`/api/catalog?${params}`);
 }
 
-// Brands, colours and price range for a category.
-export async function getCatalogFilters(params: URLSearchParams) {
-  const res = await publicGet<ApiData<ProductFacets>>(
-    `/api/catalog/filters?${params}`,
-  );
-  return res.data;
-}
 
 // Products from the same category.
 export async function getRelatedProducts(slug: string) {
