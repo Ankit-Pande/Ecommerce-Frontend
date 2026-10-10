@@ -1,40 +1,40 @@
-import { Banknote, Check, CreditCard, Smartphone } from "lucide-react";
-
-export type PaymentChoice = "UPI" | "CARD" | "COD";
-
-const choices = [
+const PAYMENTS = [
+  { id: "gpay", name: "Google Pay", note: "UPI", abbr: "G", chip: "#1A56C4" },
+  { id: "phonepe", name: "PhonePe", note: "UPI", abbr: "Pe", chip: "#5B2A9D" },
+  { id: "paytm", name: "Paytm", note: "UPI", abbr: "P", chip: "#0B5FA5" },
   {
-    value: "COD",
-    icon: Banknote,
-    title: "Cash on delivery",
-    detail: "Pay in cash or UPI when the order arrives",
-    badges: [{ label: "Cash", className: "bg-emerald-100 text-emerald-700" }],
+    id: "upi",
+    name: "Other UPI ID",
+    note: "BHIM and any UPI app",
+    abbr: "@",
+    chip: "#0F6B4A",
   },
   {
-    value: "UPI",
-    icon: Smartphone,
-    title: "UPI apps",
-    detail: "Pay instantly from any UPI app",
-    badges: [
-      { label: "G Pay", className: "bg-blue-50 text-blue-600" },
-      { label: "PhonePe", className: "bg-violet-600 text-white" },
-      { label: "Paytm", className: "bg-sky-500 text-white" },
-    ],
+    id: "card",
+    name: "Credit / Debit card",
+    note: "Visa, Mastercard, RuPay",
+    abbr: "▭",
+    chip: "#8A3B00",
   },
   {
-    value: "CARD",
-    icon: CreditCard,
-    title: "Cards & netbanking",
-    detail: "Debit card, credit card or netbanking",
-    badges: [
-      { label: "VISA", className: "bg-blue-900 text-white" },
-      { label: "Mastercard", className: "bg-orange-100 text-orange-700" },
-      { label: "RuPay", className: "bg-emerald-50 text-emerald-700" },
-    ],
+    id: "nb",
+    name: "Net banking",
+    note: "All Indian banks",
+    abbr: "₹",
+    chip: "#3B3F8C",
+  },
+  {
+    id: "cod",
+    name: "Cash on Delivery",
+    note: "Pay when the order arrives",
+    abbr: "COD",
+    chip: "#2B2B2B",
   },
 ] as const;
 
-// Cash on delivery, UPI and card choices with app badges.
+export type PaymentChoice = (typeof PAYMENTS)[number]["id"];
+
+// Payment method list with a radio dot and a coloured app chip.
 export function PaymentMethods({
   value,
   onChange,
@@ -43,50 +43,49 @@ export function PaymentMethods({
   onChange: (value: PaymentChoice) => void;
 }) {
   return (
-    <div className="grid gap-3">
-      {choices.map((choice) => {
-        const active = value === choice.value;
-        const Icon = choice.icon;
-
+    <div
+      className="flex flex-col gap-2"
+      role="radiogroup"
+      aria-label="Payment method"
+    >
+      {PAYMENTS.map((method) => {
+        const active = method.id === value;
         return (
           <button
-            key={choice.value}
+            key={method.id}
             type="button"
-            onClick={() => onChange(choice.value)}
-            aria-pressed={active}
-            className={`flex items-center gap-3 rounded-2xl border-2 bg-white p-3.5 text-left transition sm:p-4 ${active ? "border-accent bg-accent/[0.03] shadow-card" : "border-line hover:border-accent/30"}`}
+            role="radio"
+            aria-checked={active}
+            onClick={() => onChange(method.id)}
+            className={`flex min-h-[60px] items-center gap-3 rounded-[14px] border-2 bg-white px-3 py-2 text-left ${active ? "border-accent" : "border-line"}`}
           >
             <span
-              className={`grid h-5 w-5 shrink-0 place-items-center rounded-full border-2 ${active ? "border-accent bg-accent text-white" : "border-gray-300"}`}
-            >
-              {active && <Check className="h-3 w-3" />}
-            </span>
+              className={`h-5 w-5 shrink-0 rounded-full border-2 shadow-[inset_0_0_0_3px_#fff] ${active ? "border-accent bg-accent" : "border-line bg-white"}`}
+            />
             <span
-              className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${active ? "bg-accent text-white" : "bg-ground text-gray-500"}`}
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-extrabold text-white"
+              style={{ background: method.chip }}
             >
-              <Icon className="h-5 w-5" />
+              {method.abbr}
             </span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-sm font-extrabold">
-                {choice.title}
-              </span>
-              <span className="block text-xs text-gray-500">
-                {choice.detail}
-              </span>
-            </span>
-            <span className="hidden flex-wrap justify-end gap-1 sm:flex">
-              {choice.badges.map((badge) => (
-                <span
-                  key={badge.label}
-                  className={`rounded-md px-1.5 py-0.5 text-[10px] font-extrabold ${badge.className}`}
-                >
-                  {badge.label}
-                </span>
-              ))}
+            <span className="flex-1">
+              <span className="block font-extrabold">{method.name}</span>
+              <span className="block text-sm text-muted">{method.note}</span>
             </span>
           </button>
         );
       })}
     </div>
   );
+}
+
+// Shows only the chosen payment type in the Razorpay window.
+export function razorpayDisplay(choice: PaymentChoice) {
+  const method =
+    choice === "card" ? "card" : choice === "nb" ? "netbanking" : "upi";
+  return {
+    blocks: { payment: { name: "Pay using", instruments: [{ method }] } },
+    sequence: ["block.payment"],
+    preferences: { show_default_blocks: false },
+  };
 }

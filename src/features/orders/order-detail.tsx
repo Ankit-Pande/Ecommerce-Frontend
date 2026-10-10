@@ -18,7 +18,7 @@ import {
   canPay,
   OrderTracker,
   PAYMENT_LABEL,
-  StatusPill,
+  OrderStatusPill,
   useOrderActions,
 } from "@/features/orders/order-parts";
 import type { OrderDetail } from "@/lib/types";
@@ -90,7 +90,7 @@ export function OrderDetailPage({ id }: { id: string }) {
                   {formatTime(order.createdAt)}
                 </p>
               </div>
-              <StatusPill status={order.status} />
+              <OrderStatusPill status={order.status} />
             </div>
 
             {order.status === "CANCELLED" && order.cancelledBy && (

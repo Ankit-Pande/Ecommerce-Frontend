@@ -18,7 +18,7 @@ import {
   canCancel,
   canPay,
   OrderTracker,
-  StatusPill,
+  OrderStatusPill,
   useOrderActions,
 } from "@/features/orders/order-parts";
 import type { Order } from "@/lib/types";
@@ -157,7 +157,7 @@ function OrderCard({
           <p className="text-sm font-bold">{formatDate(order.createdAt)}</p>
         </div>
         <span className="ml-auto flex items-center gap-2">
-          <StatusPill status={order.status} />
+          <OrderStatusPill status={order.status} />
           <ChevronRight className="h-4 w-4 text-gray-400" />
         </span>
       </Link>

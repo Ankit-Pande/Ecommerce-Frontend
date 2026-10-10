@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Clock3, PackageCheck, Truck, XCircle } from "lucide-react";
+import { Check } from "lucide-react";
 import { errorMessage } from "@/api/http";
 import { cancelOrder, retryPayment } from "@/api/order";
 import { openRazorpay } from "@/lib/razorpay";
+import { StatusPill, type PillTone } from "@/components/ui/status-pill";
 import { toast } from "@/store/toast-store";
 import type { Order, OrderStatus } from "@/lib/types";
 
@@ -23,35 +24,12 @@ export const CANCELLED_BY_TEXT = {
     "Cancelled automatically because the payment was not completed in time.",
 } as const;
 
-const STATUS: Record<
-  OrderStatus,
-  { label: string; className: string; icon: typeof Clock3 }
-> = {
-  PENDING: {
-    label: "Payment pending",
-    className: "bg-amber-100 text-amber-700",
-    icon: Clock3,
-  },
-  CONFIRMED: {
-    label: "Confirmed",
-    className: "bg-blue-100 text-blue-700",
-    icon: PackageCheck,
-  },
-  SHIPPED: {
-    label: "Shipped",
-    className: "bg-violet-100 text-violet-700",
-    icon: Truck,
-  },
-  DELIVERED: {
-    label: "Delivered",
-    className: "bg-emerald-100 text-emerald-700",
-    icon: Check,
-  },
-  CANCELLED: {
-    label: "Cancelled",
-    className: "bg-red-100 text-red-700",
-    icon: XCircle,
-  },
+const STATUS: Record<OrderStatus, { label: string; tone: PillTone }> = {
+  PENDING: { label: "Payment pending", tone: "yellow" },
+  CONFIRMED: { label: "Order confirmed", tone: "blue" },
+  SHIPPED: { label: "Delivery pending", tone: "yellow" },
+  DELIVERED: { label: "Delivered", tone: "green" },
+  CANCELLED: { label: "Cancelled", tone: "red" },
 };
 
 // Only an unshipped, unpaid order can be cancelled.
@@ -73,14 +51,9 @@ export function canPay(order: Order) {
   );
 }
 
-// Coloured status chip with an icon.
-export function StatusPill({ status }: { status: OrderStatus }) {
-  const { label, className, icon: Icon } = STATUS[status];
-  return (
-    <span className={`status-pill gap-1.5 ${className}`}>
-      <Icon className="h-3.5 w-3.5" /> {label}
-    </span>
-  );
+// Order status pill.
+export function OrderStatusPill({ status }: { status: OrderStatus }) {
+  return <StatusPill {...STATUS[status]} />;
 }
 
 // Confirmed → shipped → delivered progress line; hidden for pending or cancelled orders.
