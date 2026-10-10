@@ -25,9 +25,9 @@ const QUICK_BUTTON =
   "rounded-full border border-accent/30 bg-white px-3 py-1.5 text-xs font-semibold text-accent transition hover:bg-accent hover:text-white disabled:opacity-50 dark:bg-white/5";
 
 const SUGGESTIONS = [
-  "Running shoes under ₹2000",
-  "Gift ideas for a 5 year old",
-  "Best phones under ₹20,000",
+  "Phones under ₹20,000",
+  "Gaming laptop with 16GB RAM",
+  "Men's jeans under ₹1500",
   "Where is my order?",
 ];
 
@@ -94,7 +94,7 @@ export function ChatWidget() {
         ...next,
         {
           role: "assistant",
-          content: "Please type a little more, like 'red shoes under ₹2000'.",
+          content: "Please type a little more, like 'phone under ₹20000'.",
         },
       ]);
       return;

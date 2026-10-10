@@ -14,7 +14,6 @@ import { OfflineNotice } from "@/components/ui/offline-notice";
 import { useAdminData } from "@/features/admin/use-admin-data";
 import { adminNav } from "@/features/admin/admin-nav";
 import { inr } from "@/lib/format";
-import { tint } from "@/lib/tints";
 
 // Dashboard with today's numbers and quick links.
 export default function AdminHome() {
@@ -102,7 +101,7 @@ export default function AdminHome() {
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {adminNav
             .filter((area) => area.href !== "/admin")
-            .map((area, index) => {
+            .map((area) => {
               const Icon = area.icon;
               return (
                 <Link
@@ -110,9 +109,7 @@ export default function AdminHome() {
                   href={area.href}
                   className="group flex items-center gap-3 rounded-2xl border border-sand p-4 transition hover:shadow-card dark:border-white/10"
                 >
-                  <span
-                    className={`grid h-10 w-10 place-items-center rounded-xl ${tint(index)}`}
-                  >
+                  <span className="grid h-10 w-10 place-items-center rounded-xl bg-mist dark:bg-white/[0.06]">
                     <Icon className="h-5 w-5" />
                   </span>
                   <span className="flex-1 text-sm font-bold">{area.label}</span>

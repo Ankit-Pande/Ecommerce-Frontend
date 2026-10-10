@@ -7,9 +7,6 @@ import { ChevronDown, LayoutGrid } from "lucide-react";
 import { SafeImage } from "@/components/ui/safe-image";
 import { useClickOutside } from "@/hooks/use-click-outside";
 import { catalogHref } from "@/lib/format";
-import { tint } from "@/lib/tints";
-import { uiText } from "@/lib/ui-text";
-import { useUiSettings } from "@/store/ui-settings-store";
 import type { Category } from "@/lib/types";
 
 // Category strip under the header on tablet and desktop.
@@ -18,7 +15,6 @@ export function CategoryBar({ categories }: { categories: Category[] }) {
   const close = useCallback(() => setOpen(false), []);
   const ref = useClickOutside<HTMLElement>(close);
   const pathname = usePathname();
-  const language = useUiSettings((state) => state.language);
 
   useEffect(close, [pathname, close]);
 
@@ -40,20 +36,18 @@ export function CategoryBar({ categories }: { categories: Category[] }) {
               <LayoutGrid className="h-4 w-4" />
             </span>
             <span className="flex items-center gap-0.5">
-              {uiText(language, "allCategories")}
+              All categories
               <ChevronDown className="h-3 w-3" />
             </span>
           </button>
 
-          {categories.map((category, index) => (
+          {categories.map((category) => (
             <Link
               key={category.id}
               href={catalogHref(category)}
               className="group flex w-[72px] shrink-0 flex-col items-center gap-1 rounded-xl py-1 text-center text-[11px] font-semibold leading-tight text-gray-600 transition hover:bg-mist hover:text-accent dark:text-gray-300 dark:hover:bg-white/10"
             >
-              <span
-                className={`relative h-12 w-12 overflow-hidden rounded-full ring-2 ring-white transition group-hover:ring-accent ${tint(index)}`}
-              >
+              <span className="relative h-12 w-12 overflow-hidden rounded-full ring-2 ring-white transition group-hover:ring-accent bg-mist dark:bg-white/[0.06]">
                 <SafeImage
                   src={category.image}
                   alt=""

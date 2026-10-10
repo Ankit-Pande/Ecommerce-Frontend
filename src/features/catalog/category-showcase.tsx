@@ -3,7 +3,6 @@ import { ArrowRight } from "lucide-react";
 import { SafeImage } from "@/components/ui/safe-image";
 import { SectionHeader } from "@/components/ui/section-header";
 import { catalogHref } from "@/lib/format";
-import { tint } from "@/lib/tints";
 import type { Category } from "@/lib/types";
 
 // Colourful category tiles on the home page.
@@ -15,11 +14,11 @@ export function CategoryShowcase({ categories }: { categories: Category[] }) {
       <SectionHeader title="Shop our top categories" href="/products" />
 
       <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6 lg:gap-4">
-        {categories.map((category, index) => (
+        {categories.map((category) => (
           <Link
             key={category.id}
             href={catalogHref(category)}
-            className={`group relative flex aspect-[4/5] flex-col overflow-hidden rounded-2xl p-3 transition duration-300 hover:-translate-y-1 hover:shadow-soft sm:p-4 ${tint(index)}`}
+            className="group relative flex aspect-[4/5] flex-col overflow-hidden rounded-2xl p-3 transition duration-300 hover:-translate-y-1 hover:shadow-soft sm:p-4 bg-mist dark:bg-white/[0.06]"
           >
             <h3 className="font-display text-xs font-extrabold leading-tight sm:text-sm">
               {category.name}

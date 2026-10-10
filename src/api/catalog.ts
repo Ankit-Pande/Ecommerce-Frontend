@@ -52,11 +52,3 @@ export async function getRelatedProducts(slug: string) {
   );
   return res.data;
 }
-
-// Products by slug, for recently viewed.
-export async function getProductsBySlugs(slugs: string[]) {
-  const res = await publicGet<ApiData<Product[]>>(
-    `/api/products/batch?slugs=${encodeURIComponent(slugs.join(","))}`,
-  );
-  return res.data;
-}

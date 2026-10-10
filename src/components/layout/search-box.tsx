@@ -12,13 +12,7 @@ const SUGGESTION_LIMIT = "8";
 const MAX_SUGGESTIONS = 6;
 
 // Search input with text suggestions; results open on Enter or click.
-export function SearchBox({
-  label,
-  placeholder,
-}: {
-  label: string;
-  placeholder: string;
-}) {
+export function SearchBox() {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -87,8 +81,8 @@ export function SearchBox({
         onFocus={() => setOpen(true)}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
         onKeyDown={(event) => event.key === "Escape" && setOpen(false)}
-        aria-label={label}
-        placeholder={placeholder}
+        aria-label="Search"
+        placeholder="Search products, brands and categories"
         autoComplete="off"
         className="min-w-0 flex-1 appearance-none border-0 bg-transparent pl-4 pr-2 text-sm font-medium outline-none placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0 [&::-webkit-search-cancel-button]:hidden"
       />
@@ -112,8 +106,8 @@ export function SearchBox({
       )}
       <button
         type="submit"
-        aria-label={label}
-        title={label}
+        aria-label="Search"
+        title="Search"
         className="mr-1 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent text-white transition hover:bg-accent-dark"
       >
         <Search className="h-4 w-4" />

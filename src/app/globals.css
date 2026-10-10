@@ -16,24 +16,6 @@
     --color-sand: 224 224 224;
   }
 
-  :root[data-color="green"] {
-    --color-accent: 22 101 52;
-    --color-accent-dark: 20 83 45;
-    --color-mist: 236 245 238;
-  }
-
-  :root[data-color="purple"] {
-    --color-accent: 109 40 217;
-    --color-accent-dark: 91 33 182;
-    --color-mist: 243 238 252;
-  }
-
-  :root[data-color="orange"] {
-    --color-accent: 234 88 12;
-    --color-accent-dark: 194 65 12;
-    --color-mist: 255 241 232;
-  }
-
   html {
     scroll-behavior: smooth;
   }

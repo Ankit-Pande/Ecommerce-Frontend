@@ -15,10 +15,7 @@ import {
 import { SafeImage } from "@/components/ui/safe-image";
 import { Wordmark } from "@/components/ui/wordmark";
 import { catalogHref } from "@/lib/format";
-import { tint } from "@/lib/tints";
-import { uiText, type UiTextKey } from "@/lib/ui-text";
 import { isAdmin, useAuthStore } from "@/store/auth-store";
-import { useUiSettings } from "@/store/ui-settings-store";
 import type { Category } from "@/lib/types";
 
 type MobileSidebarProps = {
@@ -38,8 +35,6 @@ export function MobileSidebar({
 }: MobileSidebarProps) {
   const role = useAuthStore((state) => state.role);
   const loggedIn = useAuthStore((state) => Boolean(state.accessToken));
-  const language = useUiSettings((state) => state.language);
-  const text = (key: UiTextKey) => uiText(language, key);
 
   useEffect(() => {
     if (!open) return;
@@ -97,7 +92,7 @@ export function MobileSidebar({
               onClick={onClose}
               className="flex min-h-12 items-center gap-3 rounded-xl bg-accent px-4 text-sm font-extrabold text-white shadow-button"
             >
-              <LayoutDashboard className="h-4 w-4" /> {text("admin")}
+              <LayoutDashboard className="h-4 w-4" /> Admin panel
             </Link>
           </div>
         )}
@@ -105,10 +100,10 @@ export function MobileSidebar({
         <div className="border-b border-sand p-3 dark:border-white/10">
           <nav className="grid grid-cols-2 gap-1" aria-label="Main links">
             <Link href="/" onClick={onClose} className={primaryLink}>
-              <Home className="h-4 w-4 text-accent" /> {text("home")}
+              <Home className="h-4 w-4 text-accent" /> Home
             </Link>
             <Link href="/products" onClick={onClose} className={primaryLink}>
-              <ShoppingBag className="h-4 w-4 text-accent" /> {text("shop")}
+              <ShoppingBag className="h-4 w-4 text-accent" /> Shop
             </Link>
             <Link
               href={loggedIn ? "/account" : "/login"}
@@ -116,10 +111,10 @@ export function MobileSidebar({
               className={primaryLink}
             >
               <UserRound className="h-4 w-4 text-accent" />{" "}
-              {loggedIn ? text("account") : text("login")}
+              {loggedIn ? "Account" : "Login"}
             </Link>
             <Link href="/orders" onClick={onClose} className={primaryLink}>
-              <Package className="h-4 w-4 text-accent" /> {text("orders")}
+              <Package className="h-4 w-4 text-accent" /> My orders
             </Link>
           </nav>
         </div>
@@ -127,7 +122,7 @@ export function MobileSidebar({
         <div className="flex-1 overflow-y-auto px-4 py-5">
           <div className="mb-3 flex items-center gap-2 px-2">
             <Grid3X3 className="h-4 w-4 text-accent" />
-            <p className="eyebrow">{text("category")}</p>
+            <p className="eyebrow">Shop by category</p>
           </div>
 
           {categories.length === 0 ? (
@@ -141,7 +136,7 @@ export function MobileSidebar({
             </div>
           ) : (
             <nav className="space-y-1" aria-label="Categories">
-              {categories.map((category, index) => (
+              {categories.map((category) => (
                 <div
                   key={category.id}
                   className="border-b border-sand py-2 last:border-0 dark:border-white/10"
@@ -151,9 +146,7 @@ export function MobileSidebar({
                     onClick={onClose}
                     className="flex min-h-11 items-center gap-3 rounded-xl px-2 text-sm font-extrabold hover:bg-mist dark:hover:bg-white/10"
                   >
-                    <span
-                      className={`relative grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full ${tint(index)}`}
-                    >
+                    <span className="relative grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-mist dark:bg-white/[0.06]">
                       <SafeImage
                         src={category.image}
                         alt=""

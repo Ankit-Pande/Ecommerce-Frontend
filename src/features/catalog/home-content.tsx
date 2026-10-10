@@ -5,7 +5,6 @@ import { CategoryShowcase } from "@/features/catalog/category-showcase";
 import { LazyCategoryShelves } from "@/features/catalog/lazy-category-shelves";
 import { ProductCard } from "@/features/catalog/product-card";
 import { ProductScroller } from "@/features/catalog/product-scroller";
-import { RecentlyViewedProducts } from "@/features/catalog/recently-viewed-products";
 import type { HomeData, Product } from "@/lib/types";
 
 const PRODUCTS_PER_SECTION = 10;
@@ -67,7 +66,6 @@ export function HomeContent({ home }: { home: HomeData }) {
       </ul>
 
       <CategoryShowcase categories={home.categories} />
-      <RecentlyViewedProducts />
 
       <ProductSection
         title="Trending now"

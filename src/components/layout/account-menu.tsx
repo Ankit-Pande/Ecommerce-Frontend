@@ -14,9 +14,7 @@ import {
 } from "lucide-react";
 import { logoutSession } from "@/api/http";
 import { useClickOutside } from "@/hooks/use-click-outside";
-import { uiText } from "@/lib/ui-text";
 import { isAdmin, useAuthStore } from "@/store/auth-store";
-import { useUiSettings } from "@/store/ui-settings-store";
 
 const itemClass =
   "flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-bold text-gray-600 transition hover:bg-mist hover:text-ink dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white";
@@ -27,7 +25,6 @@ export function AccountMenu() {
   const close = useCallback(() => setOpen(false), []);
   const ref = useClickOutside<HTMLDivElement>(close);
   const pathname = usePathname();
-  const language = useUiSettings((state) => state.language);
   const loggedIn = useAuthStore((state) => Boolean(state.accessToken));
   const phone = useAuthStore((state) => state.phone);
   const role = useAuthStore((state) => state.role);
@@ -41,7 +38,7 @@ export function AccountMenu() {
         className="flex h-10 items-center gap-2 rounded-full px-2 text-sm font-extrabold transition hover:bg-black/[0.05] dark:hover:bg-white/10 sm:px-3"
       >
         <UserRound className="h-5 w-5" />
-        <span className="hidden sm:inline">{uiText(language, "login")}</span>
+        <span className="hidden sm:inline">Login</span>
       </Link>
     );
   }
@@ -51,19 +48,19 @@ export function AccountMenu() {
       ? [
           {
             href: "/admin",
-            label: uiText(language, "admin"),
+            label: "Admin panel",
             icon: LayoutDashboard,
           },
         ]
       : []),
-    { href: "/account", label: uiText(language, "profile"), icon: UserRound },
-    { href: "/orders", label: uiText(language, "orders"), icon: Package },
+    { href: "/account", label: "My profile", icon: UserRound },
+    { href: "/orders", label: "My orders", icon: Package },
     {
       href: "/account#addresses",
-      label: uiText(language, "addresses"),
+      label: "Saved addresses",
       icon: MapPin,
     },
-    { href: "/cart", label: uiText(language, "cart"), icon: ShoppingCart },
+    { href: "/cart", label: "Cart", icon: ShoppingCart },
   ];
 
   return (
@@ -71,7 +68,7 @@ export function AccountMenu() {
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        aria-label={uiText(language, "yourAccount")}
+        aria-label="Your account"
         aria-expanded={open}
         className="flex h-10 items-center gap-1.5 rounded-full px-1.5 transition hover:bg-black/[0.05] dark:hover:bg-white/10"
       >
@@ -96,7 +93,7 @@ export function AccountMenu() {
             onClick={() => void logoutSession()}
             className={`${itemClass} border-t border-sand text-deal dark:border-white/10`}
           >
-            <LogOut className="h-4 w-4" /> {uiText(language, "logout")}
+            <LogOut className="h-4 w-4" /> Logout
           </button>
         </div>
       )}

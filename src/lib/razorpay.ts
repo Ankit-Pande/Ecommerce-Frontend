@@ -1,3 +1,4 @@
+import { verifyPayment } from "@/api/order";
 import type { PaymentDetails } from "@/lib/types";
 
 export const RAZORPAY_SCRIPT = "https://checkout.razorpay.com/v1/checkout.js";
@@ -8,13 +9,15 @@ declare global {
   }
 }
 
+type PaidResponse = { razorpay_payment_id: string; razorpay_signature: string };
+
 type PopupOptions = {
   onPaid: () => void;
   onClose: () => void;
   display?: Record<string, unknown>;
 };
 
-// Opens the Razorpay popup; the backend webhook confirms the order.
+// Opens the Razorpay popup; after payment the backend checks it and marks the order paid (if that fails, the webhook does it later).
 export function openRazorpay(
   payment: PaymentDetails,
   options: PopupOptions,
@@ -31,20 +34,14 @@ export function openRazorpay(
     description: "Secure order payment",
     order_id: payment.razorpayOrderId,
     ...(options.display && { config: { display: options.display } }),
-    handler: options.onPaid,
+    handler: (response: PaidResponse) =>
+      verifyPayment(
+        payment.orderId,
+        response.razorpay_payment_id,
+        response.razorpay_signature,
+      ).then(options.onPaid, options.onClose),
     modal: { ondismiss: options.onClose },
-    theme: { color: readAccentColor() },
+    theme: { color: "#2874f0" },
   }).open();
   return true;
-}
-
-// Theme colour for the Razorpay popup.
-function readAccentColor() {
-  const channels = getComputedStyle(document.documentElement)
-    .getPropertyValue("--color-accent")
-    .trim()
-    .split(/\s+/)
-    .join(", ");
-
-  return channels ? `rgb(${channels})` : "#3f5f8f";
 }

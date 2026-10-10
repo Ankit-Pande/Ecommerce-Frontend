@@ -5,15 +5,10 @@ import { ThemeProvider } from "next-themes";
 import { useAuthStore } from "@/store/auth-store";
 import { getProfile } from "@/api/account";
 import { restoreSession } from "@/api/http";
-import { useUiSettings } from "@/store/ui-settings-store";
 
 // Sets up the theme and restores the saved login once on load.
 export function Providers({ children }: { children: React.ReactNode }) {
-  const language = useUiSettings((state) => state.language);
-  const color = useUiSettings((state) => state.color);
-
   useEffect(() => {
-    void useUiSettings.persist.rehydrate();
     Promise.resolve(useAuthStore.persist.rehydrate())
       .then(() => restoreSession())
       .then(async (loggedIn) => {
@@ -25,11 +20,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
       .catch(() => undefined)
       .finally(() => useAuthStore.getState().setHydrated());
   }, []);
-
-  useEffect(() => {
-    document.documentElement.lang = language;
-    document.documentElement.dataset.color = color;
-  }, [color, language]);
 
   return (
     <ThemeProvider

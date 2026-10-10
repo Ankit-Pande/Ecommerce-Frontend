@@ -8,7 +8,6 @@ import { ProductGallery } from "@/features/catalog/product-gallery";
 import { ProductReviews } from "@/features/catalog/product-reviews";
 import { RatingBadge } from "@/features/catalog/rating-badge";
 import { RelatedProducts } from "@/features/catalog/related-products";
-import { RecentProductTracker } from "@/features/catalog/recently-viewed-products";
 import type { ProductDetail } from "@/lib/types";
 
 // Product info: price, stock, details and buttons.
@@ -22,7 +21,6 @@ export function ProductDetails({ product }: { product: ProductDetail }) {
 
   return (
     <div className="pb-10 pt-5 sm:pt-7">
-      <RecentProductTracker slug={product.slug} />
       <nav
         aria-label="Breadcrumb"
         className="mb-4 flex items-center gap-1.5 overflow-hidden text-xs font-semibold text-gray-500"

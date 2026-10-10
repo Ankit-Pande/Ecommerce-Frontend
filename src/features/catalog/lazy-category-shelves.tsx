@@ -8,7 +8,6 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { CardSkeleton } from "@/components/ui/skeletons";
 import { useInViewOnce } from "@/hooks/use-in-view";
 import { catalogHref } from "@/lib/format";
-import { tint } from "@/lib/tints";
 import { ProductCard } from "./product-card";
 import { ProductScroller } from "./product-scroller";
 import type { Category, Product } from "@/lib/types";
@@ -66,11 +65,11 @@ function CategoryShelf({ category }: { category: Category }) {
       />
       {category.children.length > 0 && (
         <div className="-mt-1 mb-4 flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
-          {category.children.slice(0, MAX_CHIPS).map((child, index) => (
+          {category.children.slice(0, MAX_CHIPS).map((child) => (
             <Link
               key={child.id}
               href={catalogHref(child, "subcategory")}
-              className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-bold transition hover:opacity-80 ${tint(index)}`}
+              className="shrink-0 rounded-full px-3 py-1.5 text-xs font-bold transition hover:opacity-80 bg-mist dark:bg-white/[0.06]"
             >
               {child.name}
             </Link>

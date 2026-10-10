@@ -44,6 +44,18 @@ export function cancelOrder(id: string) {
   return http.patch<{ message: string }>(`/api/order/${id}/cancel`);
 }
 
+// Tells the backend the popup payment is done, so the order is marked paid at once.
+export function verifyPayment(
+  id: string,
+  razorpayPaymentId: string,
+  razorpaySignature: string,
+) {
+  return http.post(`/api/order/${id}/verify-payment`, {
+    razorpayPaymentId,
+    razorpaySignature,
+  });
+}
+
 // Same Razorpay order again for a closed popup.
 export async function retryPayment(id: string) {
   return (await http.post<ApiData<PaymentDetails>>(`/api/order/${id}/payment`))

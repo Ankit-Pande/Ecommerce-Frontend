@@ -3,40 +3,37 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, LayoutGrid, ShoppingCart, UserRound } from "lucide-react";
-import { uiText } from "@/lib/ui-text";
 import { useAuthStore } from "@/store/auth-store";
 import { useCartStore } from "@/store/cart-store";
-import { useUiSettings } from "@/store/ui-settings-store";
 
 // Bottom tab bar on phones.
 export function BottomNav() {
   const pathname = usePathname();
-  const language = useUiSettings((state) => state.language);
   const loggedIn = useAuthStore((state) => Boolean(state.accessToken));
   const count = useCartStore((state) => state.count);
 
   const tabs = [
     {
       href: "/",
-      label: uiText(language, "home"),
+      label: "Home",
       icon: Home,
       active: pathname === "/",
     },
     {
       href: "/products",
-      label: uiText(language, "shop"),
+      label: "Shop",
       icon: LayoutGrid,
       active: pathname.startsWith("/products"),
     },
     {
       href: "/cart",
-      label: uiText(language, "cart"),
+      label: "Cart",
       icon: ShoppingCart,
       active: pathname === "/cart" || pathname === "/checkout",
     },
     {
       href: loggedIn ? "/account" : "/login",
-      label: loggedIn ? uiText(language, "account") : uiText(language, "login"),
+      label: loggedIn ? "Account" : "Login",
       icon: UserRound,
       active: ["/account", "/orders", "/login"].includes(pathname),
     },
