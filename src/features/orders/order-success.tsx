@@ -13,7 +13,7 @@ const RESULTS = {
   },
   paid: {
     title: "Payment received!",
-    text: "Thank you. Your order will be confirmed in a few seconds.",
+    text: "Thank you. Your order is confirmed and will be packed soon.",
     badge: "Paid online",
   },
   pending: {

@@ -111,7 +111,7 @@ export default function AdminCategories() {
               maxLength={80}
               value={name}
               onChange={(event) => setName(event.target.value)}
-              placeholder="e.g. Electronics"
+              placeholder="e.g. Laptops"
             />
           </label>
 

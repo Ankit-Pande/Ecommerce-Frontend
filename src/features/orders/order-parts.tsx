@@ -9,7 +9,6 @@ import { toast } from "@/store/toast-store";
 import type { Order, OrderStatus } from "@/lib/types";
 
 const TRACK_STEPS: OrderStatus[] = ["CONFIRMED", "SHIPPED", "DELIVERED"];
-const CONFIRM_WAIT_MS = 5000;
 
 export const PAYMENT_LABEL = {
   PENDING: "Not paid yet",
@@ -154,12 +153,10 @@ export function useOrderActions({
       const payment = await retryPayment(id);
       const opened = openRazorpay(payment, {
         onPaid: () => {
-          toast.success(
-            "Payment received. Your order will be confirmed shortly.",
-          );
-          setTimeout(onPaid, CONFIRM_WAIT_MS);
+          toast.success("Payment received. Your order is confirmed.");
+          onPaid();
         },
-        onClose: () => toast.error("Payment was not completed."),
+        onClose: () => toast.error("Payment is not complete yet."),
       });
       if (!opened) toast.error("The payment window could not open. Try again.");
     } catch (error) {
