@@ -30,6 +30,7 @@ export type ProductDetail = Product & {
   description: string;
   images: string[];
   color: string | null;
+  specs: Record<string, string> | null;
   category: CategoryRef & { parent: CategoryRef | null };
   brand: { id: string; name: string; slug: string; logo: string | null } | null;
 };
@@ -191,6 +192,7 @@ export type AdminProductDetail = Omit<AdminProduct, "reservedQuantity"> & {
   color: string | null;
   gender: string | null;
   ageGroup: string | null;
+  specs: Record<string, string> | null;
   images: string[];
   categoryId: string;
   brandId: string | null;

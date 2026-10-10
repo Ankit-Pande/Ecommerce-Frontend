@@ -28,6 +28,9 @@ function formValues(product: AdminProductDetail): ProductFormValues {
     color: product.color ?? "",
     gender: product.gender ?? "",
     ageGroup: product.ageGroup ?? "",
+    specs: Object.entries(product.specs ?? {})
+      .map(([key, value]) => `${key}: ${value}`)
+      .join("\n"),
     isTrending: product.isTrending,
     isFeatured: product.isFeatured,
     isActive: product.isActive,

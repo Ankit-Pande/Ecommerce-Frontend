@@ -161,6 +161,9 @@ export function ProductDetails({ product }: { product: ProductDetail }) {
             {product.color && (
               <ProductFact label="Colour" value={product.color} />
             )}
+            {Object.entries(product.specs ?? {}).map(([key, value]) => (
+              <ProductFact key={key} label={key} value={value} />
+            ))}
           </dl>
         </div>
       </div>

@@ -27,6 +27,7 @@ export type ProductFormValues = {
   color: string;
   gender: string;
   ageGroup: string;
+  specs: string;
   isTrending: boolean;
   isFeatured: boolean;
   isActive: boolean;
@@ -45,6 +46,7 @@ export const emptyProduct: ProductFormValues = {
   color: "",
   gender: "",
   ageGroup: "",
+  specs: "",
   isTrending: false,
   isFeatured: false,
   isActive: true,
@@ -125,6 +127,7 @@ export function ProductForm({
       form.append("color", values.color.trim());
       form.append("gender", values.gender);
       form.append("ageGroup", values.ageGroup);
+      form.append("specs", values.specs);
       form.append(
         "offerEndsAt",
         values.offerEndsAt ? new Date(values.offerEndsAt).toISOString() : "",
@@ -211,6 +214,19 @@ export function ProductForm({
           minLength={5}
           value={values.description}
           onChange={(event) => setField("description", event.target.value)}
+        />
+      </label>
+
+      <label className="sm:col-span-2">
+        <span className="text-xs font-bold text-gray-500">
+          Specs (one per line, like RAM: 16GB)
+        </span>
+        <textarea
+          className="field mt-1"
+          rows={3}
+          placeholder={"RAM: 16GB\nBattery: 5000mAh"}
+          value={values.specs}
+          onChange={(event) => setField("specs", event.target.value)}
         />
       </label>
 
