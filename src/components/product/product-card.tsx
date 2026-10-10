@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { inr } from "@/lib/format";
 import { SafeImage } from "@/components/ui/safe-image";
-import { QuickAdd } from "./quick-add";
-import { RatingBadge } from "./rating-badge";
+import { QuickAdd } from "@/components/product/quick-add";
+import { RatingBadge } from "@/components/product/rating-badge";
 import type { Product } from "@/lib/types";
 
 // Product tile with image, price, discount, rating and a quick add button.

@@ -9,11 +9,11 @@ import { usePaginatedList } from "@/hooks/use-paginated-list";
 import { LoadMoreButton } from "@/components/ui/load-more-button";
 import { OfflineNotice } from "@/components/ui/offline-notice";
 import { GridSkeleton } from "@/components/ui/skeletons";
-import { ProductCard } from "@/features/catalog/product-card";
+import { ProductCard } from "@/components/product/product-card";
 import {
   MobileProductFilters,
   ProductFilters,
-} from "@/features/catalog/product-filters";
+} from "@/features/shop/product-filters";
 import type { Category, Product, ProductFacets } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 

@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getProductOnServer } from "@/api/catalog";
-import { ProductDetails } from "@/features/catalog/product-details";
-import { ProductUnavailable } from "@/features/catalog/product-unavailable";
+import { ProductDetails } from "@/features/product/product-details";
+import { ProductUnavailable } from "@/features/product/product-unavailable";
 import type { ProductDetail } from "@/lib/types";
 
 type ProductPageProps = { params: { slug: string } };

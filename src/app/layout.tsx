@@ -49,9 +49,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${roboto.variable} font-body antialiased`}
-      >
+      <body className={`${roboto.variable} font-body antialiased`}>
         <Providers>
           <AppShell categories={categories}>{children}</AppShell>
         </Providers>

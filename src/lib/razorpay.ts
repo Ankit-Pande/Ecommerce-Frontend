@@ -17,7 +17,7 @@ type PopupOptions = {
   display?: Record<string, unknown>;
 };
 
-// Opens the Razorpay popup; after payment the backend checks it and marks the order paid (if that fails, the webhook does it later).
+// Opens the Razorpay popup; after payment the backend checks it and marks the order paid.
 export function openRazorpay(
   payment: PaymentDetails,
   options: PopupOptions,

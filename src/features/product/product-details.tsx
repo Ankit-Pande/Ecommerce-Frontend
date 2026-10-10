@@ -3,11 +3,11 @@ import { ChevronRight, RotateCcw, Truck, Wallet } from "lucide-react";
 import { inr, STOCK_TEXT } from "@/lib/format";
 import { catalogHref } from "@/lib/format";
 import { safeColor } from "@/lib/sanitize";
-import { AddToCart } from "@/features/catalog/add-to-cart";
-import { ProductGallery } from "@/features/catalog/product-gallery";
-import { ProductReviews } from "@/features/catalog/product-reviews";
-import { RatingBadge } from "@/features/catalog/rating-badge";
-import { RelatedProducts } from "@/features/catalog/related-products";
+import { AddToCart } from "@/features/product/add-to-cart";
+import { ProductGallery } from "@/features/product/product-gallery";
+import { ProductReviews } from "@/features/product/product-reviews";
+import { RatingBadge } from "@/components/product/rating-badge";
+import { RelatedProducts } from "@/features/product/related-products";
 import type { ProductDetail } from "@/lib/types";
 
 // Product info: price, stock, details and buttons.

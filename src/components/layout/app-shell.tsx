@@ -9,7 +9,7 @@ import { ChatWidget } from "@/features/assistant/chat-widget";
 
 import type { Category } from "@/lib/types";
 
-// Store layout; product and checkout pages hide the bottom nav so it never covers their buttons.
+// Page layout; bottom nav is hidden on product and checkout pages.
 export function AppShell({
   categories,
   children,

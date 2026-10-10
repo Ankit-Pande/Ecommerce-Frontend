@@ -15,7 +15,7 @@ import { formatDate } from "@/lib/format";
 import { isAdmin, useAuthStore } from "@/store/auth-store";
 import { toast } from "@/store/toast-store";
 import type { Review } from "@/lib/types";
-import { RatingBadge } from "./rating-badge";
+import { RatingBadge } from "@/components/product/rating-badge";
 
 const RATINGS = [1, 2, 3, 4, 5];
 

@@ -3,7 +3,7 @@
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { RefreshCw } from "lucide-react";
-import { ProductScroller } from "./product-scroller";
+import { ProductScroller } from "@/components/product/product-scroller";
 import { CardSkeleton } from "@/components/ui/skeletons";
 
 const SHELVES = ["Trending now", "Festival sale & best deals", "New arrivals"];

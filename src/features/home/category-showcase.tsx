@@ -5,7 +5,7 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { catalogHref } from "@/lib/format";
 import type { Category } from "@/lib/types";
 
-// Colourful category tiles on the home page.
+// Category tiles on the home page.
 export function CategoryShowcase({ categories }: { categories: Category[] }) {
   if (categories.length === 0) return null;
 

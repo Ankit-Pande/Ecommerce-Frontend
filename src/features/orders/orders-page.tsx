@@ -20,7 +20,7 @@ import {
   OrderTracker,
   StatusPill,
   useOrderActions,
-} from "./order-parts";
+} from "@/features/orders/order-parts";
 import type { Order } from "@/lib/types";
 
 // My orders: active orders by default, cancelled ones in their own tab.

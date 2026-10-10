@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { PhoneAuthForm } from "@/features/auth/phone-auth-form";
+import { LoginForm } from "@/features/login/login-form";
 import { ListSkeleton } from "@/components/ui/skeletons";
 
 // Login page.
@@ -12,7 +12,7 @@ export default function LoginRoute() {
         </div>
       }
     >
-      <PhoneAuthForm />
+      <LoginForm />
     </Suspense>
   );
 }

@@ -6,8 +6,8 @@ import { getRelatedProducts } from "@/api/catalog";
 import { useInViewOnce } from "@/hooks/use-in-view";
 import { CardSkeleton } from "@/components/ui/skeletons";
 import { SectionHeader } from "@/components/ui/section-header";
-import { ProductCard } from "@/features/catalog/product-card";
-import { ProductScroller } from "@/features/catalog/product-scroller";
+import { ProductCard } from "@/components/product/product-card";
+import { ProductScroller } from "@/components/product/product-scroller";
 import type { Product } from "@/lib/types";
 
 const PRODUCT_LIMIT = 8;

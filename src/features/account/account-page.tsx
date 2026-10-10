@@ -27,7 +27,7 @@ import {
   MAX_ADDRESSES,
   toAddressInput,
   type AddressInput,
-} from "./address-form";
+} from "@/features/account/address-form";
 import { OfflineNotice } from "@/components/ui/offline-notice";
 import { ListSkeleton } from "@/components/ui/skeletons";
 import type { Address, UserProfile } from "@/lib/types";

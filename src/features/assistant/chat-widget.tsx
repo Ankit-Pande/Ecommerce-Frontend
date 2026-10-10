@@ -83,7 +83,7 @@ export function ChatWidget() {
     }
   }
 
-  // Sends one question: typed, a suggestion, or a quick button like "Women" or "Next 5 products".
+  // Sends a typed question or a button text.
   function send(question: string) {
     const content = cleanQuestion(question);
     if (!content || thinking) return;

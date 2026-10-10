@@ -1,10 +1,10 @@
 import { Headphones, RotateCcw, ShieldCheck, Truck } from "lucide-react";
 import { SectionHeader } from "@/components/ui/section-header";
-import { BannerCarousel } from "@/features/catalog/banner-carousel";
-import { CategoryShowcase } from "@/features/catalog/category-showcase";
-import { LazyCategoryShelves } from "@/features/catalog/lazy-category-shelves";
-import { ProductCard } from "@/features/catalog/product-card";
-import { ProductScroller } from "@/features/catalog/product-scroller";
+import { BannerCarousel } from "@/features/home/banner-carousel";
+import { CategoryShowcase } from "@/features/home/category-showcase";
+import { CategoryShelves } from "@/features/home/category-shelves";
+import { ProductCard } from "@/components/product/product-card";
+import { ProductScroller } from "@/components/product/product-scroller";
 import type { HomeData, Product } from "@/lib/types";
 
 const PRODUCTS_PER_SECTION = 10;
@@ -92,7 +92,7 @@ export function HomeContent({ home }: { home: HomeData }) {
         href="/products?section=featured"
         products={home.featuredProducts}
       />
-      <LazyCategoryShelves categories={home.categories} />
+      <CategoryShelves categories={home.categories} />
       <ProductSection
         title="New arrivals"
         href="/products?sort=latest"

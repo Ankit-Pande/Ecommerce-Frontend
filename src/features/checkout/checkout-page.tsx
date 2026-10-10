@@ -21,9 +21,12 @@ import { openRazorpay, RAZORPAY_SCRIPT } from "@/lib/razorpay";
 import { useCartStore } from "@/store/cart-store";
 import { toast } from "@/store/toast-store";
 import type { Address, PaymentDetails, PaymentMethod } from "@/lib/types";
-import { CheckoutSteps } from "./checkout-steps";
-import { OrderSummary } from "./order-summary";
-import { PaymentMethods, type PaymentChoice } from "./payment-methods";
+import { CheckoutSteps } from "@/features/checkout/checkout-steps";
+import { OrderSummary } from "@/features/checkout/order-summary";
+import {
+  PaymentMethods,
+  type PaymentChoice,
+} from "@/features/checkout/payment-methods";
 
 const MAX_QUANTITY = 10;
 

@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { getHomeOnServer } from "@/api/catalog";
-import { ProductListing } from "@/features/catalog/product-listing";
+import { ProductListing } from "@/features/shop/product-listing";
 import { GridSkeleton } from "@/components/ui/skeletons";
 
 export const metadata: Metadata = {

@@ -16,7 +16,7 @@ const RESEND_AFTER_SECONDS = 60;
 const INDIAN_MOBILE = /^[6-9]\d{9}$/;
 
 // Phone and OTP login form.
-export function PhoneAuthForm() {
+export function LoginForm() {
   const [step, setStep] = useState<"phone" | "otp">("phone");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState<string[]>(() => Array(OTP_LENGTH).fill(""));

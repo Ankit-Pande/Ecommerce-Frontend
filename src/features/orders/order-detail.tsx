@@ -20,7 +20,7 @@ import {
   PAYMENT_LABEL,
   StatusPill,
   useOrderActions,
-} from "./order-parts";
+} from "@/features/orders/order-parts";
 import type { OrderDetail } from "@/lib/types";
 
 const DELIVERY_DAYS = 5;

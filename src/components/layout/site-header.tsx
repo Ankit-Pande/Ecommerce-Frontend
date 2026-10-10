@@ -8,11 +8,11 @@ import { getCart } from "@/api/cart";
 import { Wordmark } from "@/components/ui/wordmark";
 import { useAuthStore } from "@/store/auth-store";
 import { useCartStore } from "@/store/cart-store";
-import { AccountMenu } from "./account-menu";
-import { CategoryBar } from "./category-bar";
-import { ThemeToggle } from "./theme-toggle";
-import { MobileSidebar } from "./mobile-sidebar";
-import { SearchBox } from "./search-box";
+import { AccountMenu } from "@/components/layout/account-menu";
+import { CategoryBar } from "@/components/layout/category-bar";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { MobileSidebar } from "@/components/layout/mobile-sidebar";
+import { SearchBox } from "@/components/layout/search-box";
 import type { Category } from "@/lib/types";
 
 // Top bar: menu, logo, search, account, cart and theme.

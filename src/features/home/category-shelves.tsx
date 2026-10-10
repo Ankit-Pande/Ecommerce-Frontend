@@ -8,19 +8,15 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { CardSkeleton } from "@/components/ui/skeletons";
 import { useInViewOnce } from "@/hooks/use-in-view";
 import { catalogHref } from "@/lib/format";
-import { ProductCard } from "./product-card";
-import { ProductScroller } from "./product-scroller";
+import { ProductCard } from "@/components/product/product-card";
+import { ProductScroller } from "@/components/product/product-scroller";
 import type { Category, Product } from "@/lib/types";
 
 const PRODUCTS_PER_SHELF = 10;
 const MAX_CHIPS = 6;
 
 // One shelf per category with subcategory chips; each loads only when scrolled near.
-export function LazyCategoryShelves({
-  categories,
-}: {
-  categories: Category[];
-}) {
+export function CategoryShelves({ categories }: { categories: Category[] }) {
   return categories.map((category) => (
     <CategoryShelf key={category.id} category={category} />
   ));
