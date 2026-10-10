@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { catalogHref } from "@/lib/format";
+import { isAdmin, useAuthStore } from "@/store/auth-store";
 import { useUiStore } from "@/store/ui-store";
 import { SearchBox } from "./search-box";
 import type { Category } from "@/lib/types";
@@ -19,6 +20,7 @@ const ACCOUNT_LINKS = [
 // Dark footer: logo, search, support contact and Shop / Account / Help links.
 export function SiteFooter({ categories }: { categories: Category[] }) {
   const setChatOpen = useUiStore((state) => state.setChatOpen);
+  const role = useAuthStore((state) => state.role);
   const linkClass = "flex min-h-10 items-center text-left";
 
   return (
@@ -29,7 +31,7 @@ export function SiteFooter({ categories }: { categories: Category[] }) {
             ApnaKart
           </Link>
           <SearchBox
-            label="Search"
+            label="Search products from footer"
             placeholder="Search products"
             className="max-w-[460px] bg-white"
           />
@@ -46,7 +48,11 @@ export function SiteFooter({ categories }: { categories: Category[] }) {
 
         <FooterColumn title="Shop" color="text-mint">
           {categories.slice(0, 5).map((category) => (
-            <Link key={category.id} href={catalogHref(category)} className={linkClass}>
+            <Link
+              key={category.id}
+              href={catalogHref(category)}
+              className={linkClass}
+            >
               {category.name}
             </Link>
           ))}
@@ -64,17 +70,26 @@ export function SiteFooter({ categories }: { categories: Category[] }) {
           <Link href="/orders" className={linkClass}>
             Track order
           </Link>
-          <button type="button" onClick={() => setChatOpen(true)} className={linkClass}>
+          <button
+            type="button"
+            onClick={() => setChatOpen(true)}
+            className={linkClass}
+          >
             Ask the assistant
           </button>
-          <Link href="/admin" className={linkClass}>
-            Admin panel
-          </Link>
+          {isAdmin(role) && (
+            <Link href="/admin" className={linkClass}>
+              Admin panel
+            </Link>
+          )}
         </FooterColumn>
       </div>
 
       <div className="mx-auto mt-5 flex max-w-page flex-wrap justify-between gap-2 border-t border-[#35555A] pt-3.5">
-        <span>UPI · Google Pay · PhonePe · Paytm · Cards · Net banking · Cash on Delivery</span>
+        <span>
+          UPI · Google Pay · PhonePe · Paytm · Cards · Net banking · Cash on
+          Delivery
+        </span>
         <span>© 2026 ApnaKart</span>
       </div>
     </footer>

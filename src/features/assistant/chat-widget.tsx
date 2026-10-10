@@ -16,8 +16,14 @@ const MAX_LENGTH = 500;
 const WHO_OPTIONS = ["Men", "Women", "Kids"];
 const CHIP =
   "min-h-9 rounded-full border border-field bg-white px-3 text-sm font-semibold text-ink transition hover:border-accent disabled:opacity-50";
-const SUGGESTIONS = ["Phones under ₹20,000", "Gaming laptop", "My orders", "My cart"];
-const WELCOME = "Namaste! Ask me about ApnaKart products, your cart or your orders.";
+const SUGGESTIONS = [
+  "Phones under ₹20,000",
+  "Gaming laptop",
+  "My orders",
+  "My cart",
+];
+const WELCOME =
+  "Namaste! Ask me about ApnaKart products, your cart or your orders.";
 
 // Removes extra spaces and repeated marks like "!!!" or "....".
 function cleanQuestion(text: string) {

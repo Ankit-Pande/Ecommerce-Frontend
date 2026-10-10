@@ -96,16 +96,6 @@
   }
 }
 
-@layer utilities {
-  .scrollbar-thin::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
-  }
-  .scrollbar-thin::-webkit-scrollbar-thumb {
-    @apply rounded-full bg-field;
-  }
-}
-
 @keyframes toast-in {
   from {
     opacity: 0;

@@ -117,7 +117,9 @@ export function SiteHeader({ categories }: { categories: Category[] }) {
           {text.cart} ({count})
         </Link>
       </header>
-      <Suspense fallback={<CategoryStrip categories={categories} active={null} />}>
+      <Suspense
+        fallback={<CategoryStrip categories={categories} active={null} />}
+      >
         <ActiveCategoryStrip categories={categories} />
       </Suspense>
     </>

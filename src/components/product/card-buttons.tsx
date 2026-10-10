@@ -54,9 +54,7 @@ export function CardButtons({
         {adding ? "Adding…" : "Add to cart"}
       </button>
       <Link
-        href={
-          loggedIn ? buyPage : `/login?next=${encodeURIComponent(buyPage)}`
-        }
+        href={loggedIn ? buyPage : `/login?next=${encodeURIComponent(buyPage)}`}
         className="btn-grey flex-[1_1_84px]"
       >
         Buy now

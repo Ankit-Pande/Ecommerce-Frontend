@@ -237,7 +237,7 @@ function ChipGroup<T extends string | number>({
           type="button"
           aria-pressed={option.value === value}
           onClick={() => onPick(option.value)}
-          className={`min-h-9 rounded-full border px-3 text-sm font-semibold ${option.value === value ? "border-accent bg-accent text-white" : "border-line bg-white"}`}
+          className="chip"
         >
           {option.label}
         </button>

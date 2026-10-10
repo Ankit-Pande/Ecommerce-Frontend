@@ -49,7 +49,7 @@ export function OrdersPage() {
               role="tab"
               aria-selected={showCancelled === tab.value}
               onClick={() => setShowCancelled(tab.value)}
-              className={`min-h-9 rounded-full border px-3 text-sm font-semibold ${showCancelled === tab.value ? "border-accent bg-accent text-white" : "border-line bg-white"}`}
+              className="chip"
             >
               {tab.label}
             </button>

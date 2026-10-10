@@ -36,7 +36,6 @@ export function getCatalog(params: URLSearchParams) {
   return publicGet<Paginated<Product>>(`/api/catalog?${params}`);
 }
 
-
 // Products from the same category.
 export async function getRelatedProducts(slug: string) {
   const res = await publicGet<ApiData<Product[]>>(

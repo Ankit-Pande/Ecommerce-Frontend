@@ -153,10 +153,10 @@ export function ProductForm({
   return (
     <form
       onSubmit={submit}
-      className="grid max-w-3xl gap-5 card p-5 sm:grid-cols-2 sm:p-6"
+      className="card grid max-w-3xl grid-cols-[minmax(0,1fr)] gap-5 p-5 sm:grid-cols-2 sm:p-6"
     >
       {failed && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-discount/10 p-3 text-xs font-bold text-discount sm:col-span-2">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[#FFD9D9] p-3 text-sm font-semibold text-[#8E1B1B] sm:col-span-2">
           <span>Could not load categories.</span>
           <Button
             variant="danger"
@@ -169,7 +169,7 @@ export function ProductForm({
       )}
 
       {brandsFailed && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[#FFF0B8] p-3 text-xs font-bold text-[#5C4300] sm:col-span-2">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[#FFF0B8] p-3 text-sm font-semibold text-[#5C4300] sm:col-span-2">
           <span>Brands are unavailable. You can save without a brand.</span>
           <Button
             variant="ghost"
@@ -385,7 +385,7 @@ export function ProductForm({
           type="file"
           accept="image/*"
           multiple
-          className="mt-1.5 block text-sm"
+          className="field mt-1.5 py-2.5"
           onChange={(event) => setImages(event.target.files)}
         />
       </label>

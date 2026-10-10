@@ -177,7 +177,7 @@ export default function BulkUpload() {
       </div>
 
       {failed && (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-discount/10 p-3 text-xs font-bold text-discount">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[#FFD9D9] p-3 text-sm font-semibold text-[#8E1B1B]">
           <span>Could not load categories.</span>
           <Button
             variant="danger"
@@ -190,7 +190,7 @@ export default function BulkUpload() {
       )}
 
       {brandsFailed && (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[#FFF0B8] p-3 text-xs font-bold text-[#5C4300]">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[#FFF0B8] p-3 text-sm font-semibold text-[#5C4300]">
           <span>
             Brands are unavailable. Products can still be created without a
             brand.
@@ -209,7 +209,7 @@ export default function BulkUpload() {
         {rows.map((row, index) => (
           <div
             key={index}
-            className="card relative grid gap-2.5 p-3.5 sm:grid-cols-2 lg:grid-cols-4"
+            className="card relative grid grid-cols-[minmax(0,1fr)] gap-2.5 p-3.5 sm:grid-cols-2 lg:grid-cols-4"
           >
             {rows.length > 1 && (
               <button

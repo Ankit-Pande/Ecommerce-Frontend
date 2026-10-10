@@ -22,7 +22,9 @@ export function SearchBox({
       onSubmit={(event) => {
         event.preventDefault();
         const query = search.trim();
-        router.push(query ? `/products?q=${encodeURIComponent(query)}` : "/products");
+        router.push(
+          query ? `/products?q=${encodeURIComponent(query)}` : "/products",
+        );
       }}
       className={`flex rounded-[14px] p-1 ${className}`}
     >
