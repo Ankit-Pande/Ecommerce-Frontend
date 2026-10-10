@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Check } from "lucide-react";
 import { errorMessage } from "@/api/http";
 import { cancelOrder, retryPayment } from "@/api/order";
 import { openRazorpay } from "@/lib/razorpay";
@@ -10,6 +9,12 @@ import { toast } from "@/store/toast-store";
 import type { Order, OrderStatus } from "@/lib/types";
 
 const TRACK_STEPS: OrderStatus[] = ["CONFIRMED", "SHIPPED", "DELIVERED"];
+const TRACK_LABELS = [
+  "Order placed",
+  "Order confirmed",
+  "Shipped",
+  "Delivered",
+];
 
 export const PAYMENT_LABEL = {
   PENDING: "Not paid yet",
@@ -31,6 +36,13 @@ const STATUS: Record<OrderStatus, { label: string; tone: PillTone }> = {
   DELIVERED: { label: "Delivered", tone: "green" },
   CANCELLED: { label: "Cancelled", tone: "red" },
 };
+
+// "Cash on Delivery" or "Online · Paid".
+export function paymentText(order: Order) {
+  return order.paymentMethod === "COD"
+    ? "Cash on Delivery"
+    : `Online · ${PAYMENT_LABEL[order.paymentStatus]}`;
+}
 
 // Only an unshipped, unpaid order can be cancelled.
 export function canCancel(order: Order) {
@@ -56,38 +68,29 @@ export function OrderStatusPill({ status }: { status: OrderStatus }) {
   return <StatusPill {...STATUS[status]} />;
 }
 
-// Confirmed → shipped → delivered progress line; hidden for pending or cancelled orders.
-export function OrderTracker({ status }: { status: OrderStatus }) {
-  const reached = TRACK_STEPS.indexOf(status);
-  if (reached < 0) return null;
-  const labels = ["Confirmed", "Shipped", "Delivered"];
+// Order placed → confirmed → shipped → delivered, as a line with dots.
+export function OrderTimeline({ status }: { status: OrderStatus }) {
+  const reached = status === "CANCELLED" ? 1 : TRACK_STEPS.indexOf(status) + 2;
 
   return (
-    <ol className="mb-5 flex items-center" aria-label="Order progress">
-      {labels.map((label, index) => (
-        <li
-          key={label}
-          className={`flex items-center ${index < labels.length - 1 ? "flex-1" : ""}`}
-        >
-          <span className="flex flex-col items-center gap-1">
+    <ol aria-label="Delivery status">
+      {TRACK_LABELS.map((label, index) => {
+        const done = index < reached;
+        return (
+          <li
+            key={label}
+            className={`relative ml-2.5 flex min-h-14 items-center gap-3.5 border-l-[3px] pl-[18px] ${done ? "border-accent" : "border-line"}`}
+          >
             <span
-              className={`grid h-7 w-7 place-items-center rounded-full ${index <= reached ? "bg-accent text-white" : "bg-gray-200 text-gray-400"}`}
-            >
-              <Check className="h-3.5 w-3.5" />
-            </span>
-            <span
-              className={`text-[11px] font-bold ${index <= reached ? "text-accent" : "text-gray-400"}`}
-            >
-              {label}
-            </span>
-          </span>
-          {index < labels.length - 1 && (
-            <span
-              className={`mx-2 mb-5 h-1 flex-1 rounded-full ${index < reached ? "bg-accent" : "bg-gray-200"}`}
+              className={`absolute -left-[11px] h-[19px] w-[19px] rounded-full border-[3px] ${done ? "border-accent bg-accent" : "border-line bg-white"}`}
             />
-          )}
-        </li>
-      ))}
+            <span className="flex-1 font-semibold">{label}</span>
+            <span className="text-muted">
+              {done ? "Done" : status === "CANCELLED" ? "Cancelled" : "Pending"}
+            </span>
+          </li>
+        );
+      })}
     </ol>
   );
 }

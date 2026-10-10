@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { MapPin } from "lucide-react";
 import { createAddress, updateAddress } from "@/api/account";
 import { errorMessage } from "@/api/http";
 import { toast } from "@/store/toast-store";
@@ -84,22 +83,14 @@ export function AddressForm({
   }
 
   return (
-    <form onSubmit={submit} className="card overflow-hidden">
-      <div className="flex items-center gap-3 border-b border-line bg-ground/60 px-4 py-3.5 sm:px-5">
-        <span className="grid h-9 w-9 place-items-center rounded-xl bg-accent/10 text-accent">
-          <MapPin className="h-4 w-4" />
-        </span>
-        <div>
-          <h3 className="text-sm font-extrabold">
-            {addressId ? "Edit delivery address" : "Add delivery address"}
-          </h3>
-          <p className="text-[11px] font-medium text-gray-500">
-            Fields marked * are required
-          </p>
-        </div>
-      </div>
-
-      <div className="grid gap-4 p-4 sm:grid-cols-2 sm:p-5">
+    <form
+      onSubmit={submit}
+      className="flex flex-col gap-3 rounded-[20px] bg-white p-4 shadow-card"
+    >
+      <h3 className="text-lg font-extrabold">
+        {addressId ? "Edit address" : "Add address"}
+      </h3>
+      <div className="grid gap-3 sm:grid-cols-2">
         <FormField label="Full name" required>
           <input
             className="field"
@@ -205,7 +196,7 @@ export function AddressForm({
           <Button type="submit" loading={saving} className="px-6">
             {addressId ? "Update address" : "Save address"}
           </Button>
-          <Button variant="ghost" onClick={onCancel} disabled={saving}>
+          <Button variant="outline" onClick={onCancel} disabled={saving}>
             Cancel
           </Button>
         </div>
@@ -227,15 +218,10 @@ function FormField({
   children: React.ReactNode;
 }) {
   return (
-    <label className="block">
-      <span className="mb-1.5 flex items-center gap-1.5 text-xs font-extrabold text-gray-600">
+    <label className="flex flex-col gap-1.5 font-semibold">
+      <span>
         {label}
-        {required && <span className="text-discount">*</span>}
-        {hint && (
-          <span className="ml-auto text-[10px] font-medium text-gray-400">
-            {hint}
-          </span>
-        )}
+        {required ? " *" : hint && ` (${hint.toLowerCase()})`}
       </span>
       {children}
     </label>

@@ -3,7 +3,6 @@
 import { useCallback, useState } from "react";
 import Link from "next/link";
 import Script from "next/script";
-import { ChevronRight, Package } from "lucide-react";
 import { listOrders } from "@/api/order";
 import { Button } from "@/components/ui/button";
 import { LoadMoreButton } from "@/components/ui/load-more-button";
@@ -13,17 +12,16 @@ import { ListSkeleton } from "@/components/ui/skeletons";
 import { useAuthGuard } from "@/hooks/use-auth-guard";
 import { usePaginatedList } from "@/hooks/use-paginated-list";
 import { RAZORPAY_SCRIPT } from "@/lib/razorpay";
-import { formatDate, formatTime, inr } from "@/lib/format";
+import { formatDate, formatTime, inr, tintFor } from "@/lib/format";
 import {
-  canCancel,
   canPay,
-  OrderTracker,
   OrderStatusPill,
+  paymentText,
   useOrderActions,
 } from "@/features/orders/order-parts";
 import type { Order } from "@/lib/types";
 
-// My orders: active orders by default, cancelled ones in their own tab.
+// My orders: active orders by default, cancelled ones under their own chip.
 export function OrdersPage() {
   const { ready } = useAuthGuard();
   const [showCancelled, setShowCancelled] = useState(false);
@@ -31,40 +29,16 @@ export function OrdersPage() {
     (cursor?: string) => listOrders(showCancelled, cursor),
     [showCancelled],
   );
-  const {
-    items: orders,
-    setItems: setOrders,
-    cursor,
-    loading,
-    loadingMore,
-    failed,
-    loadMore,
-    reload,
-  } = usePaginatedList<Order>(loadOrders, ready);
-
-  const actions = useOrderActions({
-    onCancelled: (id) =>
-      setOrders((current) => current.filter((order) => order.id !== id)),
-    onPaid: reload,
-  });
+  const { items, cursor, loading, loadingMore, failed, loadMore, reload } =
+    usePaginatedList<Order>(loadOrders, ready);
+  const actions = useOrderActions({ onCancelled: reload, onPaid: reload });
 
   return (
-    <div className="mx-auto max-w-4xl pb-12 pt-6 sm:pt-8">
+    <div className="flex flex-col gap-7">
       <Script src={RAZORPAY_SCRIPT} strategy="lazyOnload" />
-      <div className="mb-5 flex flex-wrap items-end justify-between gap-4 rounded-2xl bg-gradient-to-r from-accent/10 via-violet-100/60 to-orange-100/70 p-5 sm:p-6">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-discount">
-            Account
-          </p>
-          <h1 className="mt-1 font-display text-2xl font-extrabold sm:text-3xl">
-            My orders
-          </h1>
-        </div>
-        <div
-          role="tablist"
-          aria-label="Order type"
-          className="flex rounded-full bg-white p-1 shadow-card"
-        >
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-[32px] font-extrabold">My orders</h1>
+        <div className="flex gap-1.5" role="tablist" aria-label="Order type">
           {[
             { value: false, label: "Orders" },
             { value: true, label: "Cancelled" },
@@ -75,7 +49,7 @@ export function OrdersPage() {
               role="tab"
               aria-selected={showCancelled === tab.value}
               onClick={() => setShowCancelled(tab.value)}
-              className={`rounded-full px-4 py-1.5 text-xs font-bold transition ${showCancelled === tab.value ? "bg-accent text-white" : "text-gray-500 hover:text-ink"}`}
+              className={`min-h-9 rounded-full border px-3 text-sm font-semibold ${showCancelled === tab.value ? "border-accent bg-accent text-white" : "border-line bg-white"}`}
             >
               {tab.label}
             </button>
@@ -87,134 +61,83 @@ export function OrdersPage() {
         <ListSkeleton />
       ) : failed ? (
         <OfflineNotice onRetry={reload} />
-      ) : orders.length === 0 ? (
-        <div className="card py-14 text-center">
-          <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-ground text-accent">
-            <Package className="h-7 w-7" />
-          </span>
-          <h2 className="mt-4 font-display text-xl font-bold">
+      ) : items.length === 0 ? (
+        <div className="flex flex-col items-center gap-4 rounded-3xl bg-white p-10">
+          <p className="text-xl font-semibold">
             {showCancelled ? "No cancelled orders" : "No orders yet"}
-          </h2>
+          </p>
           {!showCancelled && (
-            <Link href="/products" className="btn-primary mt-5">
-              Start shopping
+            <Link href="/" className="btn-primary min-h-12 px-7">
+              Continue shopping
             </Link>
           )}
         </div>
       ) : (
-        <div className="space-y-4">
-          {orders.map((order) => (
-            <OrderCard
-              key={order.id}
-              order={order}
-              cancelling={actions.cancellingId === order.id}
-              paying={actions.payingId === order.id}
-              onCancel={() => actions.cancel(order.id)}
-              onPay={() => actions.pay(order.id)}
-            />
-          ))}
+        <div className="flex flex-col gap-4">
+          {items.map((order) => {
+            const first = order.items[0];
+            const count = order.items.reduce(
+              (sum, item) => sum + item.quantity,
+              0,
+            );
+            return (
+              <article
+                key={order.id}
+                className="card flex flex-wrap items-center gap-4 p-3.5"
+              >
+                <span
+                  className="rounded-[14px] p-2"
+                  style={{ background: tintFor(order.id) }}
+                >
+                  <span className="relative block h-[72px] w-[72px]">
+                    <SafeImage
+                      src={first?.productImage}
+                      alt=""
+                      sizes="72px"
+                      className="object-contain"
+                    />
+                  </span>
+                </span>
+                <div className="flex-[1_1_200px]">
+                  <p className="text-lg font-extrabold">
+                    {first?.productName}
+                    {order.items.length > 1 &&
+                      ` + ${order.items.length - 1} more`}
+                  </p>
+                  <p className="text-muted">
+                    {count} {count === 1 ? "item" : "items"} · #
+                    {order.id.slice(0, 8).toUpperCase()} ·{" "}
+                    {formatDate(order.createdAt)} · {paymentText(order)}
+                  </p>
+                  {canPay(order) && (
+                    <p className="font-semibold text-[#5C4300]">
+                      Pay by {formatTime(order.paymentExpiresAt!)}
+                    </p>
+                  )}
+                </div>
+                <OrderStatusPill status={order.status} />
+                <p className="text-xl font-extrabold">
+                  {inr(order.totalPaise)}
+                </p>
+                {canPay(order) && (
+                  <Button
+                    onClick={() => actions.pay(order.id)}
+                    loading={actions.payingId === order.id}
+                  >
+                    Pay now
+                  </Button>
+                )}
+                <Link href={`/orders/${order.id}`} className="btn-outline">
+                  View details
+                </Link>
+              </article>
+            );
+          })}
           {cursor && (
-            <div className="pt-2">
-              <LoadMoreButton onClick={loadMore} loading={loadingMore} />
-            </div>
+            <LoadMoreButton onClick={loadMore} loading={loadingMore} />
           )}
         </div>
       )}
     </div>
-  );
-}
-
-// One order: photos, status and actions; the body opens the order page.
-function OrderCard({
-  order,
-  cancelling,
-  paying,
-  onCancel,
-  onPay,
-}: {
-  order: Order;
-  cancelling: boolean;
-  paying: boolean;
-  onCancel: () => void;
-  onPay: () => void;
-}) {
-  const href = `/orders/${order.id}`;
-
-  return (
-    <article className="card overflow-hidden transition hover:shadow-soft">
-      <Link
-        href={href}
-        className="flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-line px-4 py-3.5 sm:px-5"
-      >
-        <div>
-          <p className="text-[11px] font-semibold text-gray-400">Order ID</p>
-          <p className="font-display text-base font-extrabold">
-            #{order.id.slice(0, 8).toUpperCase()}
-          </p>
-        </div>
-        <div>
-          <p className="text-[11px] font-semibold text-gray-400">Placed on</p>
-          <p className="text-sm font-bold">{formatDate(order.createdAt)}</p>
-        </div>
-        <span className="ml-auto flex items-center gap-2">
-          <OrderStatusPill status={order.status} />
-          <ChevronRight className="h-4 w-4 text-gray-400" />
-        </span>
-      </Link>
-
-      <div className="p-4 sm:p-5">
-        <OrderTracker status={order.status} />
-        <Link href={href} className="flex items-center gap-3">
-          <span className="flex -space-x-3">
-            {order.items.slice(0, 3).map((item, index) => (
-              <span
-                key={`${item.productName}-${index}`}
-                className="relative h-14 w-14 overflow-hidden rounded-xl border-2 border-white bg-ground"
-              >
-                <SafeImage
-                  src={item.productImage}
-                  alt=""
-                  sizes="56px"
-                  className="object-contain p-1"
-                />
-              </span>
-            ))}
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="line-clamp-1 text-sm font-semibold">
-              {order.items[0]?.productName}
-            </span>
-            <span className="text-xs text-gray-500">
-              {order.items.length > 1
-                ? `+${order.items.length - 1} more item${order.items.length > 2 ? "s" : ""}`
-                : `Qty ${order.items[0]?.quantity ?? 0}`}
-            </span>
-          </span>
-          <span className="font-display text-lg font-extrabold">
-            {inr(order.totalPaise)}
-          </span>
-        </Link>
-
-        {(canPay(order) || canCancel(order)) && (
-          <div className="mt-4 flex flex-wrap items-center justify-end gap-3 border-t border-dashed border-black/15 pt-4">
-            {canPay(order) && (
-              <>
-                <span className="text-xs font-bold text-amber-700">
-                  Pay by {formatTime(order.paymentExpiresAt!)}
-                </span>
-                <Button onClick={onPay} loading={paying} className="px-4">
-                  Pay now
-                </Button>
-              </>
-            )}
-            {canCancel(order) && (
-              <Button variant="danger" onClick={onCancel} loading={cancelling}>
-                Cancel order
-              </Button>
-            )}
-          </div>
-        )}
-      </div>
-    </article>
   );
 }

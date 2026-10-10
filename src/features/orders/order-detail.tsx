@@ -3,49 +3,26 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Script from "next/script";
-import { ArrowLeft, CreditCard, MapPin, Truck, XCircle } from "lucide-react";
 import { getOrder } from "@/api/order";
 import { Button } from "@/components/ui/button";
 import { OfflineNotice } from "@/components/ui/offline-notice";
 import { SafeImage } from "@/components/ui/safe-image";
 import { ListSkeleton } from "@/components/ui/skeletons";
 import { useAuthGuard } from "@/hooks/use-auth-guard";
-import { formatDate, formatTime, inr } from "@/lib/format";
+import { formatDate, inr, tintFor } from "@/lib/format";
 import { RAZORPAY_SCRIPT } from "@/lib/razorpay";
 import {
   CANCELLED_BY_TEXT,
   canCancel,
   canPay,
-  OrderTracker,
-  PAYMENT_LABEL,
   OrderStatusPill,
+  OrderTimeline,
+  paymentText,
   useOrderActions,
 } from "@/features/orders/order-parts";
 import type { OrderDetail } from "@/lib/types";
 
-const DELIVERY_DAYS = 5;
-
-// One line about where the order is now and when it will arrive.
-function deliveryText(order: OrderDetail) {
-  const expected = new Date(order.createdAt);
-  expected.setDate(expected.getDate() + DELIVERY_DAYS);
-  const by = expected.toLocaleDateString("en-IN", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-  });
-  if (order.status === "PENDING")
-    return `Waiting for payment. Delivery by ${by} after payment.`;
-  if (order.status === "CONFIRMED")
-    return `Order confirmed and being packed. Delivery by ${by}.`;
-  if (order.status === "SHIPPED")
-    return `On the way to you. Delivery by ${by}.`;
-  if (order.status === "DELIVERED")
-    return `Delivered on ${formatDate(order.updatedAt)}.`;
-  return "This order was cancelled.";
-}
-
-// Order page: where it is, delivery date, product photos, address and payment.
+// Order page: delivery status, items with Buy again, address and payment.
 export function OrderDetailPage({ id }: { id: string }) {
   const { ready } = useAuthGuard();
   const [order, setOrder] = useState<OrderDetail | null>(null);
@@ -63,170 +40,136 @@ export function OrderDetailPage({ id }: { id: string }) {
   }, [ready, id, reloadKey]);
 
   return (
-    <div className="mx-auto max-w-4xl pb-12 pt-6 sm:pt-8">
+    <div className="flex flex-col gap-7">
       <Script src={RAZORPAY_SCRIPT} strategy="lazyOnload" />
-      <Link
-        href="/orders"
-        className="mb-4 inline-flex items-center gap-1.5 text-sm font-bold text-gray-500 hover:text-accent"
-      >
-        <ArrowLeft className="h-4 w-4" /> My orders
-      </Link>
+      <div className="flex flex-wrap items-center gap-3">
+        <Link href="/orders" className="btn-line">
+          ‹ My orders
+        </Link>
+        <h1 className="text-[32px] font-extrabold">
+          Order #{id.slice(0, 8).toUpperCase()}
+        </h1>
+        {order && <OrderStatusPill status={order.status} />}
+      </div>
 
       {failed ? (
         <OfflineNotice onRetry={reload} />
       ) : !order ? (
         <ListSkeleton />
       ) : (
-        <div className="space-y-4">
-          <section className="card p-5 sm:p-6">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold text-gray-400">Order ID</p>
-                <h1 className="font-display text-2xl font-extrabold">
-                  #{order.id.slice(0, 8).toUpperCase()}
-                </h1>
-                <p className="mt-1 text-sm text-gray-500">
-                  Placed on {formatDate(order.createdAt)},{" "}
-                  {formatTime(order.createdAt)}
-                </p>
-              </div>
-              <OrderStatusPill status={order.status} />
-            </div>
-
+        <div className="flex flex-wrap items-start gap-6">
+          <section className="card flex flex-[1_1_280px] flex-col rounded-3xl p-5">
+            <h2 className="pb-2 text-[22px] font-extrabold">Delivery status</h2>
+            <OrderTimeline status={order.status} />
             {order.status === "CANCELLED" && order.cancelledBy && (
-              <p className="mt-4 flex items-center gap-2 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
-                <XCircle className="h-4 w-4 shrink-0" />
+              <p className="mt-3 font-semibold text-danger">
                 {CANCELLED_BY_TEXT[order.cancelledBy]}
               </p>
             )}
-
-            {order.status !== "CANCELLED" && (
-              <p className="mt-4 flex items-center gap-2 rounded-xl bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-800">
-                <Truck className="h-4 w-4 shrink-0" />
-                {deliveryText(order)}
-              </p>
+            {canPay(order) && (
+              <Button
+                onClick={() => actions.pay(order.id)}
+                loading={actions.payingId === order.id}
+                className="mt-3 min-h-12"
+              >
+                Pay {inr(order.totalPaise)} now
+              </Button>
             )}
-
-            <div className="mt-5">
-              <OrderTracker status={order.status} />
-            </div>
-
-            <ul className="space-y-3">
-              {order.items.map((item, index) => (
-                <li
-                  key={`${item.productId}-${index}`}
-                  className="flex items-start gap-4 rounded-2xl bg-ground/60 p-3"
-                >
-                  <Link
-                    href={`/products/${item.product.slug}`}
-                    className="relative h-28 w-28 shrink-0 overflow-hidden rounded-xl bg-white sm:h-36 sm:w-36"
-                  >
-                    <SafeImage
-                      src={item.productImage}
-                      alt={item.productName}
-                      sizes="144px"
-                      className="object-contain p-2"
-                    />
-                  </Link>
-                  <div className="min-w-0 flex-1">
-                    <Link
-                      href={`/products/${item.product.slug}`}
-                      className="line-clamp-2 text-sm font-bold hover:text-accent"
-                    >
-                      {item.productName}
-                    </Link>
-                    <p className="mt-1 line-clamp-2 text-xs leading-5 text-gray-500">
-                      {item.product.description}
-                    </p>
-                    <p className="mt-2 text-xs text-gray-500">
-                      Qty {item.quantity} × {inr(item.pricePaise)}
-                    </p>
-                    <p className="mt-1 font-extrabold">
-                      {inr(item.pricePaise * item.quantity)}
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            {canCancel(order) && (
+              <Button
+                variant="outline"
+                onClick={() => actions.cancel(order.id)}
+                loading={actions.cancellingId === order.id}
+                className="mt-3 min-h-12 border-danger text-danger"
+              >
+                Cancel order
+              </Button>
+            )}
           </section>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <section className="card p-5">
-              <h2 className="flex items-center gap-2 text-sm font-extrabold">
-                <MapPin className="h-4 w-4 text-accent" /> Delivery address
+          <section className="flex flex-[1_1_320px] flex-col gap-4">
+            <div className="card flex flex-col gap-2.5 rounded-3xl p-4">
+              <h2 className="text-lg font-extrabold">
+                Items in this order · {formatDate(order.createdAt)}
               </h2>
-              <p className="mt-3 text-sm font-bold">{order.shipName}</p>
-              <p className="mt-1 text-sm leading-6 text-gray-500">
-                {order.shipLine1}
-                {order.shipLine2 && `, ${order.shipLine2}`}, {order.shipCity},{" "}
-                {order.shipState} {order.shipPincode}
-                <br />
-                +91 {order.shipPhone}
+              {order.items.map((item) => {
+                const href = `/products/${item.product.slug}`;
+                return (
+                  <div
+                    key={item.productId}
+                    className="flex flex-wrap items-center gap-3"
+                  >
+                    <Link
+                      href={href}
+                      aria-label={item.productName}
+                      className="rounded-xl p-1.5"
+                      style={{ background: tintFor(item.productId) }}
+                    >
+                      <span className="relative block h-16 w-16">
+                        <SafeImage
+                          src={item.productImage}
+                          alt=""
+                          sizes="64px"
+                          className="object-contain"
+                        />
+                      </span>
+                    </Link>
+                    <Link
+                      href={href}
+                      className="flex min-h-11 flex-[1_1_160px] items-center font-semibold"
+                    >
+                      {item.productName} × {item.quantity}
+                    </Link>
+                    <span className="font-extrabold">
+                      {inr(item.pricePaise * item.quantity)}
+                    </span>
+                    <Link
+                      href={`/checkout?buy=${encodeURIComponent(item.product.slug)}`}
+                      className="btn-grey"
+                    >
+                      Buy again
+                    </Link>
+                  </div>
+                );
+              })}
+              <p className="flex justify-between border-t border-line pt-2">
+                <span>Subtotal</span>
+                <span>{inr(order.totalPaise)}</span>
               </p>
-            </section>
-
-            <section className="card p-5">
-              <h2 className="flex items-center gap-2 text-sm font-extrabold">
-                <CreditCard className="h-4 w-4 text-accent" /> Payment
-              </h2>
-              <dl className="mt-3 space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <dt className="text-gray-500">Method</dt>
-                  <dd className="font-bold">
-                    {order.paymentMethod === "COD"
-                      ? "Cash on delivery"
-                      : "Online"}
-                  </dd>
-                </div>
-                <div className="flex justify-between">
-                  <dt className="text-gray-500">Status</dt>
-                  <dd className="font-bold">
-                    {PAYMENT_LABEL[order.paymentStatus]}
-                  </dd>
-                </div>
-                {order.paymentMethod === "COD" &&
-                  order.paymentStatus === "PENDING" &&
-                  order.status !== "CANCELLED" && (
-                    <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
-                      Pay {inr(order.totalPaise)} in cash when the order
-                      arrives.
-                    </p>
-                  )}
-                <div className="flex justify-between">
-                  <dt className="text-gray-500">Delivery</dt>
-                  <dd className="font-bold text-accent">Free</dd>
-                </div>
-                <div className="flex justify-between border-t border-line pt-2">
-                  <dt className="font-bold">Total</dt>
-                  <dd className="font-display text-lg font-extrabold">
-                    {inr(order.totalPaise)}
-                  </dd>
-                </div>
-              </dl>
-            </section>
-          </div>
-
-          {(canPay(order) || canCancel(order)) && (
-            <div className="flex flex-wrap justify-end gap-3">
-              {canPay(order) && (
-                <Button
-                  onClick={() => actions.pay(order.id)}
-                  loading={actions.payingId === order.id}
-                >
-                  Pay {inr(order.totalPaise)} now
-                </Button>
-              )}
-              {canCancel(order) && (
-                <Button
-                  variant="danger"
-                  onClick={() => actions.cancel(order.id)}
-                  loading={actions.cancellingId === order.id}
-                >
-                  Cancel order
-                </Button>
-              )}
+              <p className="flex justify-between">
+                <span>Delivery</span>
+                <span>Free</span>
+              </p>
+              <p className="flex justify-between text-lg font-extrabold">
+                <span>Total</span>
+                <span>{inr(order.totalPaise)}</span>
+              </p>
             </div>
-          )}
+
+            <div className="card grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 rounded-3xl p-5">
+              <div>
+                <h2 className="font-extrabold">Delivery address</h2>
+                <p>{order.shipName}</p>
+                <p>
+                  {[
+                    order.shipLine1,
+                    order.shipLine2,
+                    order.shipCity,
+                    order.shipState,
+                  ]
+                    .filter(Boolean)
+                    .join(", ")}{" "}
+                  {order.shipPincode}
+                </p>
+                <p>+91 {order.shipPhone}</p>
+              </div>
+              <div>
+                <h2 className="font-extrabold">Payment</h2>
+                <p>{paymentText(order)}</p>
+                <p>Total {inr(order.totalPaise)}</p>
+              </div>
+            </div>
+          </section>
         </div>
       )}
     </div>
