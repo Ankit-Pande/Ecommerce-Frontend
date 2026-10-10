@@ -1,29 +1,47 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Menu, ShoppingCart, Truck } from "lucide-react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { ShoppingCart } from "lucide-react";
 import { getCart } from "@/api/cart";
-import { Wordmark } from "@/components/ui/wordmark";
-import { useAuthStore } from "@/store/auth-store";
+import { SafeImage } from "@/components/ui/safe-image";
+import { catalogHref } from "@/lib/format";
+import { isAdmin, useAuthStore } from "@/store/auth-store";
 import { useCartStore } from "@/store/cart-store";
-import { AccountMenu } from "@/components/layout/account-menu";
-import { CategoryBar } from "@/components/layout/category-bar";
-import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { MobileSidebar } from "@/components/layout/mobile-sidebar";
-import { SearchBox } from "@/components/layout/search-box";
+import { ACCENTS, useUiStore, type Accent } from "@/store/ui-store";
+import { SearchBox } from "./search-box";
 import type { Category } from "@/lib/types";
 
-// Top bar: menu, logo, search, account, cart and theme.
+const TEXT = {
+  en: {
+    search: "Search",
+    placeholder: "Search products and categories",
+    orders: "Orders",
+    profile: "Profile",
+    admin: "Admin",
+    login: "Login",
+    cart: "Cart",
+  },
+  hi: {
+    search: "खोजें",
+    placeholder: "प्रोडक्ट और कैटेगरी खोजें",
+    orders: "ऑर्डर",
+    profile: "प्रोफाइल",
+    admin: "एडमिन",
+    login: "लॉगिन",
+    cart: "कार्ट",
+  },
+};
+
+// Top bar: logo, search, language, theme colours, account links, cart; then the category strip.
 export function SiteHeader({ categories }: { categories: Category[] }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const pathname = usePathname();
   const loggedIn = useAuthStore((state) => Boolean(state.accessToken));
+  const role = useAuthStore((state) => state.role);
   const count = useCartStore((state) => state.count);
   const setCount = useCartStore((state) => state.setCount);
-
-  useEffect(() => setSidebarOpen(false), [pathname]);
+  const { accent, language, setAccent, toggleLanguage } = useUiStore();
+  const text = TEXT[language];
 
   useEffect(() => {
     if (!loggedIn) {
@@ -37,69 +55,116 @@ export function SiteHeader({ categories }: { categories: Category[] }) {
 
   return (
     <>
-      <div className="bg-gradient-to-r from-accent via-accent to-accent px-3 py-1.5 text-center text-[11px] font-semibold text-white sm:text-xs">
-        <Truck className="mr-1.5 inline h-3.5 w-3.5 align-[-2px]" />
-        Free delivery on every order
-        <span className="hidden sm:inline"> · Cash on delivery available</span>
-        {" · "}
+      <header className="flex flex-wrap items-center gap-3 bg-white px-6 py-3 shadow-bar">
         <Link
-          href="/products?discount=true"
-          className="font-extrabold underline"
+          href="/"
+          className="flex min-h-11 items-center text-[28px] font-extrabold text-accent"
         >
-          Shop offers
+          ApnaKart
         </Link>
-      </div>
-      <header className="sticky top-0 z-40 border-b border-line bg-white">
-        <div className="mx-auto flex h-16 max-w-7xl items-center gap-1 px-3 sm:gap-2 sm:px-5 lg:px-8">
-          <button
-            type="button"
-            onClick={() => setSidebarOpen(true)}
-            aria-label="Open menu"
-            className="icon-button md:hidden"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
-
-          <Link href="/" aria-label="ApnaKart home" className="shrink-0">
-            <Wordmark className="text-xl sm:text-2xl" />
+        <SearchBox
+          label={text.search}
+          placeholder={text.placeholder}
+          className="flex-[1_1_300px] bg-ground"
+        />
+        <button
+          type="button"
+          onClick={toggleLanguage}
+          aria-label="Language"
+          className="min-h-11 rounded-xl border border-line bg-white px-3.5 font-semibold"
+        >
+          EN / हिं
+        </button>
+        <div className="flex gap-1.5">
+          {(Object.keys(ACCENTS) as Accent[]).map((color) => (
+            <button
+              key={color}
+              type="button"
+              onClick={() => setAccent(color)}
+              aria-label={`Theme colour ${color}`}
+              style={{
+                background: color,
+                outline: `3px solid ${color === accent ? color : "transparent"}`,
+              }}
+              className="my-2 h-7 w-7 rounded-full outline-offset-2"
+            />
+          ))}
+        </div>
+        <Link href="/orders" className="btn-ghost px-2">
+          {text.orders}
+        </Link>
+        <Link href="/account" className="btn-ghost px-2">
+          {text.profile}
+        </Link>
+        {isAdmin(role) && (
+          <Link href="/admin" className="btn-ghost px-2">
+            {text.admin}
           </Link>
-
-          <div className="mx-3 hidden max-w-2xl flex-1 md:flex lg:mx-6">
-            <SearchBox />
-          </div>
-          <div className="flex-1 md:hidden" />
-
-          <AccountMenu />
-
+        )}
+        {!loggedIn && (
           <Link
-            href="/cart"
-            aria-label={`$Cart: ${count}`}
-            className="relative flex h-10 items-center gap-2 rounded-full px-2 text-sm font-extrabold transition hover:bg-black/[0.05] sm:px-3"
+            href="/login"
+            className="flex min-h-11 items-center rounded-xl border border-accent bg-white px-4 font-semibold text-accent"
           >
-            <ShoppingCart className="h-5 w-5" />
-            <span className="hidden lg:inline">Cart</span>
-            {count > 0 && (
-              <span className="absolute -top-0.5 left-5 grid h-5 min-w-5 place-items-center rounded-full bg-discount px-1 text-[10px] font-extrabold text-white ring-2 ring-white">
-                {count > 99 ? "99+" : count}
-              </span>
-            )}
+            {text.login}
           </Link>
-
-          <ThemeToggle />
-        </div>
-
-        <div className="px-3 pb-3 md:hidden">
-          <SearchBox />
-        </div>
+        )}
+        <Link
+          href="/cart"
+          className="flex min-h-11 items-center gap-2 rounded-xl bg-accent px-[18px] font-semibold text-white"
+        >
+          <ShoppingCart className="h-5 w-5" aria-hidden />
+          {text.cart} ({count})
+        </Link>
       </header>
-
-      <CategoryBar categories={categories} />
-
-      <MobileSidebar
-        open={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        categories={categories}
-      />
+      <Suspense fallback={<CategoryStrip categories={categories} active={null} />}>
+        <ActiveCategoryStrip categories={categories} />
+      </Suspense>
     </>
+  );
+}
+
+// Category strip that knows which category page is open.
+function ActiveCategoryStrip({ categories }: { categories: Category[] }) {
+  const pathname = usePathname();
+  const params = useSearchParams();
+  const active = pathname === "/products" ? params.get("category") : null;
+  return <CategoryStrip categories={categories} active={active} />;
+}
+
+// Accent strip with one pill per category; the open category is white.
+function CategoryStrip({
+  categories,
+  active,
+}: {
+  categories: Category[];
+  active: string | null;
+}) {
+  return (
+    <nav
+      aria-label="Categories"
+      className="flex gap-2 overflow-x-auto bg-accent px-6 py-2.5"
+    >
+      {categories.map((category) => {
+        const on = category.slug === active;
+        return (
+          <Link
+            key={category.id}
+            href={catalogHref(category)}
+            className={`flex min-h-11 shrink-0 items-center gap-2 rounded-full py-1 pl-1 pr-4 font-semibold ${on ? "bg-white text-ink" : "text-white"}`}
+          >
+            <span className="relative h-9 w-9 overflow-hidden rounded-full bg-white">
+              <SafeImage
+                src={category.image}
+                alt=""
+                sizes="36px"
+                className="object-cover"
+              />
+            </span>
+            {category.name}
+          </Link>
+        );
+      })}
+    </nav>
   );
 }

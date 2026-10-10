@@ -1,7 +1,6 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { BottomNav } from "@/components/layout/bottom-nav";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { Toaster } from "@/components/ui/toaster";
@@ -9,7 +8,7 @@ import { ChatWidget } from "@/features/assistant/chat-widget";
 
 import type { Category } from "@/lib/types";
 
-// Page layout; bottom nav is hidden on product and checkout pages, chat button on cart and checkout.
+// Store layout with header, footer and the assistant; the assistant is hidden on cart and checkout.
 export function AppShell({
   categories,
   children,
@@ -18,16 +17,11 @@ export function AppShell({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const isAdminPage = pathname.startsWith("/admin");
-  const isBuyPage =
-    pathname.startsWith("/products/") || pathname === "/checkout";
 
-  if (isAdminPage) {
+  if (pathname.startsWith("/admin")) {
     return (
       <>
-        <div className="mx-auto min-h-screen max-w-[1440px] px-4 sm:px-6 lg:px-8">
-          {children}
-        </div>
+        {children}
         <Toaster />
       </>
     );
@@ -36,11 +30,8 @@ export function AppShell({
   return (
     <>
       <SiteHeader categories={categories} />
-      <main className="mx-auto min-h-[72vh] max-w-7xl px-4 sm:px-6 lg:px-8">
-        {children}
-      </main>
+      <main className="page min-h-[72vh]">{children}</main>
       <SiteFooter categories={categories} />
-      {!isBuyPage && <BottomNav />}
       {pathname !== "/checkout" && pathname !== "/cart" && <ChatWidget />}
       <Toaster />
     </>

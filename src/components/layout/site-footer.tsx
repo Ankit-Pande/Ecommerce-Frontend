@@ -1,123 +1,100 @@
+"use client";
+
 import Link from "next/link";
-import { Mail, Phone } from "lucide-react";
-import { Wordmark } from "@/components/ui/wordmark";
 import { catalogHref } from "@/lib/format";
+import { useUiStore } from "@/store/ui-store";
+import { SearchBox } from "./search-box";
 import type { Category } from "@/lib/types";
 
 const SUPPORT_EMAIL = "support@apnakart.in";
 const SUPPORT_PHONE = "6392061026";
 
-const PAYMENTS = [
-  { label: "UPI", className: "bg-white text-emerald-700" },
-  { label: "G Pay", className: "bg-white text-blue-600" },
-  { label: "PhonePe", className: "bg-violet-600 text-white" },
-  { label: "Paytm", className: "bg-sky-500 text-white" },
-  { label: "VISA", className: "bg-white text-blue-800" },
-  { label: "RuPay", className: "bg-white text-orange-600" },
-  { label: "COD", className: "bg-emerald-500 text-white" },
-];
-
-const SHOP_LINKS = [
-  { href: "/products", label: "All products" },
-  { href: "/products?section=trending", label: "Trending" },
-  { href: "/products?discount=true", label: "Offers" },
-  { href: "/products?sort=latest", label: "New arrivals" },
-];
-
 const ACCOUNT_LINKS = [
-  { href: "/account", label: "My account" },
   { href: "/orders", label: "My orders" },
-  { href: "/account#addresses", label: "Saved addresses" },
-  { href: "/cart", label: "Shopping cart" },
+  { href: "/account", label: "Profile and addresses" },
+  { href: "/cart", label: "Cart" },
+  { href: "/login", label: "Login" },
 ];
 
-// Footer with category, shop and account links.
+// Dark footer: logo, search, support contact and Shop / Account / Help links.
 export function SiteFooter({ categories }: { categories: Category[] }) {
-  const categoryLinks = categories.map((category) => ({
-    href: catalogHref(category),
-    label: category.name,
-  }));
+  const setChatOpen = useUiStore((state) => state.setChatOpen);
+  const linkClass = "flex min-h-10 items-center text-left";
 
   return (
-    <footer className="mt-14 bg-gradient-to-b from-ink to-[#0A1330] pb-20 text-white md:pb-0">
-      <div className="mx-auto grid max-w-7xl grid-cols-2 gap-9 px-4 py-10 sm:px-6 md:grid-cols-4 lg:px-8">
-        <div className="col-span-2 md:col-span-1">
-          <Link href="/">
-            <Wordmark onDark className="text-2xl" />
+    <footer className="mt-6 rounded-t-[32px] bg-ink px-6 py-9 text-white">
+      <div className="mx-auto flex max-w-page flex-wrap gap-7">
+        <div className="flex flex-[2_1_280px] flex-col gap-3">
+          <Link href="/" className="text-[32px] font-extrabold text-mint">
+            ApnaKart
           </Link>
-          <p className="mt-3 max-w-xs text-xs leading-5 text-white/55">
-            Trusted products, fair prices and reliable delivery across India.
+          <SearchBox
+            label="Search"
+            placeholder="Search products"
+            className="max-w-[460px] bg-white"
+          />
+          <p>
+            <a href={`tel:+91${SUPPORT_PHONE}`} className="text-white">
+              +91 {SUPPORT_PHONE}
+            </a>
+            {" · "}
+            <a href={`mailto:${SUPPORT_EMAIL}`} className="text-white">
+              {SUPPORT_EMAIL}
+            </a>
           </p>
-          <div className="mt-4 flex flex-col gap-2.5 text-xs font-extrabold text-orange-300">
-            <a
-              href={`tel:+91${SUPPORT_PHONE}`}
-              className="inline-flex items-center gap-2"
-            >
-              <Phone className="h-4 w-4" /> +91 {SUPPORT_PHONE}
-            </a>
-            <a
-              href={`mailto:${SUPPORT_EMAIL}`}
-              className="inline-flex items-center gap-2"
-            >
-              <Mail className="h-4 w-4" /> {SUPPORT_EMAIL}
-            </a>
-          </div>
         </div>
 
-        <FooterLinks title="Categories" links={categoryLinks} />
-        <FooterLinks title="Shop" links={SHOP_LINKS} />
-        <FooterLinks title="Account" links={ACCOUNT_LINKS} />
+        <FooterColumn title="Shop" color="text-mint">
+          {categories.slice(0, 5).map((category) => (
+            <Link key={category.id} href={catalogHref(category)} className={linkClass}>
+              {category.name}
+            </Link>
+          ))}
+        </FooterColumn>
+
+        <FooterColumn title="Account" color="text-sunny">
+          {ACCOUNT_LINKS.map((link) => (
+            <Link key={link.href} href={link.href} className={linkClass}>
+              {link.label}
+            </Link>
+          ))}
+        </FooterColumn>
+
+        <FooterColumn title="Help" color="text-[#FFB3C7]">
+          <Link href="/orders" className={linkClass}>
+            Track order
+          </Link>
+          <button type="button" onClick={() => setChatOpen(true)} className={linkClass}>
+            Ask the assistant
+          </button>
+          <Link href="/admin" className={linkClass}>
+            Admin panel
+          </Link>
+        </FooterColumn>
       </div>
 
-      <div className="border-t border-white/10">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 py-4 sm:flex-row sm:px-6 lg:px-8">
-          <ul
-            className="flex flex-wrap justify-center gap-1.5"
-            aria-label="Accepted payments"
-          >
-            {PAYMENTS.map((item) => (
-              <li
-                key={item.label}
-                className={`rounded-md px-2 py-1 text-[10px] font-extrabold ${item.className}`}
-              >
-                {item.label}
-              </li>
-            ))}
-          </ul>
-          <p className="text-[11px] font-medium text-white/40">
-            © {new Date().getFullYear()} ApnaKart. All rights reserved.
-          </p>
-        </div>
+      <div className="mx-auto mt-5 flex max-w-page flex-wrap justify-between gap-2 border-t border-[#35555A] pt-3.5">
+        <span>UPI · Google Pay · PhonePe · Paytm · Cards · Net banking · Cash on Delivery</span>
+        <span>© 2026 ApnaKart</span>
       </div>
     </footer>
   );
 }
 
 // One titled column of footer links.
-function FooterLinks({
+function FooterColumn({
   title,
-  links,
+  color,
+  children,
 }: {
   title: string;
-  links: { href: string; label: string }[];
+  color: string;
+  children: React.ReactNode;
 }) {
   return (
-    <div>
-      <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-white/40">
-        {title}
-      </p>
-      <ul className="mt-4 space-y-2.5">
-        {links.map((link) => (
-          <li key={link.href}>
-            <Link
-              href={link.href}
-              className="text-xs font-semibold text-white/60 transition hover:text-white"
-            >
-              {link.label}
-            </Link>
-          </li>
-        ))}
-      </ul>
+    <div className="flex flex-[1_1_150px] flex-col">
+      <p className={`text-lg font-extrabold ${color}`}>{title}</p>
+      {children}
     </div>
   );
 }

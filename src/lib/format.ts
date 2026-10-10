@@ -65,3 +65,22 @@ export function catalogHref(
 ) {
   return `/products?${level}=${encodeURIComponent(entry.slug)}`;
 }
+
+// Soft background colours for category and product image tiles.
+export const TINTS = [
+  "#FFE1D6",
+  "#FFF0B8",
+  "#D6F0FF",
+  "#E6DDFF",
+  "#FFD9E6",
+  "#DDF5C9",
+  "#CFF3EA",
+  "#FFE6C2",
+];
+
+// Same tint every time for the same id.
+export function tintFor(id: string): string {
+  let hash = 0;
+  for (const char of id) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  return TINTS[hash % TINTS.length];
+}

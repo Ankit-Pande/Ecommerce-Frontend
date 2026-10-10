@@ -3,33 +3,21 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  ArrowLeft,
-  Bot,
-  RotateCcw,
-  SendHorizontal,
-  Sparkles,
-  X,
-} from "lucide-react";
 import { askAssistant, type ChatMessage } from "@/api/assistant";
 import { errorMessage } from "@/api/http";
 import { SafeImage } from "@/components/ui/safe-image";
-import { inr } from "@/lib/format";
+import { inr, tintFor } from "@/lib/format";
 import { useAuthStore } from "@/store/auth-store";
+import { useUiStore } from "@/store/ui-store";
 
 // The backend counts "Next" clicks from the chat, so enough turns go with each question.
 const HISTORY_SENT = 20;
 const MAX_LENGTH = 500;
 const WHO_OPTIONS = ["Men", "Women", "Kids"];
-const QUICK_BUTTON =
-  "rounded-full border border-accent/30 bg-white px-3 py-1.5 text-xs font-semibold text-accent transition hover:bg-accent hover:text-white disabled:opacity-50";
-
-const SUGGESTIONS = [
-  "Phones under ₹20,000",
-  "Gaming laptop with 16GB RAM",
-  "Men's jeans under ₹1500",
-  "Where is my order?",
-];
+const CHIP =
+  "min-h-9 rounded-full border border-field bg-white px-3 text-sm font-semibold text-ink transition hover:border-accent disabled:opacity-50";
+const SUGGESTIONS = ["Phones under ₹20,000", "Gaming laptop", "My orders", "My cart"];
+const WELCOME = "Namaste! Ask me about ApnaKart products, your cart or your orders.";
 
 // Removes extra spaces and repeated marks like "!!!" or "....".
 function cleanQuestion(text: string) {
@@ -40,9 +28,10 @@ function cleanQuestion(text: string) {
     .slice(0, MAX_LENGTH);
 }
 
-// Floating shopping assistant: ask, get answers with product cards, clear or close.
+// Floating shopping assistant: ask, get answers with product rows, close.
 export function ChatWidget() {
-  const [open, setOpen] = useState(false);
+  const open = useUiStore((state) => state.chatOpen);
+  const setOpen = useUiStore((state) => state.setChatOpen);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [text, setText] = useState("");
   const [thinking, setThinking] = useState(false);
@@ -55,7 +44,7 @@ export function ChatWidget() {
       top: listRef.current.scrollHeight,
       behavior: "smooth",
     });
-  }, [messages, thinking]);
+  }, [messages, thinking, open]);
 
   // Shows `next`, sends its last turns to the assistant and adds the reply.
   async function ask(next: ChatMessage[], confirm?: boolean) {
@@ -114,243 +103,185 @@ export function ChatWidget() {
     );
   }
 
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="fixed bottom-4 right-4 z-40 min-h-[52px] rounded-full border-[3px] border-white bg-discount px-[22px] font-extrabold text-white shadow-[0_8px_24px_rgba(15,42,46,.3)]"
+      >
+        AI Assistant
+      </button>
+    );
+  }
+
+  const last = messages[messages.length - 1];
+  const lastReply = last?.role === "assistant" ? last : undefined;
+
   return (
-    <>
-      {!open && (
+    <section
+      aria-label="AI assistant"
+      className="fixed bottom-4 right-4 z-50 flex max-h-[min(540px,calc(100vh-32px))] w-[min(380px,calc(100vw-32px))] flex-col overflow-hidden rounded-3xl bg-white shadow-[0_12px_40px_rgba(15,42,46,.3)]"
+    >
+      <div className="flex items-center justify-between bg-accent py-2 pl-4 pr-2 text-white">
+        <span className="text-lg font-extrabold">ApnaKart Assistant</span>
         <button
           type="button"
-          onClick={() => setOpen(true)}
-          aria-label="Open shopping assistant"
-          className="fixed bottom-24 right-4 z-40 grid h-14 w-14 place-items-center rounded-full bg-gradient-to-br from-accent to-violet-600 text-white shadow-soft transition hover:scale-105 md:bottom-6 md:right-6"
+          onClick={() => setOpen(false)}
+          aria-label="Close assistant"
+          className="h-11 w-11 text-2xl"
         >
-          <Sparkles className="h-6 w-6" />
+          ×
         </button>
-      )}
+      </div>
 
-      {open && (
-        <section
-          role="dialog"
-          aria-label="Shopping assistant"
-          className="fixed inset-0 z-50 flex flex-col bg-white md:inset-auto md:bottom-6 md:right-6 md:h-[600px] md:w-[400px] md:overflow-hidden md:rounded-3xl md:shadow-2xl md:ring-1 md:ring-black/5"
-        >
-          <header className="flex items-center gap-3 bg-gradient-to-r from-accent to-violet-600 px-4 py-3 text-white">
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              aria-label="Back"
-              className="grid h-9 w-9 place-items-center rounded-full hover:bg-white/15 md:hidden"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </button>
-            <span className="grid h-9 w-9 place-items-center rounded-full bg-white/15">
-              <Bot className="h-5 w-5" />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block font-display text-sm font-extrabold">
-                ApnaKart Assistant
-              </span>
-              <span className="block text-[11px] text-white/80">
-                Ask about products, prices or your orders
-              </span>
-            </span>
-            <button
-              type="button"
-              onClick={() => setMessages([])}
-              disabled={messages.length === 0 || thinking}
-              aria-label="Clear chat"
-              title="Clear chat"
-              className="grid h-9 w-9 place-items-center rounded-full hover:bg-white/15 disabled:opacity-40"
-            >
-              <RotateCcw className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              aria-label="Close assistant"
-              className="hidden h-9 w-9 place-items-center rounded-full hover:bg-white/15 md:grid"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </header>
+      <div
+        ref={listRef}
+        className="flex min-h-[220px] flex-1 flex-col gap-2 overflow-y-auto p-3"
+      >
+        <p className="max-w-[88%] self-start rounded-2xl bg-ground px-3 py-2">
+          {WELCOME}
+        </p>
 
+        {messages.map((message, index) => (
           <div
-            ref={listRef}
-            className="flex-1 space-y-3 overflow-y-auto bg-ground p-4"
+            key={index}
+            className={`max-w-[88%] whitespace-pre-line rounded-2xl px-3 py-2 ${message.role === "user" ? "self-end bg-accent text-white" : "self-start bg-ground"}`}
           >
-            {messages.length === 0 && (
-              <div className="pt-6 text-center">
-                <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-gradient-to-br from-accent to-violet-600 text-white">
-                  <Sparkles className="h-6 w-6" />
-                </span>
-                <p className="mt-3 font-display text-lg font-extrabold">
-                  Hi! How can I help?
-                </p>
-                <p className="mt-1 text-xs text-gray-500">
-                  Ask in English or Hinglish. Try one of these:
-                </p>
-                <div className="mt-4 flex flex-wrap justify-center gap-2">
-                  {SUGGESTIONS.map((suggestion) => (
-                    <button
-                      key={suggestion}
-                      type="button"
-                      onClick={() => send(suggestion)}
-                      className={QUICK_BUTTON}
-                    >
-                      {suggestion}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {messages.map((message, index) => (
-              <div
-                key={index}
-                className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+            {message.content}
+            {message.products?.map((product) => (
+              <Link
+                key={product.id}
+                href={`/products/${product.slug}`}
+                onClick={() => setOpen(false)}
+                className="mt-1.5 flex min-h-11 items-center gap-2 whitespace-normal rounded-xl bg-white py-1 pl-1 pr-2.5 text-ink"
               >
-                <div
-                  className={
-                    message.role === "user" ? "max-w-[80%]" : "max-w-[92%]"
-                  }
+                <span
+                  className="relative h-9 w-9 shrink-0 overflow-hidden rounded-lg"
+                  style={{ background: tintFor(product.id) }}
                 >
-                  <p
-                    className={`whitespace-pre-line rounded-2xl px-3.5 py-2.5 text-sm leading-6 ${message.role === "user" ? "rounded-br-md bg-accent text-white" : "rounded-bl-md bg-white text-ink shadow-card"}`}
-                  >
-                    {message.content}
-                  </p>
-                  {message.products && message.products.length > 0 && (
-                    <div className="mt-2 flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
-                      {message.products.map((product) => (
-                        <Link
-                          key={product.id}
-                          href={`/products/${product.slug}`}
-                          onClick={() => setOpen(false)}
-                          className="w-32 shrink-0 rounded-xl border border-line bg-white p-2 transition hover:border-accent"
-                        >
-                          <span className="relative block aspect-square overflow-hidden rounded-lg bg-ground">
-                            <SafeImage
-                              src={product.image}
-                              alt={product.name}
-                              sizes="128px"
-                              className="object-contain p-1.5"
-                            />
-                          </span>
-                          <span className="mt-1.5 line-clamp-2 text-[11px] font-semibold leading-4">
-                            {product.name}
-                          </span>
-                          <span className="mt-0.5 block text-xs font-extrabold">
-                            {inr(product.finalPricePaise)}
-                          </span>
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                  {index === messages.length - 1 &&
-                    (message.askWho || message.hasMore) && (
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {message.askWho &&
-                          WHO_OPTIONS.map((who) => (
-                            <button
-                              key={who}
-                              type="button"
-                              onClick={() => send(who)}
-                              disabled={thinking}
-                              className={QUICK_BUTTON}
-                            >
-                              {who}
-                            </button>
-                          ))}
-                        {message.hasMore && (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              send(`Next ${message.products?.length} products`)
-                            }
-                            disabled={thinking}
-                            className={QUICK_BUTTON}
-                          >
-                            Next {message.products?.length} products
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  {message.confirm && index === messages.length - 1 && (
-                    <div className="mt-2 flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => answerConfirm(true)}
-                        disabled={thinking}
-                        className="rounded-full bg-accent px-4 py-1.5 text-xs font-bold text-white transition hover:bg-accent disabled:opacity-50"
-                      >
-                        Confirm
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => answerConfirm(false)}
-                        disabled={thinking}
-                        className="rounded-full border border-line bg-white px-4 py-1.5 text-xs font-bold text-ink transition hover:border-accent disabled:opacity-50"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-
-            {thinking && (
-              <div className="flex gap-1 rounded-2xl rounded-bl-md bg-white px-4 py-3 shadow-card w-fit">
-                {[0, 150, 300].map((delay) => (
-                  <span
-                    key={delay}
-                    className="h-2 w-2 animate-bounce rounded-full bg-accent"
-                    style={{ animationDelay: `${delay}ms` }}
+                  <SafeImage
+                    src={product.image}
+                    alt=""
+                    sizes="36px"
+                    className="object-contain p-0.5"
                   />
-                ))}
-              </div>
-            )}
+                </span>
+                <span className="line-clamp-2 flex-1 text-sm">
+                  {product.name}
+                </span>
+                <span className="font-extrabold">
+                  {inr(product.finalPricePaise)}
+                </span>
+              </Link>
+            ))}
           </div>
+        ))}
 
-          <div className="border-t border-line p-3">
-            <form
-              onSubmit={(event) => {
-                event.preventDefault();
-                void send(text);
-              }}
-              className="flex items-center gap-2"
+        {thinking && (
+          <p className="self-start rounded-2xl bg-ground px-3 py-2 text-muted">
+            Typing…
+          </p>
+        )}
+      </div>
+
+      <div className="flex flex-wrap gap-1.5 px-3 pb-2">
+        {lastReply?.confirm ? (
+          <>
+            <button
+              type="button"
+              onClick={() => answerConfirm(true)}
+              disabled={thinking}
+              className={`${CHIP} border-accent bg-accent text-white`}
             >
-              <input
-                value={text}
-                onChange={(event) => setText(event.target.value)}
-                maxLength={MAX_LENGTH}
-                placeholder="Ask anything about shopping…"
-                aria-label="Your question"
-                className="field flex-1 rounded-full"
-              />
-              <button
-                type="submit"
-                disabled={!text.trim() || thinking}
-                aria-label="Send"
-                className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-accent text-white transition hover:bg-accent disabled:opacity-40"
-              >
-                <SendHorizontal className="h-5 w-5" />
-              </button>
-            </form>
-            {!loggedIn && (
-              <p className="mt-2 text-center text-[11px] text-gray-500">
-                <Link
-                  href={`/login?next=${encodeURIComponent(pathname)}`}
-                  onClick={() => setOpen(false)}
-                  className="font-semibold text-accent"
+              Confirm
+            </button>
+            <button
+              type="button"
+              onClick={() => answerConfirm(false)}
+              disabled={thinking}
+              className={CHIP}
+            >
+              Cancel
+            </button>
+          </>
+        ) : (
+          <>
+            {lastReply?.askWho &&
+              WHO_OPTIONS.map((who) => (
+                <button
+                  key={who}
+                  type="button"
+                  onClick={() => send(who)}
+                  disabled={thinking}
+                  className={CHIP}
                 >
-                  Log in
-                </Link>{" "}
-                for cart, orders and smarter answers.
-              </p>
+                  {who}
+                </button>
+              ))}
+            {lastReply?.hasMore && (
+              <button
+                type="button"
+                onClick={() =>
+                  send(`Next ${lastReply.products?.length} products`)
+                }
+                disabled={thinking}
+                className={CHIP}
+              >
+                Next {lastReply.products?.length} products
+              </button>
             )}
-          </div>
-        </section>
+            {messages.length === 0 &&
+              SUGGESTIONS.map((suggestion) => (
+                <button
+                  key={suggestion}
+                  type="button"
+                  onClick={() => send(suggestion)}
+                  className={CHIP}
+                >
+                  {suggestion}
+                </button>
+              ))}
+          </>
+        )}
+      </div>
+
+      {!loggedIn && (
+        <p className="px-3 pb-2 text-sm text-muted">
+          <Link
+            href={`/login?next=${encodeURIComponent(pathname)}`}
+            onClick={() => setOpen(false)}
+            className="font-semibold text-accent"
+          >
+            Log in
+          </Link>{" "}
+          for cart and orders.
+        </p>
       )}
-    </>
+
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          send(text);
+        }}
+        className="flex gap-1.5 border-t border-line p-2.5"
+      >
+        <input
+          value={text}
+          onChange={(event) => setText(event.target.value)}
+          maxLength={MAX_LENGTH}
+          placeholder="Ask about products, cart or orders"
+          aria-label="Message to assistant"
+          className="min-h-11 min-w-0 flex-1 rounded-xl border border-field px-3.5 outline-none focus:border-accent"
+        />
+        <button
+          type="submit"
+          disabled={!text.trim() || thinking}
+          className="min-h-11 rounded-xl bg-accent px-[18px] font-extrabold text-white disabled:opacity-50"
+        >
+          Send
+        </button>
+      </form>
+    </section>
   );
 }

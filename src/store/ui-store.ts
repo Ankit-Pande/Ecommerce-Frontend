@@ -17,20 +17,31 @@ export type Language = "en" | "hi";
 type UiState = {
   accent: Accent;
   language: Language;
+  chatOpen: boolean;
   setAccent: (accent: Accent) => void;
   toggleLanguage: () => void;
+  setChatOpen: (chatOpen: boolean) => void;
 };
 
-// Saved accent colour and header language.
+// Accent colour and header language (saved), and whether the assistant is open.
 export const useUiStore = create<UiState>()(
   persist(
     (set) => ({
       accent: "#0B7A5C",
       language: "en",
+      chatOpen: false,
       setAccent: (accent) => set({ accent }),
       toggleLanguage: () =>
         set((state) => ({ language: state.language === "en" ? "hi" : "en" })),
+      setChatOpen: (chatOpen) => set({ chatOpen }),
     }),
-    { name: "apnakart-ui", skipHydration: true },
+    {
+      name: "apnakart-ui",
+      skipHydration: true,
+      partialize: (state) => ({
+        accent: state.accent,
+        language: state.language,
+      }),
+    },
   ),
 );
