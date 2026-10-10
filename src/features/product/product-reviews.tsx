@@ -2,29 +2,30 @@
 
 import { useCallback, useState } from "react";
 import Link from "next/link";
-import { Star, Trash2 } from "lucide-react";
 import { deleteReview } from "@/api/admin";
 import { errorMessage } from "@/api/http";
 import { listReviews, saveReview } from "@/api/review";
 import { Button } from "@/components/ui/button";
 import { LoadMoreButton } from "@/components/ui/load-more-button";
+import { SafeImage } from "@/components/ui/safe-image";
 import { ListSkeleton } from "@/components/ui/skeletons";
 import { useInViewOnce } from "@/hooks/use-in-view";
 import { usePaginatedList } from "@/hooks/use-paginated-list";
-import { formatDate } from "@/lib/format";
+import { formatDate, tintFor } from "@/lib/format";
 import { isAdmin, useAuthStore } from "@/store/auth-store";
 import { toast } from "@/store/toast-store";
 import type { Review } from "@/lib/types";
-import { RatingBadge } from "@/components/product/rating-badge";
 
-const RATINGS = [1, 2, 3, 4, 5];
+const RATINGS = [5, 4, 3, 2, 1];
 
-// Reviews list; a buyer with a delivered order can write one.
+// Rating summary, review cards and the review form for buyers.
 export function ProductReviews({
   slug,
+  image,
   rating,
 }: {
   slug: string;
+  image: string | null;
   rating: { average: number; count: number };
 }) {
   const { ref, inView } = useInViewOnce<HTMLElement>();
@@ -64,46 +65,41 @@ export function ProductReviews({
   }
 
   return (
-    <section ref={ref} className="card mt-6 p-5 sm:p-7">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <h2 className="font-display text-xl font-bold sm:text-2xl">
-            Ratings &amp; reviews
-          </h2>
-          <RatingBadge rating={rating} />
-        </div>
-        {loggedIn ? (
-          <Button
-            variant="outline"
-            onClick={() => setFormOpen((open) => !open)}
-          >
-            {formOpen ? "Close" : "Write a review"}
-          </Button>
-        ) : (
-          <Link
-            href={`/login?next=${encodeURIComponent(`/products/${slug}`)}`}
-            className="btn-outline"
-          >
-            Login to review
-          </Link>
-        )}
+    <section ref={ref} className="card flex flex-wrap gap-7 rounded-[28px] p-6">
+      <div className="flex flex-[1_1_240px] flex-col gap-1.5">
+        <h2 className="text-[26px] font-extrabold">Ratings and reviews</h2>
+        <p className="text-[44px] font-extrabold leading-tight">
+          ★ {rating.count > 0 ? rating.average.toFixed(1) : "–"}
+        </p>
+        <p className="text-muted">
+          {rating.count.toLocaleString("en-IN")}{" "}
+          {rating.count === 1 ? "rating" : "ratings"}
+        </p>
+        {/* Bars count the reviews loaded below; the API sends no breakdown. */}
+        {RATINGS.map((stars) => {
+          const share = reviews.length
+            ? reviews.filter((review) => review.rating === stars).length /
+              reviews.length
+            : 0;
+          return (
+            <div key={stars} className="flex items-center gap-2">
+              <span className="w-7">{stars}★</span>
+              <span className="h-2 flex-1 rounded-full bg-ground">
+                <span
+                  className="block h-2 rounded-full bg-accent"
+                  style={{ width: `${share * 100}%` }}
+                />
+              </span>
+            </div>
+          );
+        })}
       </div>
 
-      {formOpen && (
-        <ReviewForm
-          slug={slug}
-          onSaved={() => {
-            setFormOpen(false);
-            reload();
-          }}
-        />
-      )}
-
-      <div className="mt-6">
+      <div className="flex flex-[2_1_320px] flex-col gap-3">
         {!inView || loading ? (
           <ListSkeleton count={2} />
         ) : failed ? (
-          <p className="text-sm text-gray-500">
+          <p className="text-muted">
             Could not load reviews.{" "}
             <button
               type="button"
@@ -114,45 +110,90 @@ export function ProductReviews({
             </button>
           </p>
         ) : reviews.length === 0 ? (
-          <p className="text-sm text-gray-500">
+          <p className="text-muted">
             No reviews yet. Buyers can review after delivery.
           </p>
         ) : (
-          <ul className="divide-y divide-line">
-            {reviews.map((review) => (
-              <li key={review.id} className="py-4 first:pt-0">
-                <div className="flex items-center gap-3">
-                  <Stars value={review.rating} />
-                  <span className="text-sm font-extrabold">
-                    {review.user.name ?? "ApnaKart customer"}
-                  </span>
-                  <span className="text-xs text-gray-400">
-                    {formatDate(review.createdAt)}
-                  </span>
+          reviews.map((review) => {
+            const name = review.user.name ?? "ApnaKart customer";
+            return (
+              <article
+                key={review.id}
+                className="flex gap-3 rounded-2xl bg-soft p-3"
+              >
+                <span
+                  className="grid h-12 w-12 shrink-0 place-items-center rounded-full text-xl font-extrabold"
+                  style={{ background: tintFor(review.user.id) }}
+                >
+                  {name.charAt(0).toUpperCase()}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="flex flex-wrap items-center gap-2 font-extrabold">
+                    {name}
+                    <span className="rounded-full bg-accent px-2 py-px text-[13px] text-white">
+                      ★ {review.rating}
+                    </span>
+                    <span className="text-[#8A5A00]">
+                      {"★".repeat(review.rating)}
+                      {"☆".repeat(5 - review.rating)}
+                    </span>
+                    <span className="text-sm font-semibold text-muted">
+                      {formatDate(review.createdAt)}
+                    </span>
+                  </p>
+                  {review.comment && <p>{review.comment}</p>}
                   {isAdmin(role) && (
-                    <Button
-                      variant="danger"
+                    <button
+                      type="button"
                       onClick={() => removeReview(review.id)}
-                      loading={removingId === review.id}
-                      className="ml-auto px-2.5 text-xs"
+                      disabled={removingId === review.id}
+                      className="btn-grey mt-2 text-danger"
                     >
-                      <Trash2 className="h-3.5 w-3.5" /> Remove
-                    </Button>
+                      Remove
+                    </button>
                   )}
                 </div>
-                {review.comment && (
-                  <p className="mt-2 text-sm leading-6 text-gray-600">
-                    {review.comment}
-                  </p>
-                )}
-              </li>
-            ))}
-          </ul>
+                <span
+                  className="relative h-[60px] w-[60px] shrink-0 self-start rounded-xl"
+                  style={{ background: tintFor(slug) }}
+                >
+                  <SafeImage
+                    src={image}
+                    alt=""
+                    sizes="60px"
+                    className="object-contain p-1"
+                  />
+                </span>
+              </article>
+            );
+          })
         )}
-        {cursor && (
-          <div className="mt-4">
-            <LoadMoreButton onClick={loadMore} loading={loadingMore} />
-          </div>
+        {cursor && <LoadMoreButton onClick={loadMore} loading={loadingMore} />}
+
+        {loggedIn ? (
+          <button
+            type="button"
+            onClick={() => setFormOpen((open) => !open)}
+            className="btn-grey self-start"
+          >
+            {formOpen ? "Close" : "Write a review"}
+          </button>
+        ) : (
+          <Link
+            href={`/login?next=${encodeURIComponent(`/products/${slug}`)}`}
+            className="btn-grey self-start"
+          >
+            Write a review
+          </Link>
+        )}
+        {formOpen && (
+          <ReviewForm
+            slug={slug}
+            onSaved={() => {
+              setFormOpen(false);
+              reload();
+            }}
+          />
         )}
       </div>
     </section>
@@ -181,35 +222,33 @@ function ReviewForm({ slug, onSaved }: { slug: string; onSaved: () => void }) {
   }
 
   return (
-    <form onSubmit={submit} className="mt-5 rounded-2xl bg-ground/60 p-4">
-      <fieldset>
-        <legend className="text-sm font-extrabold">Your rating</legend>
-        <div className="mt-2 flex gap-1">
-          {RATINGS.map((value) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setRating(value)}
-              aria-label={`${value} star${value > 1 ? "s" : ""}`}
-              aria-pressed={rating === value}
-              className="grid h-10 w-10 place-items-center rounded-lg text-sunny hover:bg-white"
-            >
-              <Star
-                className={`h-6 w-6 ${value <= rating ? "fill-current" : ""}`}
-              />
-            </button>
-          ))}
-        </div>
+    <form
+      onSubmit={submit}
+      className="flex flex-col gap-3 rounded-2xl bg-soft p-4"
+    >
+      <fieldset className="flex flex-wrap items-center gap-1">
+        <legend className="mb-1 font-extrabold">Your rating</legend>
+        {[1, 2, 3, 4, 5].map((value) => (
+          <button
+            key={value}
+            type="button"
+            onClick={() => setRating(value)}
+            aria-label={`${value} star${value > 1 ? "s" : ""}`}
+            aria-pressed={rating === value}
+            className="h-11 w-11 rounded-xl text-2xl text-[#8A5A00] hover:bg-white"
+          >
+            {value <= rating ? "★" : "☆"}
+          </button>
+        ))}
       </fieldset>
-      <label className="mt-4 block">
-        <span className="text-sm font-extrabold">Review (optional)</span>
+      <label className="flex flex-col gap-1.5">
+        <span className="font-extrabold">Review (optional)</span>
         <textarea
           value={comment}
           onChange={(event) => setComment(event.target.value)}
           maxLength={1000}
           rows={3}
-          placeholder="What did you like or dislike?"
-          className="field mt-2 resize-y"
+          className="field resize-y py-2.5"
         />
       </label>
       <Button
@@ -219,24 +258,10 @@ function ReviewForm({ slug, onSaved }: { slug: string; onSaved: () => void }) {
           rating === 0 ||
           (comment.trim().length > 0 && comment.trim().length < 3)
         }
-        className="mt-4"
+        className="self-start"
       >
         Submit review
       </Button>
     </form>
-  );
-}
-
-// Clickable 1 to 5 star picker.
-function Stars({ value }: { value: number }) {
-  return (
-    <span className="flex text-sunny" aria-label={`${value} out of 5 stars`}>
-      {RATINGS.map((star) => (
-        <Star
-          key={star}
-          className={`h-3.5 w-3.5 ${star <= value ? "fill-current" : ""}`}
-        />
-      ))}
-    </span>
   );
 }

@@ -11,9 +11,9 @@ export function ProductUnavailable() {
   const [, startChecking] = useTransition();
 
   return (
-    <div className="pb-10 pt-6 text-center">
+    <div className="flex flex-col items-center gap-3">
       <OfflineNotice onRetry={() => startChecking(() => router.refresh())} />
-      <Link href="/products" className="btn-ghost mt-3">
+      <Link href="/products" className="btn-ghost">
         Back to products
       </Link>
     </div>

@@ -1,25 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { RefreshCw } from "lucide-react";
 import { getRelatedProducts } from "@/api/catalog";
 import { useInViewOnce } from "@/hooks/use-in-view";
-import { CardSkeleton } from "@/components/ui/skeletons";
-import { SectionHeader } from "@/components/ui/section-header";
+import { GridSkeleton } from "@/components/ui/skeletons";
 import { ProductCard } from "@/components/product/product-card";
-import { ProductScroller } from "@/components/product/product-scroller";
 import type { Product } from "@/lib/types";
 
-const PRODUCT_LIMIT = 8;
-
 // Similar products shown on the product page.
-export function RelatedProducts({
-  slug,
-  categoryLink,
-}: {
-  slug: string;
-  categoryLink: string;
-}) {
+export function RelatedProducts({ slug }: { slug: string }) {
   const { ref, inView } = useInViewOnce<HTMLElement>();
   const [products, setProducts] = useState<Product[] | null>(null);
   const [failed, setFailed] = useState(false);
@@ -47,35 +36,27 @@ export function RelatedProducts({
   if (products?.length === 0) return null;
 
   return (
-    <section ref={ref}>
-      <SectionHeader title="Related products" href={categoryLink} />
-
+    <section ref={ref} className="flex flex-col gap-3">
+      <h2 className="text-[26px] font-extrabold">Related products</h2>
       {products ? (
-        <ProductScroller label="Related products">
+        <div className="product-grid">
           {products.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
-        </ProductScroller>
-      ) : (
-        <div>
-          {failed && (
-            <div className="mb-3 flex items-center justify-between rounded-xl bg-sunny/10 px-3 py-2 text-xs font-semibold text-gray-600">
-              <span>Could not load related products.</span>
-              <button
-                type="button"
-                onClick={() => setReloadKey((key) => key + 1)}
-                className="inline-flex min-h-10 items-center gap-1.5 font-extrabold text-accent"
-              >
-                <RefreshCw className="h-3.5 w-3.5" /> Retry
-              </button>
-            </div>
-          )}
-          <ProductScroller label="Related products loading">
-            {Array.from({ length: PRODUCT_LIMIT }).map((_, index) => (
-              <CardSkeleton key={index} />
-            ))}
-          </ProductScroller>
         </div>
+      ) : failed ? (
+        <p className="card flex flex-wrap items-center justify-between gap-3 p-4 font-semibold">
+          Could not load related products.
+          <button
+            type="button"
+            onClick={() => setReloadKey((key) => key + 1)}
+            className="btn-grey"
+          >
+            Retry
+          </button>
+        </p>
+      ) : (
+        <GridSkeleton count={4} />
       )}
     </section>
   );

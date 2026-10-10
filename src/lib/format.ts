@@ -14,7 +14,7 @@ export function inr(paise: number): string {
 
 export const STOCK_TEXT: Record<StockStatus, string> = {
   IN_STOCK: "In stock",
-  LOW_STOCK: "Hurry, only a few left",
+  LOW_STOCK: "Only a few left",
   OUT_OF_STOCK: "Out of stock",
 };
 
