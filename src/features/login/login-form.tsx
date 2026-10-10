@@ -1,24 +1,32 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Check, MessageSquareLock } from "lucide-react";
+import { updateProfile } from "@/api/account";
 import { sendOtp, verifyOtp } from "@/api/auth";
 import { errorMessage } from "@/api/http";
 import { Button } from "@/components/ui/button";
+import { SafeImage } from "@/components/ui/safe-image";
+import { TINTS } from "@/lib/format";
 import { useAuthStore } from "@/store/auth-store";
-import { Wordmark } from "@/components/ui/wordmark";
+import { toast } from "@/store/toast-store";
+import type { Category } from "@/lib/types";
 
 const OTP_LENGTH = 6;
 const PHONE_LENGTH = 10;
 const OTP_VALID_SECONDS = 120;
 const RESEND_AFTER_SECONDS = 60;
 const INDIAN_MOBILE = /^[6-9]\d{9}$/;
+const FIELD =
+  "min-h-12 rounded-xl border border-field px-3.5 outline-none focus:border-accent";
 
-// Phone and OTP login form.
-export function LoginForm() {
-  const [step, setStep] = useState<"phone" | "otp">("phone");
+// Login and sign up with mobile number and a 6-digit OTP.
+export function LoginForm({ categories }: { categories: Category[] }) {
+  const [mode, setMode] = useState<"login" | "signup">("login");
+  const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [sent, setSent] = useState(false);
   const [otp, setOtp] = useState<string[]>(() => Array(OTP_LENGTH).fill(""));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -38,35 +46,32 @@ export function LoginForm() {
       : "/";
 
   useEffect(() => {
-    if (hydrated && accessToken) router.replace(nextPath);
-  }, [accessToken, hydrated, nextPath, router]);
+    if (hydrated && accessToken && !busy) router.replace(nextPath);
+  }, [accessToken, busy, hydrated, nextPath, router]);
 
   useEffect(() => {
-    if (step !== "otp" || expiresIn <= 0) return;
-    const timer = setTimeout(
-      () => setExpiresIn((seconds) => seconds - 1),
-      1000,
-    );
+    if (!sent || expiresIn <= 0) return;
+    const timer = setTimeout(() => setExpiresIn((left) => left - 1), 1000);
     return () => clearTimeout(timer);
-  }, [expiresIn, step]);
+  }, [expiresIn, sent]);
 
+  const expired = sent && expiresIn === 0;
   const resendIn = Math.max(
     0,
     expiresIn - (OTP_VALID_SECONDS - RESEND_AFTER_SECONDS),
   );
 
-  // Sends the OTP and starts the timers.
+  // Sends the OTP and starts the 2-minute timer.
   async function handleSendOtp() {
     if (!INDIAN_MOBILE.test(phone) || busy) {
       setError("Enter a valid 10-digit mobile number.");
       return;
     }
-
     setBusy(true);
     setError("");
     try {
       await sendOtp(phone);
-      setStep("otp");
+      setSent(true);
       setOtp(Array(OTP_LENGTH).fill(""));
       setExpiresIn(OTP_VALID_SECONDS);
       requestAnimationFrame(() => otpInputs.current[0]?.focus());
@@ -77,24 +82,26 @@ export function LoginForm() {
     }
   }
 
-  // Checks the OTP and logs in.
-  async function handleVerifyOtp(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  // Checks the OTP, logs in and saves the name for a new account.
+  async function handleVerifyOtp() {
     const code = otp.join("");
-    if (code.length !== OTP_LENGTH) return;
-
+    if (code.length !== OTP_LENGTH || expired) return;
     setBusy(true);
     setError("");
     try {
       const result = await verifyOtp(phone, code);
       setAccessToken(result.accessToken);
       setUser(result.user.phone, result.user.role);
+      if (mode === "signup" && name.trim().length >= 2) {
+        await updateProfile({ name: name.trim() }).catch(() =>
+          toast.error("Logged in, but your name was not saved."),
+        );
+      }
       router.replace(nextPath);
     } catch (requestError) {
       setError(
         errorMessage(requestError, "That OTP is incorrect or has expired."),
       );
-    } finally {
       setBusy(false);
     }
   }
@@ -108,7 +115,7 @@ export function LoginForm() {
     if (digit && index < OTP_LENGTH - 1) otpInputs.current[index + 1]?.focus();
   }
 
-  // Backspace moves to the previous box.
+  // Backspace and arrow keys move between boxes.
   function handleOtpKeyDown(
     index: number,
     event: React.KeyboardEvent<HTMLInputElement>,
@@ -134,59 +141,82 @@ export function LoginForm() {
   }
 
   return (
-    <section className="mx-auto grid w-full max-w-md overflow-hidden py-8 sm:py-14 lg:max-w-5xl lg:grid-cols-2 lg:py-12">
-      <div className="relative hidden overflow-hidden rounded-l-3xl bg-gradient-to-br from-accent via-violet-600 to-discount p-10 text-white lg:flex lg:flex-col lg:justify-between">
-        <span className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/10" />
-        <span className="absolute -bottom-20 -left-10 h-64 w-64 rounded-full bg-white/10" />
-        <Wordmark onDark className="relative text-2xl" />
-        <div className="relative">
-          <h2 className="font-display text-4xl font-extrabold leading-tight">
-            Shop smarter, pay your way.
-          </h2>
-          <ul className="mt-6 space-y-3 text-sm font-semibold text-white/90">
-            <li>✓ 8,000+ products across 15 categories</li>
-            <li>✓ UPI, cards or cash on delivery</li>
-            <li>✓ Free delivery on every order</li>
-          </ul>
-        </div>
-        <p className="relative text-xs text-white/70">
-          No password needed — just your mobile number.
-        </p>
-      </div>
-      <div className="card px-5 py-8 sm:px-9 sm:py-10 lg:rounded-l-none lg:rounded-r-3xl lg:px-12 lg:py-14">
-        {step === "phone" ? (
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              handleSendOtp();
-            }}
-          >
-            <div className="text-center">
-              <Wordmark className="text-2xl lg:hidden" />
-              <h1 className="mt-6 font-display text-2xl font-bold sm:text-3xl">
-                Welcome back
-              </h1>
-              <p className="mt-1.5 text-sm text-gray-500">
-                Login or create an account with your mobile number
-              </p>
-            </div>
-
-            <label
-              htmlFor="phone"
-              className="mt-8 block text-sm font-semibold text-gray-600"
-            >
-              Mobile number
-            </label>
-            <div className="mt-2 flex h-12 items-center rounded-full border border-line bg-white px-1.5 transition focus-within:border-accent focus-within:ring-4 focus-within:ring-accent/10">
-              <span className="grid h-9 place-items-center rounded-full bg-ground px-3 text-sm font-bold text-gray-600">
-                +91
+    <div className="flex min-h-screen items-center justify-center bg-sunny px-4 py-8">
+      <div className="flex w-full max-w-[1100px] flex-wrap overflow-hidden rounded-[32px] bg-white shadow-pop">
+        <div className="flex flex-[1_1_300px] flex-col gap-5 bg-accent p-8 text-white">
+          <Link href="/" className="self-start text-4xl font-extrabold">
+            ApnaKart
+          </Link>
+          <div className="grid grid-cols-2 gap-3">
+            {categories.slice(0, 4).map((category, index) => (
+              <span
+                key={category.id}
+                className="rounded-[20px] p-3.5"
+                style={{ background: TINTS[index] }}
+              >
+                <span className="relative block h-[150px]">
+                  <SafeImage
+                    src={category.image}
+                    alt=""
+                    sizes="200px"
+                    className="object-contain"
+                  />
+                </span>
               </span>
+            ))}
+          </div>
+        </div>
+
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (sent && !expired) void handleVerifyOtp();
+            else void handleSendOtp();
+          }}
+          className="flex flex-[1_1_320px] flex-col justify-center gap-4 p-8"
+        >
+          <h1 className="text-[40px] font-extrabold leading-[1.1] text-accent">
+            {mode === "signup" ? "Create account" : "Login"}
+          </h1>
+          <div className="flex rounded-[14px] bg-ground p-1" role="tablist">
+            {(["login", "signup"] as const).map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                role="tab"
+                aria-selected={mode === tab}
+                onClick={() => setMode(tab)}
+                className={`min-h-11 flex-1 rounded-[10px] font-extrabold ${mode === tab ? "bg-accent text-white" : "text-ink"}`}
+              >
+                {tab === "signup" ? "Sign up" : "Login"}
+              </button>
+            ))}
+          </div>
+
+          {mode === "signup" && (
+            <label className="flex flex-col gap-1.5 font-semibold">
+              Full name
               <input
-                id="phone"
-                name="phone"
-                autoComplete="tel"
+                className={FIELD}
+                autoComplete="name"
+                maxLength={80}
+                placeholder="Your name"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+              />
+            </label>
+          )}
+
+          <label className="flex flex-col gap-1.5 font-semibold">
+            Mobile number
+            <span className="flex gap-2">
+              <span className={`${FIELD} flex items-center`}>+91</span>
+              <input
+                type="tel"
                 inputMode="numeric"
+                autoComplete="tel"
                 autoFocus
+                placeholder="10-digit mobile number"
                 value={phone}
                 onChange={(event) => {
                   setPhone(
@@ -194,138 +224,87 @@ export function LoginForm() {
                       .replace(/\D/g, "")
                       .slice(0, PHONE_LENGTH),
                   );
+                  setSent(false);
                   setError("");
                 }}
-                placeholder="98765 43210"
-                className="min-w-0 flex-1 bg-transparent px-3 text-base font-semibold tracking-wide outline-none placeholder:font-normal placeholder:tracking-normal placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+                className={`${FIELD} min-w-0 flex-1`}
               />
-              {INDIAN_MOBILE.test(phone) && (
-                <Check className="mr-3 h-4 w-4 text-accent" />
-              )}
-            </div>
+            </span>
+          </label>
 
-            {error && <ErrorText message={error} />}
+          {!sent ? (
             <Button
               type="submit"
               loading={busy}
               disabled={phone.length !== PHONE_LENGTH}
-              className="mt-7 h-12 w-full text-base"
+              className="min-h-[52px] rounded-[14px] text-[17px]"
             >
-              Get OTP
+              Send OTP
             </Button>
-            <p className="mt-5 text-center text-xs text-gray-500">
-              New here? An account is created after OTP verification.
-            </p>
-          </form>
-        ) : (
-          <form onSubmit={handleVerifyOtp}>
-            <button
-              type="button"
-              onClick={() => {
-                setStep("phone");
-                setError("");
-              }}
-              aria-label="Change number"
-              className="icon-button -ml-2 -mt-2 bg-ground"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </button>
-
-            <div className="text-center">
-              <span className="mx-auto grid h-24 w-24 place-items-center rounded-full bg-accent/15">
-                <span className="grid h-16 w-16 place-items-center rounded-full bg-accent text-white">
-                  <MessageSquareLock className="h-7 w-7" />
+          ) : (
+            <>
+              <p className="flex items-center justify-between gap-2 font-semibold">
+                Enter 6-digit OTP
+                <span
+                  className="rounded-full bg-sunny px-3.5 py-1 font-extrabold tabular-nums"
+                  aria-live="polite"
+                >
+                  {expired ? "OTP expired" : formatSeconds(expiresIn)}
                 </span>
-              </span>
-              <h1 className="mt-6 font-display text-2xl font-bold">
-                Verification code
-              </h1>
-              <p className="mt-2 text-sm leading-6 text-gray-500">
-                Enter the 6-digit code sent to{" "}
-                <strong className="text-ink">+91 {phone}</strong>
               </p>
-            </div>
+              <div className="grid grid-cols-6 gap-2">
+                {otp.map((digit, index) => (
+                  <input
+                    key={index}
+                    ref={(element) => {
+                      otpInputs.current[index] = element;
+                    }}
+                    value={digit}
+                    onChange={(event) => updateOtp(index, event.target.value)}
+                    onKeyDown={(event) => handleOtpKeyDown(index, event)}
+                    onPaste={pasteOtp}
+                    aria-label={`OTP digit ${index + 1}`}
+                    inputMode="numeric"
+                    autoComplete={index === 0 ? "one-time-code" : "off"}
+                    maxLength={1}
+                    disabled={expired}
+                    className="min-h-[52px] min-w-0 rounded-xl border border-field p-0 text-center text-[22px] font-extrabold outline-none focus:border-accent disabled:bg-soft"
+                  />
+                ))}
+              </div>
+              <Button
+                type="submit"
+                loading={busy}
+                disabled={expired || otp.some((digit) => !digit)}
+                className="min-h-[52px] rounded-[14px] text-[17px]"
+              >
+                Verify and continue
+              </Button>
+              <button
+                type="button"
+                onClick={handleSendOtp}
+                disabled={busy || resendIn > 0}
+                className="min-h-11 font-extrabold text-accent disabled:text-muted"
+              >
+                {resendIn > 0
+                  ? `Resend OTP in ${formatSeconds(resendIn)}`
+                  : "Resend OTP"}
+              </button>
+            </>
+          )}
 
-            <div className="mx-auto mt-7 grid max-w-xs grid-cols-6 gap-2">
-              {otp.map((digit, index) => (
-                <input
-                  key={index}
-                  ref={(element) => {
-                    otpInputs.current[index] = element;
-                  }}
-                  value={digit}
-                  onChange={(event) => updateOtp(index, event.target.value)}
-                  onKeyDown={(event) => handleOtpKeyDown(index, event)}
-                  onPaste={pasteOtp}
-                  aria-label={`OTP digit ${index + 1}`}
-                  inputMode="numeric"
-                  autoComplete={index === 0 ? "one-time-code" : "off"}
-                  maxLength={1}
-                  className={`aspect-square min-w-0 rounded-full border text-center text-lg font-bold outline-none transition focus:border-accent focus:ring-4 focus:ring-accent/15 focus-visible:ring-offset-0 ${digit ? "border-accent bg-accent text-white" : "border-line bg-white"}`}
-                />
-              ))}
-            </div>
-
-            {error && <ErrorText message={error} />}
-            <Button
-              type="submit"
-              loading={busy}
-              disabled={expiresIn === 0 || otp.some((digit) => !digit)}
-              className="mt-7 h-12 w-full text-base"
-            >
-              Verify &amp; continue
-            </Button>
-
-            <div className="mt-5 text-center text-sm text-gray-500">
-              {expiresIn > 0 ? (
-                <p>
-                  Code valid for{" "}
-                  <strong className="tabular-nums text-ink">
-                    ({formatSeconds(expiresIn)})
-                  </strong>
-                </p>
-              ) : (
-                <p className="font-semibold text-discount">Code expired</p>
-              )}
-              <p className="mt-1.5">
-                Didn&apos;t receive the code?{" "}
-                {resendIn > 0 ? (
-                  <span className="tabular-nums">
-                    Resend in {formatSeconds(resendIn)}
-                  </span>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={handleSendOtp}
-                    disabled={busy}
-                    className="font-bold text-accent"
-                  >
-                    Resend
-                  </button>
-                )}
-              </p>
-            </div>
-          </form>
-        )}
+          {error && (
+            <p role="alert" className="font-semibold text-danger">
+              {error}
+            </p>
+          )}
+        </form>
       </div>
-    </section>
-  );
-}
-
-// Red error message.
-function ErrorText({ message }: { message: string }) {
-  return (
-    <p
-      role="alert"
-      className="mt-4 rounded-2xl bg-discount/10 px-4 py-2.5 text-center text-sm font-semibold text-discount"
-    >
-      {message}
-    </p>
+    </div>
   );
 }
 
 // 119 to "1:59".
 function formatSeconds(total: number) {
-  const seconds = String(total % 60).padStart(2, "0");
-  return `${Math.floor(total / 60)}:${seconds}`;
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
 }

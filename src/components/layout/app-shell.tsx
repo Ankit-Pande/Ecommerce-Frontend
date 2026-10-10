@@ -8,7 +8,7 @@ import { ChatWidget } from "@/features/assistant/chat-widget";
 
 import type { Category } from "@/lib/types";
 
-// Store layout with header, footer and the assistant; the assistant is hidden on cart and checkout.
+// Store layout with header, footer and the assistant (not on cart and checkout); admin and login stand alone.
 export function AppShell({
   categories,
   children,
@@ -18,7 +18,7 @@ export function AppShell({
 }) {
   const pathname = usePathname();
 
-  if (pathname.startsWith("/admin")) {
+  if (pathname.startsWith("/admin") || pathname === "/login") {
     return (
       <>
         {children}

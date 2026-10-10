@@ -1,18 +1,13 @@
 import { Suspense } from "react";
+import { getHomeOnServer } from "@/api/catalog";
 import { LoginForm } from "@/features/login/login-form";
-import { ListSkeleton } from "@/components/ui/skeletons";
 
-// Login page.
-export default function LoginRoute() {
+// Login and sign up page; category pictures fill the left panel.
+export default async function LoginRoute() {
+  const home = await getHomeOnServer();
   return (
-    <Suspense
-      fallback={
-        <div className="mx-auto max-w-md py-12">
-          <ListSkeleton count={2} />
-        </div>
-      }
-    >
-      <LoginForm />
+    <Suspense fallback={<div className="min-h-screen bg-sunny" />}>
+      <LoginForm categories={home?.categories ?? []} />
     </Suspense>
   );
 }
