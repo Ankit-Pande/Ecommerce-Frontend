@@ -84,3 +84,13 @@ export function tintFor(id: string): string {
   for (const char of id) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
   return TINTS[hash % TINTS.length];
 }
+
+// Chosen options in one line, like "Size M · Navy Blue"; empty when none.
+export function optionText(item: {
+  size?: string | null;
+  color?: string | null;
+}): string {
+  return [item.size && `Size ${item.size}`, item.color]
+    .filter(Boolean)
+    .join(" · ");
+}

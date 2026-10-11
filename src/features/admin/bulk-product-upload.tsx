@@ -23,7 +23,8 @@ type Row = {
   discountPercent: string;
   categoryId: string;
   brandId: string;
-  color: string;
+  colors: string;
+  sizes: string;
   description: string;
   images: string[];
   uploading: boolean;
@@ -38,7 +39,8 @@ function emptyRow(): Row {
     discountPercent: "0",
     categoryId: "",
     brandId: "",
-    color: "",
+    colors: "",
+    sizes: "",
     description: "",
     images: [],
     uploading: false,
@@ -135,7 +137,8 @@ export default function BulkUpload() {
           categoryId: row.categoryId,
           images: row.images,
           ...(row.brandId && { brandId: row.brandId }),
-          ...(row.color.trim() && { color: row.color.trim().toLowerCase() }),
+          colors: row.colors,
+          sizes: row.sizes,
         })),
       );
 
@@ -287,9 +290,17 @@ export default function BulkUpload() {
             </select>
             <input
               className="field py-2"
-              placeholder="Colour"
-              value={row.color}
-              onChange={(e) => updateRow(index, { color: e.target.value })}
+              placeholder="Colours (Black, Blue)"
+              aria-label="Colours"
+              value={row.colors}
+              onChange={(e) => updateRow(index, { colors: e.target.value })}
+            />
+            <input
+              className="field py-2"
+              placeholder="Sizes (S, M, L)"
+              aria-label="Sizes"
+              value={row.sizes}
+              onChange={(e) => updateRow(index, { sizes: e.target.value })}
             />
             <input
               className="field py-2"

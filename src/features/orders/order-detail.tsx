@@ -9,7 +9,7 @@ import { OfflineNotice } from "@/components/ui/offline-notice";
 import { SafeImage } from "@/components/ui/safe-image";
 import { ListSkeleton } from "@/components/ui/skeletons";
 import { useAuthGuard } from "@/hooks/use-auth-guard";
-import { formatDate, inr, tintFor } from "@/lib/format";
+import { formatDate, inr, optionText, tintFor } from "@/lib/format";
 import { RAZORPAY_SCRIPT } from "@/lib/razorpay";
 import {
   CANCELLED_BY_TEXT,
@@ -92,11 +92,16 @@ export function OrderDetailPage({ id }: { id: string }) {
               <h2 className="text-lg font-extrabold">
                 Items in this order · {formatDate(order.createdAt)}
               </h2>
-              {order.items.map((item) => {
+              {order.items.map((item, index) => {
                 const href = `/products/${item.product.slug}`;
+                const buyAgain = new URLSearchParams({
+                  buy: item.product.slug,
+                  ...(item.size && { size: item.size }),
+                  ...(item.color && { color: item.color }),
+                });
                 return (
                   <div
-                    key={item.productId}
+                    key={index}
                     className="flex flex-wrap items-center gap-3"
                   >
                     <Link
@@ -116,17 +121,19 @@ export function OrderDetailPage({ id }: { id: string }) {
                     </Link>
                     <Link
                       href={href}
-                      className="flex min-h-11 flex-[1_1_160px] items-center font-semibold"
+                      className="flex min-h-11 flex-[1_1_160px] flex-col justify-center font-semibold"
                     >
-                      {item.productName} × {item.quantity}
+                      <span>
+                        {item.productName} × {item.quantity}
+                      </span>
+                      {optionText(item) && (
+                        <span className="text-muted">{optionText(item)}</span>
+                      )}
                     </Link>
                     <span className="font-extrabold">
                       {inr(item.pricePaise * item.quantity)}
                     </span>
-                    <Link
-                      href={`/checkout?buy=${encodeURIComponent(item.product.slug)}`}
-                      className="btn-grey"
-                    >
+                    <Link href={`/checkout?${buyAgain}`} className="btn-grey">
                       Buy again
                     </Link>
                   </div>

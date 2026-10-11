@@ -79,13 +79,13 @@ export function PaymentMethods({
   );
 }
 
-// Shows only the chosen payment type in the Razorpay window.
+// Shows the chosen payment type first in the Razorpay window; other types stay below in case it fails.
 export function razorpayDisplay(choice: PaymentChoice) {
   const method =
     choice === "card" ? "card" : choice === "nb" ? "netbanking" : "upi";
   return {
     blocks: { payment: { name: "Pay using", instruments: [{ method }] } },
     sequence: ["block.payment"],
-    preferences: { show_default_blocks: false },
+    preferences: { show_default_blocks: true },
   };
 }

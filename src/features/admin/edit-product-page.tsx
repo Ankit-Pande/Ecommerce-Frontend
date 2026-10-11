@@ -25,7 +25,8 @@ function formValues(product: AdminProductDetail): ProductFormValues {
     stock: String(product.stock),
     categoryId: product.categoryId,
     brandId: product.brandId ?? "",
-    color: product.color ?? "",
+    colors: product.colors.join(", "),
+    sizes: product.sizes.join(", "),
     gender: product.gender ?? "",
     ageGroup: product.ageGroup ?? "",
     specs: Object.entries(product.specs ?? {})

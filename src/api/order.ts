@@ -1,6 +1,7 @@
 import { http } from "@/api/http";
 import type {
   ApiData,
+  Options,
   Order,
   OrderDetail,
   Paginated,
@@ -12,7 +13,7 @@ type CheckoutInput = {
   idempotencyKey: string;
   addressId: string;
   paymentMethod: PaymentMethod;
-  buyNow?: { productId: string; quantity: number };
+  buyNow?: { productId: string; quantity: number } & Partial<Options>;
 };
 
 // Places an order from the cart or Buy now.

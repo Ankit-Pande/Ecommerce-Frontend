@@ -41,7 +41,7 @@ export function openRazorpay(
         response.razorpay_signature,
       ).then(options.onPaid, options.onClose),
     modal: { ondismiss: options.onClose },
-    theme: { color: "#2874f0" },
+    theme: { color: "#0B7A5C" },
   }).open();
   return true;
 }

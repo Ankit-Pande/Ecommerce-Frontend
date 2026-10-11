@@ -24,7 +24,8 @@ export type ProductFormValues = {
   stock: string;
   categoryId: string;
   brandId: string;
-  color: string;
+  colors: string;
+  sizes: string;
   gender: string;
   ageGroup: string;
   specs: string;
@@ -43,7 +44,8 @@ export const emptyProduct: ProductFormValues = {
   stock: "0",
   categoryId: "",
   brandId: "",
-  color: "",
+  colors: "",
+  sizes: "",
   gender: "",
   ageGroup: "",
   specs: "",
@@ -124,7 +126,8 @@ export function ProductForm({
       form.append("isTrending", String(values.isTrending));
       form.append("isFeatured", String(values.isFeatured));
       form.append("brandId", values.brandId);
-      form.append("color", values.color.trim());
+      form.append("colors", values.colors);
+      form.append("sizes", values.sizes);
       form.append("gender", values.gender);
       form.append("ageGroup", values.ageGroup);
       form.append("specs", values.specs);
@@ -281,12 +284,22 @@ export function ProductForm({
       </label>
 
       <label>
-        <span className="text-sm font-semibold">Colour</span>
+        <span className="text-sm font-semibold">Colours</span>
         <input
           className="field mt-1"
-          placeholder="e.g. black"
-          value={values.color}
-          onChange={(event) => setField("color", event.target.value)}
+          placeholder="e.g. Black, Navy Blue"
+          value={values.colors}
+          onChange={(event) => setField("colors", event.target.value)}
+        />
+      </label>
+
+      <label>
+        <span className="text-sm font-semibold">Sizes</span>
+        <input
+          className="field mt-1"
+          placeholder="e.g. S, M, L, XL (empty if no sizes)"
+          value={values.sizes}
+          onChange={(event) => setField("sizes", event.target.value)}
         />
       </label>
 

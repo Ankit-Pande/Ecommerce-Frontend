@@ -55,6 +55,10 @@ export function ProductCard({ product }: { product: Product }) {
         </p>
         {soldOut ? (
           <p className="btn-grey cursor-default text-danger">Out of stock</p>
+        ) : product.hasOptions ? (
+          <Link href={href} className="btn-grey">
+            Choose size / colour
+          </Link>
         ) : (
           <CardButtons productId={product.id} slug={product.slug} />
         )}

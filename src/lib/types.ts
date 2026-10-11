@@ -22,14 +22,20 @@ export type Product = {
   discountPercent: number;
   stockStatus: StockStatus;
   rating: { average: number; count: number };
+  // Size or more than one colour: the buyer must choose on the product page.
+  hasOptions: boolean;
 };
+
+// Chosen size and colour ("" when the product has none).
+export type Options = { size: string; color: string };
 
 type CategoryRef = { id: string; name: string; slug: string };
 
 export type ProductDetail = Product & {
   description: string;
   images: string[];
-  color: string | null;
+  colors: string[];
+  sizes: string[];
   specs: Record<string, string> | null;
   category: CategoryRef & { parent: CategoryRef | null };
   brand: { id: string; name: string; slug: string; logo: string | null } | null;
@@ -66,7 +72,8 @@ export type HomeData = {
   offers: Product[];
 };
 
-type CartItem = {
+type CartItem = Options & {
+  id: string;
   quantity: number;
   product: Product & {
     images: string[];
@@ -97,6 +104,8 @@ type OrderItem = {
   productImage: string | null;
   pricePaise: number;
   quantity: number;
+  size: string | null;
+  color: string | null;
 };
 
 export type Order = {
@@ -184,7 +193,8 @@ export type AdminProductDetail = Omit<AdminProduct, "reservedQuantity"> & {
   description: string;
   discountPercent: number;
   offerEndsAt: string | null;
-  color: string | null;
+  colors: string[];
+  sizes: string[];
   gender: string | null;
   ageGroup: string | null;
   specs: Record<string, string> | null;

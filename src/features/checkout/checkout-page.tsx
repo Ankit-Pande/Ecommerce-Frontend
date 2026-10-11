@@ -20,18 +20,19 @@ import {
   type PaymentChoice,
 } from "@/features/checkout/payment-methods";
 import { useAuthGuard } from "@/hooks/use-auth-guard";
-import { formatAddress, inr, tintFor } from "@/lib/format";
+import { formatAddress, inr, optionText, tintFor } from "@/lib/format";
 import { openRazorpay, RAZORPAY_SCRIPT } from "@/lib/razorpay";
 import { useAuthStore } from "@/store/auth-store";
 import { useCartStore } from "@/store/cart-store";
 import { toast } from "@/store/toast-store";
-import type { Address, PaymentDetails } from "@/lib/types";
+import type { Address, Options, PaymentDetails } from "@/lib/types";
 
 const MAX_QUANTITY = 10;
 const SECTION = "card flex flex-col gap-3 p-[18px]";
 const STEP_TITLE = "font-extrabold text-accent";
 
-type Line = {
+type Line = Options & {
+  key: string;
   productId: string;
   slug: string;
   name: string;
@@ -45,7 +46,10 @@ type Line = {
 export function CheckoutPage() {
   const { ready } = useAuthGuard();
   const router = useRouter();
-  const buySlug = useSearchParams().get("buy");
+  const params = useSearchParams();
+  const buySlug = params.get("buy");
+  const buySize = params.get("size") ?? "";
+  const buyColor = params.get("color") ?? "";
   const phone = useAuthStore((state) => state.phone);
   const setCount = useCartStore((state) => state.setCount);
   const [addresses, setAddresses] = useState<Address[]>([]);
@@ -65,7 +69,12 @@ export function CheckoutPage() {
     setLoading(true);
     setFailed(false);
 
-    Promise.all([listAddresses(), buySlug ? buyNowLines(buySlug) : cartLines()])
+    Promise.all([
+      listAddresses(),
+      buySlug
+        ? buyNowLines(buySlug, { size: buySize, color: buyColor })
+        : cartLines(),
+    ])
       .then(([savedAddresses, freshLines]) => {
         setAddresses(savedAddresses);
         const preferred =
@@ -76,7 +85,7 @@ export function CheckoutPage() {
       })
       .catch(() => setFailed(true))
       .finally(() => setLoading(false));
-  }, [ready, reloadKey, buySlug]);
+  }, [ready, reloadKey, buySlug, buySize, buyColor]);
 
   // Adds and selects a new address.
   function handleAddressSaved(address: Address) {
@@ -119,6 +128,8 @@ export function CheckoutPage() {
           buyNow: {
             productId: lines[0].productId,
             quantity: lines[0].quantity,
+            ...(lines[0].size && { size: lines[0].size }),
+            ...(lines[0].color && { color: lines[0].color }),
           },
         }),
       });
@@ -180,7 +191,7 @@ export function CheckoutPage() {
             <h2 className={STEP_TITLE}>1. Items you are buying</h2>
             {lines.map((line) => (
               <div
-                key={line.productId}
+                key={line.key}
                 className="flex flex-wrap items-center gap-3.5 rounded-2xl bg-soft p-2.5"
               >
                 <Link
@@ -200,6 +211,9 @@ export function CheckoutPage() {
                 </Link>
                 <div className="flex-[1_1_180px]">
                   <p className="text-xl font-extrabold">{line.name}</p>
+                  {optionText(line) && (
+                    <p className="text-muted">{optionText(line)}</p>
+                  )}
                   {buySlug ? (
                     <QuantityStepper
                       value={line.quantity}
@@ -286,7 +300,7 @@ export function CheckoutPage() {
           <h2 className="text-[22px] font-extrabold">Order summary</h2>
           {lines.map((line) => (
             <Link
-              key={line.productId}
+              key={line.key}
               href={`/products/${line.slug}`}
               className="flex min-h-11 items-center gap-2.5"
             >
@@ -304,7 +318,8 @@ export function CheckoutPage() {
                 </span>
               </span>
               <span className="flex-1">
-                {line.name} × {line.quantity}
+                {line.name}
+                {optionText(line) && ` (${optionText(line)})`} × {line.quantity}
               </span>
               <span className="font-extrabold">
                 {inr(line.finalPaise * line.quantity)}
@@ -353,7 +368,10 @@ export function CheckoutPage() {
 // Order lines from the cart.
 async function cartLines(): Promise<Line[]> {
   const cart = await getCart();
-  return cart.items.map(({ product, quantity }) => ({
+  return cart.items.map(({ id, size, color, product, quantity }) => ({
+    key: id,
+    size,
+    color,
     productId: product.id,
     slug: product.slug,
     name: product.name,
@@ -364,11 +382,13 @@ async function cartLines(): Promise<Line[]> {
   }));
 }
 
-// One order line for Buy now.
-async function buyNowLines(slug: string): Promise<Line[]> {
+// One order line for Buy now, with the size and colour chosen on the product page.
+async function buyNowLines(slug: string, options: Options): Promise<Line[]> {
   const product = await getProduct(slug);
   return [
     {
+      ...options,
+      key: product.id,
       productId: product.id,
       slug: product.slug,
       name: product.name,

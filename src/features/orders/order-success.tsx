@@ -8,7 +8,7 @@ import { SafeImage } from "@/components/ui/safe-image";
 import { ListSkeleton } from "@/components/ui/skeletons";
 import { OrderStatusPill } from "@/features/orders/order-parts";
 import { useAuthGuard } from "@/hooks/use-auth-guard";
-import { inr, tintFor } from "@/lib/format";
+import { inr, optionText, tintFor } from "@/lib/format";
 import type { OrderDetail } from "@/lib/types";
 
 const PAYMENT_TEXT = {
@@ -72,9 +72,9 @@ export function OrderSuccess() {
       {order ? (
         <>
           <div className="flex flex-wrap justify-center gap-2.5">
-            {order.items.map((item) => (
+            {order.items.map((item, index) => (
               <Link
-                key={item.productId}
+                key={index}
                 href={`/products/${item.product.slug}`}
                 className="flex min-h-12 items-center gap-2 rounded-[14px] border border-line bg-white py-1.5 pl-1.5 pr-3.5 font-semibold"
               >
@@ -89,7 +89,8 @@ export function OrderSuccess() {
                     className="object-contain p-0.5"
                   />
                 </span>
-                {item.productName} × {item.quantity}
+                {item.productName}
+                {optionText(item) && ` (${optionText(item)})`} × {item.quantity}
               </Link>
             ))}
           </div>

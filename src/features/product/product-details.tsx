@@ -16,7 +16,6 @@ export function ProductDetails({ product }: { product: ProductDetail }) {
     : catalogHref(product.category);
   const facts = [
     ...(product.brand ? [["Brand", product.brand.name]] : []),
-    ...(product.color ? [["Colour", product.color]] : []),
     ...Object.entries(product.specs ?? {}),
   ];
 
@@ -62,7 +61,14 @@ export function ProductDetails({ product }: { product: ProductDetail }) {
             <span className={CHIP}>Cash on Delivery available</span>
             <span className={CHIP}>UPI, cards, net banking</span>
           </div>
-          {inStock && <AddToCart productId={product.id} slug={product.slug} />}
+          {inStock && (
+            <AddToCart
+              productId={product.id}
+              slug={product.slug}
+              colors={product.colors}
+              sizes={product.sizes}
+            />
+          )}
           <p className="whitespace-pre-line text-muted">
             {product.description}
           </p>

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getCart, removeCartItem, updateCartItem } from "@/api/cart";
 import { errorMessage } from "@/api/http";
-import { inr, tintFor } from "@/lib/format";
+import { inr, optionText, tintFor } from "@/lib/format";
 import { useAuthGuard } from "@/hooks/use-auth-guard";
 import { useCartStore } from "@/store/cart-store";
 import { toast } from "@/store/toast-store";
@@ -19,7 +19,7 @@ export function CartPage() {
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
-  const [busyProductId, setBusyProductId] = useState("");
+  const [busyItemId, setBusyItemId] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
   const setCount = useCartStore((state) => state.setCount);
 
@@ -37,20 +37,20 @@ export function CartPage() {
       .finally(() => setLoading(false));
   }, [ready, reloadKey, setCount]);
 
-  // Updates or removes an item.
-  async function changeQuantity(productId: string, quantity: number) {
-    setBusyProductId(productId);
+  // Updates or removes a cart line.
+  async function changeQuantity(itemId: string, quantity: number) {
+    setBusyItemId(itemId);
     try {
       const fresh =
         quantity < 1
-          ? await removeCartItem(productId)
-          : await updateCartItem(productId, quantity);
+          ? await removeCartItem(itemId)
+          : await updateCartItem(itemId, quantity);
       setCart(fresh);
       setCount(fresh.items.length);
     } catch (error) {
       toast.error(errorMessage(error, "Could not update your cart"));
     } finally {
-      setBusyProductId("");
+      setBusyItemId("");
     }
   }
 
@@ -80,12 +80,13 @@ export function CartPage() {
     body = (
       <div className="flex flex-wrap items-start gap-6">
         <div className="card flex-[2_1_420px] rounded-3xl px-[18px] py-1.5">
-          {cart.items.map(({ product, quantity }) => {
-            const busy = busyProductId === product.id;
+          {cart.items.map((item) => {
+            const { id, product, quantity } = item;
+            const busy = busyItemId === id;
             const href = `/products/${product.slug}`;
             return (
               <article
-                key={product.id}
+                key={id}
                 className="flex flex-wrap items-center gap-4 border-b border-line py-3.5 last:border-b-0"
               >
                 <Link
@@ -110,6 +111,9 @@ export function CartPage() {
                   >
                     {product.name}
                   </Link>
+                  {optionText(item) && (
+                    <p className="font-semibold">{optionText(item)}</p>
+                  )}
                   {product.rating.count > 0 && (
                     <p className="text-muted">
                       ★ {product.rating.average.toFixed(1)} (
@@ -145,7 +149,7 @@ export function CartPage() {
                 <div className="flex items-center gap-1 rounded-xl border border-line">
                   <button
                     type="button"
-                    onClick={() => changeQuantity(product.id, quantity - 1)}
+                    onClick={() => changeQuantity(id, quantity - 1)}
                     disabled={busy}
                     aria-label="Decrease quantity"
                     className="h-11 w-11 text-xl"
@@ -160,7 +164,7 @@ export function CartPage() {
                   </span>
                   <button
                     type="button"
-                    onClick={() => changeQuantity(product.id, quantity + 1)}
+                    onClick={() => changeQuantity(id, quantity + 1)}
                     disabled={busy || quantity >= product.maxQuantity}
                     aria-label="Increase quantity"
                     className="h-11 w-11 text-xl disabled:opacity-40"
@@ -173,7 +177,7 @@ export function CartPage() {
                 </p>
                 <button
                   type="button"
-                  onClick={() => changeQuantity(product.id, 0)}
+                  onClick={() => changeQuantity(id, 0)}
                   disabled={busy}
                   className="min-h-11 font-semibold text-danger"
                 >
