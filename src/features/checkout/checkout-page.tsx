@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import Script from "next/script";
@@ -57,7 +57,8 @@ export function CheckoutPage() {
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [payment, setPayment] = useState<PaymentChoice>("cod");
   const [paying, setPaying] = useState(false);
-  const [idempotencyKey] = useState(() => crypto.randomUUID());
+  // Same key for a retry of the same order; new key when address, payment type or quantity changes.
+  const attempt = useRef({ details: "", key: "" });
 
   useEffect(() => {
     if (!ready) return;
@@ -104,10 +105,14 @@ export function CheckoutPage() {
     if (!selectedId || lines.length === 0) return;
     setPaying(true);
     const online = payment !== "cod";
+    const orderDetails = `${selectedId}|${online}|${lines.map((line) => line.quantity).join(",")}`;
+    if (attempt.current.details !== orderDetails) {
+      attempt.current = { details: orderDetails, key: crypto.randomUUID() };
+    }
 
     try {
       const details = await checkout({
-        idempotencyKey,
+        idempotencyKey: attempt.current.key,
         addressId: selectedId,
         paymentMethod: online ? "ONLINE" : "COD",
         ...(buySlug && {
@@ -172,14 +177,54 @@ export function CheckoutPage() {
         )}
         <div className="flex flex-[2_1_420px] flex-col gap-4">
           <section className={SECTION}>
-            <h2 className={STEP_TITLE}>1. Mobile number</h2>
-            <p className="text-lg font-semibold">
-              +91 {phone} · Verified by OTP
-            </p>
+            <h2 className={STEP_TITLE}>1. Items you are buying</h2>
+            {lines.map((line) => (
+              <div
+                key={line.productId}
+                className="flex flex-wrap items-center gap-3.5 rounded-2xl bg-soft p-2.5"
+              >
+                <Link
+                  href={`/products/${line.slug}`}
+                  aria-label={line.name}
+                  className="rounded-xl p-2"
+                  style={{ background: tintFor(line.productId) }}
+                >
+                  <span className="relative block h-[88px] w-[88px]">
+                    <SafeImage
+                      src={line.image}
+                      alt=""
+                      sizes="88px"
+                      className="object-contain"
+                    />
+                  </span>
+                </Link>
+                <div className="flex-[1_1_180px]">
+                  <p className="text-xl font-extrabold">{line.name}</p>
+                  {buySlug ? (
+                    <QuantityStepper
+                      value={line.quantity}
+                      onChange={changeBuyQuantity}
+                    />
+                  ) : (
+                    <p className="text-muted">Qty {line.quantity}</p>
+                  )}
+                  <p>{inr(line.finalPaise)} each</p>
+                  {!line.available && (
+                    <p className="font-semibold text-danger">Out of stock</p>
+                  )}
+                </div>
+                <p className="text-2xl font-extrabold">
+                  {inr(line.finalPaise * line.quantity)}
+                </p>
+              </div>
+            ))}
           </section>
 
           <section className={SECTION}>
             <h2 className={STEP_TITLE}>2. Delivery address</h2>
+            <p className="text-muted">
+              Logged in as +91 {phone} · Verified by OTP
+            </p>
             {showAddressForm ? (
               <AddressForm
                 onSaved={handleAddressSaved}
@@ -222,48 +267,7 @@ export function CheckoutPage() {
           </section>
 
           <section className={SECTION}>
-            <h2 className={STEP_TITLE}>3. Order items and payment</h2>
-            {lines.map((line) => (
-              <div
-                key={line.productId}
-                className="flex flex-wrap items-center gap-3.5 rounded-2xl bg-soft p-2.5"
-              >
-                <Link
-                  href={`/products/${line.slug}`}
-                  aria-label={line.name}
-                  className="rounded-xl p-2"
-                  style={{ background: tintFor(line.productId) }}
-                >
-                  <span className="relative block h-[88px] w-[88px]">
-                    <SafeImage
-                      src={line.image}
-                      alt=""
-                      sizes="88px"
-                      className="object-contain"
-                    />
-                  </span>
-                </Link>
-                <div className="flex-[1_1_180px]">
-                  <p className="text-xl font-extrabold">{line.name}</p>
-                  {buySlug ? (
-                    <QuantityStepper
-                      value={line.quantity}
-                      onChange={changeBuyQuantity}
-                    />
-                  ) : (
-                    <p className="text-muted">Qty {line.quantity}</p>
-                  )}
-                  <p>{inr(line.finalPaise)} each</p>
-                  {!line.available && (
-                    <p className="font-semibold text-danger">Out of stock</p>
-                  )}
-                </div>
-                <p className="text-2xl font-extrabold">
-                  {inr(line.finalPaise * line.quantity)}
-                </p>
-              </div>
-            ))}
-            <h3 className="text-lg font-extrabold">Choose payment method</h3>
+            <h2 className={STEP_TITLE}>3. Payment method</h2>
             <PaymentMethods value={payment} onChange={setPayment} />
             {payment === "cod" ? (
               <p className="rounded-xl bg-[#FFF0B8] px-3.5 py-3 font-semibold">

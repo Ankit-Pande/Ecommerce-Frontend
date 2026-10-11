@@ -2,8 +2,23 @@ import { useAuthStore } from "@/store/auth-store";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
-const SERVER_TIMEOUT_MS = 2500;
-const CLIENT_TIMEOUT_MS = 8000;
+const SERVER_TIMEOUT_MS = 5000;
+const CLIENT_TIMEOUT_MS = 15000;
+// Checkout, payment and the assistant do several steps on the server.
+const WRITE_TIMEOUT_MS = 30000;
+const SLOW_MESSAGE = "The server is taking too long. Please try again.";
+
+// fetch with a time limit; a timeout becomes a clear message.
+async function fetchWithTimeout(url: string, options: RequestInit, ms: number) {
+  try {
+    return await fetch(url, { ...options, signal: AbortSignal.timeout(ms) });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "TimeoutError") {
+      throw new Error(SLOW_MESSAGE);
+    }
+    throw new Error("Could not reach the server. Check your connection.");
+  }
+}
 
 type ServerResult<T> = {
   data: T | null;
@@ -39,9 +54,11 @@ export async function serverGet<T>(
 
 // Browser fetch for public APIs.
 export async function publicGet<T>(path: string): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`, {
-    signal: AbortSignal.timeout(CLIENT_TIMEOUT_MS),
-  });
+  const res = await fetchWithTimeout(
+    `${API_URL}${path}`,
+    {},
+    CLIENT_TIMEOUT_MS,
+  );
   if (!res.ok) throw new Error(`Request failed with status ${res.status}`);
   return (await res.json()) as T;
 }
@@ -89,16 +106,19 @@ async function request<T>(
 
   const isFormData = options.body instanceof FormData;
 
-  const res = await fetch(`${API_URL}${path}`, {
-    ...options,
-    credentials: "include",
-    signal: AbortSignal.timeout(CLIENT_TIMEOUT_MS),
-    headers: {
-      ...(!isFormData && { "Content-Type": "application/json" }),
-      ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
-      ...options.headers,
+  const res = await fetchWithTimeout(
+    `${API_URL}${path}`,
+    {
+      ...options,
+      credentials: "include",
+      headers: {
+        ...(!isFormData && { "Content-Type": "application/json" }),
+        ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+        ...options.headers,
+      },
     },
-  });
+    options.method ? WRITE_TIMEOUT_MS : CLIENT_TIMEOUT_MS,
+  );
 
   if (res.status === 401 && !isRetry) {
     if (await refreshOnce()) return request<T>(path, options, true);
