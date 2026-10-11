@@ -16,7 +16,7 @@ const TRACK_LABELS = [
   "Delivered",
 ];
 
-export const PAYMENT_LABEL = {
+const PAYMENT_LABEL = {
   PENDING: "Not paid yet",
   COMPLETED: "Paid",
   REFUNDED: "Refunded",

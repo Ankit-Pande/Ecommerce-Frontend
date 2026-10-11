@@ -12,7 +12,7 @@ export const ACCENTS = {
 } as const;
 
 export type Accent = keyof typeof ACCENTS;
-export type Language = "en" | "hi";
+type Language = "en" | "hi";
 
 type UiState = {
   accent: Accent;

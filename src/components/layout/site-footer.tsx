@@ -31,7 +31,7 @@ export function SiteFooter({ categories }: { categories: Category[] }) {
             ApnaKart
           </Link>
           <SearchBox
-            label="Search products from footer"
+            label="Search"
             placeholder="Search products"
             className="max-w-[460px] bg-white"
           />

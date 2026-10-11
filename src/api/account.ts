@@ -1,7 +1,7 @@
 import { http } from "@/api/http";
 import type { Address, ApiData, UserProfile } from "@/lib/types";
 
-export type AddressPayload = Omit<Address, "id" | "isDefault" | "line2"> & {
+type AddressPayload = Omit<Address, "id" | "isDefault" | "line2"> & {
   line2: string | null;
 };
 

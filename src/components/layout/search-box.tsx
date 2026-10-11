@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-// Search field with a Search button; opens the product list.
+// Search field with a button (label is its text); opens the product list.
 export function SearchBox({
   label,
   placeholder,
@@ -32,7 +32,7 @@ export function SearchBox({
         type="search"
         value={search}
         onChange={(event) => setSearch(event.target.value)}
-        aria-label={label}
+        aria-label={placeholder}
         placeholder={placeholder}
         className="min-h-10 min-w-0 flex-1 border-0 bg-transparent px-3.5 text-ink outline-none placeholder:text-muted focus-visible:ring-0 focus-visible:ring-offset-0"
       />

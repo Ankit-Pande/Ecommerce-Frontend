@@ -4,16 +4,18 @@ Online shopping website made with Next.js. It works with the ApnaKart backend AP
 
 ## Features
 
-- Home page with banners, categories and product shelves
-- Search with suggestions, filters, sort and load more
-- Product page with images, reviews and related products
+- Home page with banners, categories, offers and product sections
+- Search and category list with price, rating and sort filters
+- Product page with images, specs, ratings, reviews and related products
 - Cart, Buy now and checkout (cash on delivery, or UPI apps and cards via Razorpay)
 - Order confirmed page and order tracking (confirmed, shipped, delivered)
 - Login with mobile number and OTP
-- My orders, cancel order, pay again
+- My orders, order tracking, cancel order, pay again, buy again
 - My account and saved addresses
 - Admin panel: dashboard, orders, products, festival sale, categories, brands, banners, customers
-- Works on phone, tablet and desktop, with light and dark mode
+- AI shopping assistant
+- English / Hindi header and 4 theme colours
+- Works on phone, tablet and desktop
 
 ## Tech
 
@@ -68,12 +70,12 @@ src/
   app/          pages (routes)
   api/          backend API calls
   components/   header, footer and small shared UI
-  features/     page code: catalog, cart, checkout, orders, account, auth, admin
+  features/     page code: home, shop, product, cart, checkout, orders, account, login, admin, assistant
   hooks/        shared React hooks
   lib/          types and helpers
-  store/        login, cart count and toast state
+  store/        login, cart count, toast and theme / language state
 ```
 
 ## Admin
 
-Log in with the admin phone number set in the backend (`SUPER_ADMIN_PHONE`). The Admin panel link shows in the account menu.
+Log in with the admin phone number set in the backend (`SUPER_ADMIN_PHONE`). The Admin link shows in the header.

@@ -48,7 +48,7 @@ export default async function RootLayout({
   const categories = home?.categories ?? [];
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
       <body className={`${font.variable} font-body antialiased`}>
         <Providers>
           <AppShell categories={categories}>{children}</AppShell>

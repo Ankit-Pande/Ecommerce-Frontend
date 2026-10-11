@@ -1,7 +1,10 @@
+// A live build without the API URL would silently call localhost.
+if (process.env.NODE_ENV === "production" && !process.env.NEXT_PUBLIC_API_URL) {
+  throw new Error("Set NEXT_PUBLIC_API_URL before building for production");
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Lets verification build safely while the local dev server is running.
-  distDir: process.env.NEXT_BUILD_DIR || ".next",
   reactStrictMode: true,
   poweredByHeader: false,
   images: {

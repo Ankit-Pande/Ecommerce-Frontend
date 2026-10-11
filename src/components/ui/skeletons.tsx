@@ -1,5 +1,5 @@
 // Grey placeholder for one product card.
-export function CardSkeleton() {
+function CardSkeleton() {
   return (
     <div className="card animate-pulse overflow-hidden">
       <div className="h-[162px] bg-soft" />

@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect } from "react";
-import { ThemeProvider } from "next-themes";
 import { useAuthStore } from "@/store/auth-store";
 import { getProfile } from "@/api/account";
 import { restoreSession } from "@/api/http";
 import { ACCENTS, useUiStore } from "@/store/ui-store";
 
-// Sets the light theme and accent colour, and restores the saved login once on load.
+// Sets the accent colour and page language, and restores the saved login once on load.
 export function Providers({ children }: { children: React.ReactNode }) {
   const accent = useUiStore((state) => state.accent);
   const language = useUiStore((state) => state.language);
@@ -34,9 +33,5 @@ export function Providers({ children }: { children: React.ReactNode }) {
     document.documentElement.lang = language;
   }, [accent, language]);
 
-  return (
-    <ThemeProvider attribute="class" forcedTheme="light">
-      {children}
-    </ThemeProvider>
-  );
+  return <>{children}</>;
 }
