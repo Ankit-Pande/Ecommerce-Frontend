@@ -1,79 +1,92 @@
+import type { Paginated } from "@/lib/types";
 import { useAuthStore } from "@/store/auth-store";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 const SERVER_TIMEOUT_MS = 5000;
 const CLIENT_TIMEOUT_MS = 15000;
-// Checkout, payment and the assistant do several steps on the server.
 const WRITE_TIMEOUT_MS = 30000;
-const SLOW_MESSAGE = "The server is taking too long. Please try again.";
 
-// fetch with a time limit; a timeout becomes a clear message.
-async function fetchWithTimeout(url: string, options: RequestInit, ms: number) {
+// fetch with a time limit; network failures become messages a shopper understands.
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit,
+  timeoutMs: number,
+) {
   try {
-    return await fetch(url, { ...options, signal: AbortSignal.timeout(ms) });
+    return await fetch(url, {
+      ...options,
+      signal: AbortSignal.timeout(timeoutMs),
+    });
   } catch (error) {
     if (error instanceof DOMException && error.name === "TimeoutError") {
-      throw new Error(SLOW_MESSAGE);
+      throw new Error("The server is taking too long. Please try again.");
     }
     throw new Error("Could not reach the server. Check your connection.");
   }
 }
 
-type ServerResult<T> = {
-  data: T | null;
-  status: number | null;
-};
-
-// Server fetch that keeps the status code.
-export async function serverGetResult<T>(
-  path: string,
-  revalidateSeconds: number,
-): Promise<ServerResult<T>> {
+// Server-side GET, cached for revalidateSeconds; sends INTERNAL_API_KEY so all visitors don't share one IP limit.
+async function serverFetch(path: string, revalidateSeconds: number) {
   try {
-    const res = await fetch(`${API_URL}${path}`, {
+    const key = process.env.INTERNAL_API_KEY;
+    const response = await fetch(`${API_URL}${path}`, {
+      headers: key ? { "x-internal-key": key } : {},
       next: { revalidate: revalidateSeconds },
       signal: AbortSignal.timeout(SERVER_TIMEOUT_MS),
     });
-    if (!res.ok) return { data: null, status: res.status };
-    const json = await res.json();
-    return { data: (json.data ?? json) as T, status: res.status };
+    return {
+      json: response.ok ? await response.json() : null,
+      status: response.status,
+    };
   } catch {
-    return { data: null, status: null };
+    return { json: null, status: null };
   }
 }
 
-// Server fetch that returns null on any failure.
-export async function serverGet<T>(
+// Server-side GET of { data }: the data (or null) and the HTTP status (null when the API is down).
+export async function serverGetResult<T>(
   path: string,
   revalidateSeconds: number,
-): Promise<T | null> {
-  const result = await serverGetResult<T>(path, revalidateSeconds);
-  return result.data;
+): Promise<{ data: T | null; status: number | null }> {
+  const { json, status } = await serverFetch(path, revalidateSeconds);
+  return { data: (json?.data as T) ?? null, status };
 }
 
-// Browser fetch for public APIs.
+// Server-side GET of one list page, or null when it failed.
+export async function serverGetPage<T>(
+  path: string,
+  revalidateSeconds: number,
+): Promise<Paginated<T> | null> {
+  const { json } = await serverFetch(path, revalidateSeconds);
+  return json?.items
+    ? { items: json.items, nextCursor: json.nextCursor }
+    : null;
+}
+
+// Browser GET that needs no login (public pages); throws the API's message on errors.
 export async function publicGet<T>(path: string): Promise<T> {
-  const res = await fetchWithTimeout(
+  const response = await fetchWithTimeout(
     `${API_URL}${path}`,
     {},
     CLIENT_TIMEOUT_MS,
   );
-  if (!res.ok) throw new Error(`Request failed with status ${res.status}`);
-  return (await res.json()) as T;
+  const json = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(json.message ?? "Something went wrong");
+  return json as T;
 }
 
 let refreshInFlight: Promise<boolean> | null = null;
 
-// Gets a new access token using the refresh cookie.
-async function refreshTokens(): Promise<boolean> {
+// Gets a new access token with the refresh cookie; true when it worked.
+async function refreshTokens() {
   try {
-    const res = await fetch(`${API_URL}/api/auth/refresh`, {
+    const response = await fetch(`${API_URL}/api/auth/refresh`, {
       method: "POST",
       credentials: "include",
     });
-    if (!res.ok) return false;
-    const json = await res.json();
+    if (!response.ok) return false;
+    const json = await response.json();
     useAuthStore.getState().setAccessToken(json.data.accessToken);
     return true;
   } catch {
@@ -81,8 +94,8 @@ async function refreshTokens(): Promise<boolean> {
   }
 }
 
-// Runs only one refresh at a time.
-function refreshOnce(): Promise<boolean> {
+// Refreshes the access token once, even when many requests ask at the same time.
+export function restoreSession() {
   if (!refreshInFlight) {
     refreshInFlight = refreshTokens().finally(() => {
       refreshInFlight = null;
@@ -91,47 +104,40 @@ function refreshOnce(): Promise<boolean> {
   return refreshInFlight;
 }
 
-// Restores the login after a page reload.
-export function restoreSession(): Promise<boolean> {
-  return refreshOnce();
-}
-
-// Logged-in request; on 401 it refreshes once and retries.
+// Browser request with the access token; on 401 it refreshes the token once and tries again.
 async function request<T>(
   path: string,
   options: RequestInit = {},
   isRetry = false,
 ): Promise<T> {
   const { accessToken } = useAuthStore.getState();
+  const isForm = options.body instanceof FormData;
 
-  const isFormData = options.body instanceof FormData;
-
-  const res = await fetchWithTimeout(
+  const response = await fetchWithTimeout(
     `${API_URL}${path}`,
     {
       ...options,
       credentials: "include",
       headers: {
-        ...(!isFormData && { "Content-Type": "application/json" }),
+        ...(!isForm && { "Content-Type": "application/json" }),
         ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
-        ...options.headers,
       },
     },
     options.method ? WRITE_TIMEOUT_MS : CLIENT_TIMEOUT_MS,
   );
 
-  if (res.status === 401 && !isRetry) {
-    if (await refreshOnce()) return request<T>(path, options, true);
+  if (response.status === 401 && !isRetry) {
+    if (await restoreSession()) return request<T>(path, options, true);
     useAuthStore.getState().logout();
     throw new Error("Your session has expired. Please log in again.");
   }
 
-  const json = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(json.message ?? "Something went wrong");
+  const json = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(json.message ?? "Something went wrong");
   return json as T;
 }
 
-// Short helpers for logged-in requests.
+// One short function per HTTP method; all of them go through request().
 export const http = {
   get: <T>(path: string) => request<T>(path),
   post: <T>(path: string, body?: unknown) =>
@@ -145,20 +151,18 @@ export const http = {
     request<T>(path, { method: "PATCH", body: form }),
 };
 
-// Error text that is safe to show the user.
-export function errorMessage(err: unknown, fallback: string): string {
-  return err instanceof Error ? err.message : fallback;
+// The message of a caught error, or the fallback text.
+export function errorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
 }
 
-// Logs out on the server, clears local login and reloads the home page.
-export async function logoutSession(): Promise<void> {
-  try {
-    await fetch(`${API_URL}/api/auth/logout`, {
-      method: "POST",
-      credentials: "include",
-      signal: AbortSignal.timeout(CLIENT_TIMEOUT_MS),
-    });
-  } catch {}
+// Ends the session on the server, clears the login in the browser and opens the given page.
+export async function logoutSession(goTo = "/") {
+  await fetch(`${API_URL}/api/auth/logout`, {
+    method: "POST",
+    credentials: "include",
+    signal: AbortSignal.timeout(CLIENT_TIMEOUT_MS),
+  }).catch(() => undefined);
   useAuthStore.getState().logout();
-  window.location.assign("/");
+  window.location.assign(goTo);
 }

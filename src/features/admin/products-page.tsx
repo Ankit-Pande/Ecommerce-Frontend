@@ -2,29 +2,30 @@
 
 import { useCallback, useState } from "react";
 import Link from "next/link";
+import { hideProduct, listProducts, updateProduct } from "@/api/admin";
+import { errorMessage } from "@/api/http";
 import { LoadMoreButton } from "@/components/ui/load-more-button";
 import { OfflineNotice } from "@/components/ui/offline-notice";
 import { ListSkeleton } from "@/components/ui/skeletons";
 import { StatusPill } from "@/components/ui/status-pill";
+import { AdminTitle } from "@/features/admin/admin-shell";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { usePaginatedList } from "@/hooks/use-paginated-list";
-import { hideProduct, listProducts, updateProduct } from "@/api/admin";
-import { errorMessage } from "@/api/http";
 import { inr } from "@/lib/format";
-import type { AdminProduct } from "@/lib/types";
 import { toast } from "@/store/toast-store";
+import type { AdminProduct } from "@/lib/types";
 
-// Admin product list.
-export default function AdminProducts() {
+// All products with search, stock, reserved quantity and hide/show.
+export function AdminProducts() {
   const [search, setSearch] = useState("");
   const [busyId, setBusyId] = useState("");
-  const term = useDebouncedValue(search);
+  const words = useDebouncedValue(search.trim());
 
+  // Loads one page of products for the typed words.
   const loadProducts = useCallback(
-    (cursor?: string) => listProducts(cursor, term.trim()),
-    [term],
+    (cursor?: string) => listProducts(cursor, words),
+    [words],
   );
-
   const {
     items,
     setItems,
@@ -36,10 +37,9 @@ export default function AdminProducts() {
     reload,
   } = usePaginatedList<AdminProduct>(loadProducts);
 
-  // Hides or shows a product.
-  async function toggleActive(product: AdminProduct) {
+  // Hides or shows a product in the store.
+  async function toggleVisible(product: AdminProduct) {
     setBusyId(product.id);
-
     try {
       if (product.isActive) {
         await hideProduct(product.id);
@@ -48,7 +48,6 @@ export default function AdminProducts() {
         form.append("isActive", "true");
         await updateProduct(product.id, form);
       }
-
       setItems((current) =>
         current.map((item) =>
           item.id === product.id
@@ -56,7 +55,9 @@ export default function AdminProducts() {
             : item,
         ),
       );
-      toast.success(product.isActive ? "Product hidden" : "Product published");
+      toast.success(
+        product.isActive ? "Product hidden from the store" : "Product is live",
+      );
     } catch (error) {
       toast.error(errorMessage(error, "Could not update this product"));
     } finally {
@@ -65,31 +66,34 @@ export default function AdminProducts() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center gap-3">
-        <input
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Search product name"
-          aria-label="Search products"
-          className="field max-w-sm flex-[1_1_220px]"
-        />
-        <div className="ml-auto flex gap-2">
-          <Link href="/admin/products/bulk" className="btn-outline">
-            Bulk upload
-          </Link>
-          <Link href="/admin/products/new" className="btn-primary">
-            Add product
-          </Link>
-        </div>
-      </div>
+    <>
+      <AdminTitle title="Products">
+        <Link href="/admin/products/bulk" className="btn-outline">
+          Bulk upload
+        </Link>
+        <Link href="/admin/products/new" className="btn-primary">
+          Add product
+        </Link>
+      </AdminTitle>
+
+      <input
+        type="search"
+        value={search}
+        onChange={(event) => setSearch(event.target.value)}
+        maxLength={100}
+        placeholder="Search product name"
+        aria-label="Search products"
+        className="field max-w-md"
+      />
 
       {loading ? (
         <ListSkeleton />
       ) : failed ? (
         <OfflineNotice onRetry={reload} />
       ) : items.length === 0 ? (
-        <p className="card p-8 text-center font-semibold">No products found</p>
+        <p className="rounded-[20px] bg-white p-8 text-center font-semibold">
+          No products found
+        </p>
       ) : (
         <div className="table-box">
           <div className="min-w-[820px]">
@@ -104,9 +108,14 @@ export default function AdminProducts() {
               <div key={product.id} className="data-row">
                 <span className="font-semibold">
                   {product.name}
-                  {product.isTrending && (
+                  {(product.isTrending || product.isFeatured) && (
                     <span className="block text-sm font-normal text-muted">
-                      Trending
+                      {[
+                        product.isTrending && "Trending",
+                        product.isFeatured && "Featured",
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
                     </span>
                   )}
                 </span>
@@ -115,13 +124,13 @@ export default function AdminProducts() {
                   {product.stock}
                   {product.reservedQuantity > 0 && (
                     <span className="block text-sm text-muted">
-                      {product.reservedQuantity} in open orders
+                      {product.reservedQuantity} waiting for payment
                     </span>
                   )}
                 </span>
                 <span>
                   <StatusPill
-                    tone={product.isActive ? "green" : "red"}
+                    tone={product.isActive ? "good" : "bad"}
                     label={product.isActive ? "Visible" : "Hidden"}
                   />
                 </span>
@@ -134,7 +143,7 @@ export default function AdminProducts() {
                   </Link>
                   <button
                     type="button"
-                    onClick={() => toggleActive(product)}
+                    onClick={() => toggleVisible(product)}
                     disabled={busyId === product.id}
                     className="btn-table"
                   >
@@ -147,6 +156,6 @@ export default function AdminProducts() {
         </div>
       )}
       {cursor && <LoadMoreButton onClick={loadMore} loading={loadingMore} />}
-    </div>
+    </>
   );
 }

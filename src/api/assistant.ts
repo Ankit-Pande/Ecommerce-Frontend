@@ -12,9 +12,12 @@ export type ChatMessage = {
 
 type AssistantReply = Omit<ChatMessage, "role" | "content"> & { reply: string };
 
-// Sends the recent chat to the backend assistant; only role and text go over the wire.
+// Sends the chat (each message cut to 1,000 characters) and returns the assistant's answer.
 export async function askAssistant(messages: ChatMessage[], confirm?: boolean) {
-  const history = messages.map(({ role, content }) => ({ role, content }));
+  const history = messages.map(({ role, content }) => ({
+    role,
+    content: content.slice(0, 1000),
+  }));
   return (
     await http.post<ApiData<AssistantReply>>("/api/assistant/chat", {
       messages: history,

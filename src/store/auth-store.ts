@@ -15,6 +15,7 @@ type AuthState = {
   logout: () => void;
 };
 
+// Login state: access token in memory only; phone and role are saved for the next visit.
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
@@ -30,23 +31,16 @@ export const useAuthStore = create<AuthState>()(
     {
       name: "auth",
       skipHydration: true,
-      partialize: (s) => ({
-        phone: s.phone,
-        role: s.role,
-      }),
-      merge: (persisted, current) => {
-        const saved = persisted as Partial<AuthState>;
-        return {
-          ...current,
-          phone: saved.phone ?? null,
-          role: saved.role ?? null,
-        };
+      partialize: (state) => ({ phone: state.phone, role: state.role }),
+      merge: (saved, current) => {
+        const { phone, role } = (saved ?? {}) as Partial<AuthState>;
+        return { ...current, phone: phone ?? null, role: role ?? null };
       },
     },
   ),
 );
 
-// True for admin and super admin.
-export function isAdmin(role: UserRole | null): boolean {
+// True for admins and the super admin.
+export function isAdmin(role: UserRole | null) {
   return role === "ADMIN" || role === "SUPER_ADMIN";
 }

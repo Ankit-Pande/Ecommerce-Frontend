@@ -16,49 +16,49 @@ type CheckoutInput = {
   buyNow?: { productId: string; quantity: number } & Partial<Options>;
 };
 
-// Places an order from the cart or Buy now.
+// Places the order and returns the payment details.
 export async function checkout(input: CheckoutInput) {
   return (
     await http.post<ApiData<PaymentDetails>>("/api/order/checkout", input)
   ).data;
 }
 
-const OPEN_STATUSES = "PENDING,CONFIRMED,SHIPPED,DELIVERED";
-
-// User's orders: active ones, or only the cancelled ones.
-export function listOrders(cancelled: boolean, cursor?: string) {
-  const params = new URLSearchParams({
-    limit: "10",
-    status: cancelled ? "CANCELLED" : OPEN_STATUSES,
-  });
+// One page (10) of the user's orders.
+export function listOrders(cursor?: string) {
+  const params = new URLSearchParams({ limit: "10" });
   if (cursor) params.set("cursor", cursor);
   return http.get<Paginated<Order>>(`/api/order?${params}`);
 }
 
-// One order with photos, address and payment.
+// One order with items and address.
 export async function getOrder(id: string) {
-  return (await http.get<ApiData<OrderDetail>>(`/api/order/${id}`)).data;
+  return (
+    await http.get<ApiData<OrderDetail>>(`/api/order/${encodeURIComponent(id)}`)
+  ).data;
 }
 
-// Cancels an order.
+// Cancels an unpaid order.
 export function cancelOrder(id: string) {
-  return http.patch<{ message: string }>(`/api/order/${id}/cancel`);
+  return http.patch(`/api/order/${encodeURIComponent(id)}/cancel`);
 }
 
-// Tells the backend the popup payment is done, so the order is marked paid at once.
+// Sends Razorpay's payment proof so the backend can confirm the order.
 export function verifyPayment(
   id: string,
   razorpayPaymentId: string,
   razorpaySignature: string,
 ) {
-  return http.post(`/api/order/${id}/verify-payment`, {
+  return http.post(`/api/order/${encodeURIComponent(id)}/verify-payment`, {
     razorpayPaymentId,
     razorpaySignature,
   });
 }
 
-// Same Razorpay order again for a closed popup.
+// Payment details to pay an unpaid order again.
 export async function retryPayment(id: string) {
-  return (await http.post<ApiData<PaymentDetails>>(`/api/order/${id}/payment`))
-    .data;
+  return (
+    await http.post<ApiData<PaymentDetails>>(
+      `/api/order/${encodeURIComponent(id)}/payment`,
+    )
+  ).data;
 }

@@ -2,50 +2,75 @@
 
 import { getStats } from "@/api/admin";
 import { OfflineNotice } from "@/components/ui/offline-notice";
-import AdminOrders from "@/features/admin/orders-page";
+import { AdminTitle } from "@/features/admin/admin-shell";
+import { OrdersTable } from "@/features/admin/orders-page";
 import { useAdminData } from "@/features/admin/use-admin-data";
 import { inr } from "@/lib/format";
 
-// Dashboard: today's numbers on coloured tiles, then the orders table.
-export default function AdminHome() {
-  const { data: stats, loading, failed, load } = useAdminData(getStats);
+// Admin dashboard: today's numbers and the orders table.
+export function AdminHome() {
+  const { data: stats, failed, load } = useAdminData(getStats);
 
   const tiles = stats
     ? [
-        ["Orders today", String(stats.ordersToday), "#0B7A5C"],
-        ["Revenue today", inr(stats.revenueTodayPaise), "#1D3FA8"],
-        ["Delivery pending", String(stats.toShip), "#B4235A"],
-        ["Awaiting payment", String(stats.awaitingPayment), "#C7421F"],
-        ["Needs review", String(stats.needsReview), "#5B3FC4"],
+        {
+          label: "Orders today",
+          value: String(stats.ordersToday),
+          color: "#0B7A5C",
+        },
+        {
+          label: "Revenue today",
+          value: inr(stats.revenueTodayPaise),
+          color: "#1D3FA8",
+        },
+        { label: "To ship", value: String(stats.toShip), color: "#B4235A" },
+        {
+          label: "Payment pending",
+          value: String(stats.awaitingPayment),
+          color: "#E0A100",
+        },
+        ...(stats.needsReview > 0
+          ? [
+              {
+                label: "Needs review",
+                value: String(stats.needsReview),
+                color: "#C7421F",
+              },
+            ]
+          : []),
       ]
     : [];
 
   return (
-    <div className="flex flex-col gap-5">
+    <>
+      <AdminTitle title="Dashboard" />
       {failed ? (
         <OfflineNotice onRetry={load} />
       ) : (
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(190px,1fr))] gap-4">
-          {loading
-            ? Array.from({ length: 5 }).map((_, index) => (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-[repeat(auto-fit,minmax(190px,1fr))] sm:gap-4">
+          {stats
+            ? tiles.map((tile) => (
+                <div
+                  key={tile.label}
+                  className="rounded-[20px] border-t-8 bg-white p-[18px] shadow-card"
+                  style={{ borderTopColor: tile.color }}
+                >
+                  <p className="font-semibold text-muted">{tile.label}</p>
+                  <p className="text-[26px] font-extrabold sm:text-4xl">
+                    {tile.value}
+                  </p>
+                </div>
+              ))
+            : Array.from({ length: 4 }, (_, index) => (
                 <div
                   key={index}
-                  className="card h-[110px] animate-pulse border-t-8 border-line"
+                  className="h-[112px] animate-pulse rounded-[20px] bg-white"
                 />
-              ))
-            : tiles.map(([label, value, color]) => (
-                <div
-                  key={label}
-                  className="card border-t-8 p-[18px]"
-                  style={{ borderTopColor: color }}
-                >
-                  <p className="font-semibold text-muted">{label}</p>
-                  <p className="text-4xl font-extrabold">{value}</p>
-                </div>
               ))}
         </div>
       )}
-      <AdminOrders />
-    </div>
+      <h2 className="section-title">Orders</h2>
+      <OrdersTable />
+    </>
   );
 }

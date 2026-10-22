@@ -1,3 +1,6 @@
-import AdminCategories from "@/features/admin/categories-page";
+import { AdminCategories } from "@/features/admin/categories-page";
 
-export default AdminCategories;
+// The /admin/categories page.
+export default function AdminCategoriesRoute() {
+  return <AdminCategories />;
+}

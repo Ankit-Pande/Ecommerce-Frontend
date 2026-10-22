@@ -3,68 +3,96 @@
 import { useCallback, useState } from "react";
 import { listOrders, markOrderRefunded, updateOrderStatus } from "@/api/admin";
 import { errorMessage } from "@/api/http";
-import { StatusPill } from "@/components/ui/status-pill";
-import { OrderStatusPill } from "@/features/orders/order-parts";
 import { LoadMoreButton } from "@/components/ui/load-more-button";
 import { OfflineNotice } from "@/components/ui/offline-notice";
 import { ListSkeleton } from "@/components/ui/skeletons";
+import { StatusPill } from "@/components/ui/status-pill";
+import { AdminTitle } from "@/features/admin/admin-shell";
+import { OrderStatusPill } from "@/features/orders/order-parts";
 import { usePaginatedList } from "@/hooks/use-paginated-list";
-import { formatDate, formatTime, inr } from "@/lib/format";
+import {
+  formatDate,
+  formatTime,
+  inr,
+  optionText,
+  orderNumber,
+  phoneText,
+  shippingAddress,
+} from "@/lib/format";
 import { toast } from "@/store/toast-store";
 import type { AdminOrder, OrderStatus } from "@/lib/types";
 
-const TABS = [
-  { value: "", label: "All" },
-  { value: "PENDING", label: "Pending" },
-  { value: "CONFIRMED", label: "To ship" },
-  { value: "SHIPPED", label: "Shipped" },
-  { value: "DELIVERED", label: "Delivered" },
-  { value: "CANCELLED", label: "Cancelled" },
-  { value: "REVIEW", label: "Needs review" },
+type NewStatus = "SHIPPED" | "DELIVERED" | "CANCELLED";
+
+const FILTERS: {
+  label: string;
+  status?: OrderStatus;
+  needsReview?: boolean;
+}[] = [
+  { label: "All" },
+  { label: "Payment pending", status: "PENDING" },
+  { label: "To ship", status: "CONFIRMED" },
+  { label: "Shipped", status: "SHIPPED" },
+  { label: "Delivered", status: "DELIVERED" },
+  { label: "Cancelled", status: "CANCELLED" },
+  { label: "Needs review", needsReview: true },
 ];
 
 const PAYMENT_PILL = {
-  PENDING: { tone: "yellow", label: "Unpaid" },
-  COMPLETED: { tone: "green", label: "Paid" },
-  REFUNDED: { tone: "red", label: "Refunded" },
+  PENDING: { tone: "warn", label: "Unpaid" },
+  COMPLETED: { tone: "good", label: "Paid" },
+  REFUNDED: { tone: "bad", label: "Refunded" },
 } as const;
 
-const ACTION_LABEL: Partial<Record<OrderStatus, string>> = {
-  SHIPPED: "Ship",
-  DELIVERED: "Mark delivered",
-  CANCELLED: "Cancel",
-};
-
-// Statuses the admin can move an order to.
-function nextStatuses(order: AdminOrder): OrderStatus[] {
-  const unpaid = order.paymentStatus === "PENDING";
-  if (order.status === "PENDING") return unpaid ? ["CANCELLED"] : [];
-  if (order.status === "CONFIRMED")
-    return unpaid ? ["SHIPPED", "CANCELLED"] : ["SHIPPED"];
-  if (order.status === "SHIPPED") return ["DELIVERED"];
-  return [];
+// The buttons an order may show: ship, mark delivered, cancel (unpaid only).
+function orderActions(order: AdminOrder) {
+  const actions: { label: string; status: NewStatus }[] = [];
+  if (order.status === "CONFIRMED" && !order.needsReview) {
+    actions.push({ label: "Ship", status: "SHIPPED" });
+  }
+  if (order.status === "SHIPPED" && !order.needsReview) {
+    actions.push({ label: "Mark delivered", status: "DELIVERED" });
+  }
+  if (
+    (order.status === "PENDING" || order.status === "CONFIRMED") &&
+    order.paymentStatus === "PENDING"
+  ) {
+    actions.push({ label: "Cancel", status: "CANCELLED" });
+  }
+  return actions;
 }
 
-// Orders table with status tabs and actions.
-export default function AdminOrders() {
-  const [tab, setTab] = useState("");
+// All orders with filters, actions and "Load more".
+export function OrdersTable() {
+  const [filterIndex, setFilterIndex] = useState(0);
   const [busyId, setBusyId] = useState("");
+  const filter = FILTERS[filterIndex];
 
+  // Loads one page of orders for the chosen filter.
   const loadOrders = useCallback(
     (cursor?: string) =>
-      tab === "REVIEW" ? listOrders(cursor, "", true) : listOrders(cursor, tab),
-    [tab],
+      listOrders(cursor, {
+        status: filter.status,
+        needsReview: filter.needsReview,
+      }),
+    [filter],
   );
   const { items, cursor, loading, loadingMore, failed, loadMore, reload } =
     usePaginatedList<AdminOrder>(loadOrders);
 
-  // Saves the new order status.
-  async function updateStatus(id: string, status: OrderStatus) {
-    setBusyId(id);
+  // Ships, delivers or cancels an order (cancel asks first).
+  async function changeStatus(order: AdminOrder, status: NewStatus) {
+    if (
+      status === "CANCELLED" &&
+      !window.confirm(`Cancel order ${orderNumber(order.id)}?`)
+    ) {
+      return;
+    }
+    setBusyId(order.id);
     try {
-      await updateOrderStatus(id, status);
+      await updateOrderStatus(order.id, status);
+      toast.success("Order updated");
       reload();
-      toast.success("Order status updated");
     } catch (error) {
       toast.error(errorMessage(error, "Could not update this order"));
     } finally {
@@ -72,14 +100,20 @@ export default function AdminOrders() {
     }
   }
 
-  // Records a manual refund.
-  async function markRefunded(id: string) {
-    if (!window.confirm("Mark this payment as refunded in Razorpay?")) return;
-    setBusyId(id);
+  // Records a refund done in the Razorpay dashboard.
+  async function markRefunded(order: AdminOrder) {
+    if (
+      !window.confirm(
+        "Did you refund this payment from the Razorpay dashboard?",
+      )
+    ) {
+      return;
+    }
+    setBusyId(order.id);
     try {
-      await markOrderRefunded(id);
-      reload();
+      await markOrderRefunded(order.id);
       toast.success("Refund recorded");
+      reload();
     } catch (error) {
       toast.error(errorMessage(error, "Could not record the refund"));
     } finally {
@@ -88,19 +122,18 @@ export default function AdminOrders() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <>
       <div
-        role="tablist"
+        role="group"
         aria-label="Filter orders"
         className="flex flex-wrap gap-1.5"
       >
-        {TABS.map((item) => (
+        {FILTERS.map((item, index) => (
           <button
-            key={item.value}
+            key={item.label}
             type="button"
-            role="tab"
-            aria-selected={tab === item.value}
-            onClick={() => setTab(item.value)}
+            aria-pressed={index === filterIndex}
+            onClick={() => setFilterIndex(index)}
             className="chip"
           >
             {item.label}
@@ -113,7 +146,9 @@ export default function AdminOrders() {
       ) : failed ? (
         <OfflineNotice onRetry={reload} />
       ) : items.length === 0 ? (
-        <p className="card p-8 text-center font-semibold">No orders here</p>
+        <p className="rounded-[20px] bg-white p-8 text-center font-semibold">
+          No orders here
+        </p>
       ) : (
         <div className="table-box">
           <div className="min-w-[820px]">
@@ -133,7 +168,7 @@ export default function AdminOrders() {
                 <div className="data-row border-b-0">
                   <span>
                     <span className="block font-semibold">
-                      #{order.id.slice(0, 8).toUpperCase()}
+                      {orderNumber(order.id)}
                     </span>
                     <span className="text-sm text-muted">
                       {formatDate(order.createdAt)},{" "}
@@ -143,7 +178,7 @@ export default function AdminOrders() {
                   <span>
                     <span className="block truncate">{order.shipName}</span>
                     <span className="text-sm text-muted">
-                      +91 {order.shipPhone}
+                      {phoneText(order.shipPhone)}
                     </span>
                   </span>
                   <span className="font-semibold">{inr(order.totalPaise)}</span>
@@ -160,28 +195,37 @@ export default function AdminOrders() {
                     )}
                   </span>
                   <span className="flex flex-wrap gap-1.5">
-                    {nextStatuses(order).map((status) => (
+                    {orderActions(order).map((action) => (
                       <button
-                        key={status}
+                        key={action.status}
                         type="button"
-                        onClick={() => updateStatus(order.id, status)}
+                        onClick={() => changeStatus(order, action.status)}
                         disabled={busyId === order.id}
-                        className={`btn-table ${status === "CANCELLED" ? "text-danger" : ""}`}
+                        className={`btn-table ${action.status === "CANCELLED" ? "text-danger" : ""}`}
                       >
-                        {ACTION_LABEL[status]}
+                        {action.label}
                       </button>
                     ))}
                   </span>
                 </div>
+                <p className="flex flex-wrap gap-x-4 pb-2.5 text-sm text-muted">
+                  {order.items.map((item, index) => (
+                    <span key={index}>
+                      {item.productName} × {item.quantity}
+                      {optionText(item) && ` (${optionText(item)})`}
+                    </span>
+                  ))}
+                  <span>Ship to {shippingAddress(order)}</span>
+                </p>
                 {order.needsReview && (
                   <div className="mb-2.5 flex flex-wrap items-center gap-2 rounded-xl bg-[#FFD9D9] px-3 py-2 font-semibold text-[#8E1B1B]">
                     <span className="flex-1">
-                      Payment needs review. Refund it from the Razorpay
-                      dashboard.
+                      Extra or late payment received. Refund it from the
+                      Razorpay dashboard, then mark it refunded.
                     </span>
                     <button
                       type="button"
-                      onClick={() => markRefunded(order.id)}
+                      onClick={() => markRefunded(order)}
                       disabled={busyId === order.id}
                       className="btn-table"
                     >
@@ -195,6 +239,16 @@ export default function AdminOrders() {
         </div>
       )}
       {cursor && <LoadMoreButton onClick={loadMore} loading={loadingMore} />}
-    </div>
+    </>
+  );
+}
+
+// The admin orders page.
+export function AdminOrders() {
+  return (
+    <>
+      <AdminTitle title="Orders" />
+      <OrdersTable />
+    </>
   );
 }

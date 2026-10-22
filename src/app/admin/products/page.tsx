@@ -1,3 +1,6 @@
-import AdminProducts from "@/features/admin/products-page";
+import { AdminProducts } from "@/features/admin/products-page";
 
-export default AdminProducts;
+// The /admin/products page.
+export default function AdminProductsRoute() {
+  return <AdminProducts />;
+}

@@ -1,18 +1,12 @@
-import { Suspense } from "react";
+import type { Metadata } from "next";
 import { OrdersPage } from "@/features/orders/orders-page";
-import { ListSkeleton } from "@/components/ui/skeletons";
 
-// My orders page.
+export const metadata: Metadata = {
+  title: "My orders",
+  robots: { index: false },
+};
+
+// The /orders page.
 export default function OrdersRoute() {
-  return (
-    <Suspense
-      fallback={
-        <div className="py-8">
-          <ListSkeleton />
-        </div>
-      }
-    >
-      <OrdersPage />
-    </Suspense>
-  );
+  return <OrdersPage />;
 }

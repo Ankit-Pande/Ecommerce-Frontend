@@ -1,8 +1,14 @@
 import { Suspense } from "react";
-import { CheckoutPage } from "@/features/checkout/checkout-page";
+import type { Metadata } from "next";
 import { ListSkeleton } from "@/components/ui/skeletons";
+import { CheckoutPage } from "@/features/checkout/checkout-page";
 
-// Checkout page; Suspense is needed because it reads ?buy= from the URL.
+export const metadata: Metadata = {
+  title: "Checkout",
+  robots: { index: false },
+};
+
+// /checkout (reads the URL, so it sits inside Suspense).
 export default function CheckoutRoute() {
   return (
     <Suspense fallback={<ListSkeleton />}>

@@ -1,3 +1,6 @@
-import NewProductPage from "@/features/admin/new-product-page";
+import { NewProductPage } from "@/features/admin/new-product-page";
 
-export default NewProductPage;
+// The /admin/products/new page.
+export default function NewProductRoute() {
+  return <NewProductPage />;
+}

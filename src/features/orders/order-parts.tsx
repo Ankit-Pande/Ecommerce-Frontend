@@ -2,145 +2,98 @@
 
 import { useState } from "react";
 import { errorMessage } from "@/api/http";
-import { cancelOrder, retryPayment } from "@/api/order";
-import { openRazorpay } from "@/lib/razorpay";
+import { retryPayment } from "@/api/order";
 import { StatusPill, type PillTone } from "@/components/ui/status-pill";
+import { openRazorpay } from "@/lib/razorpay";
 import { toast } from "@/store/toast-store";
 import type { Order, OrderStatus } from "@/lib/types";
 
-const TRACK_STEPS: OrderStatus[] = ["CONFIRMED", "SHIPPED", "DELIVERED"];
-const TRACK_LABELS = [
-  "Order placed",
-  "Order confirmed",
-  "Shipped",
-  "Delivered",
-];
+const STATUS: Record<OrderStatus, { label: string; tone: PillTone }> = {
+  PENDING: { label: "Payment pending", tone: "warn" },
+  CONFIRMED: { label: "Order confirmed", tone: "info" },
+  SHIPPED: { label: "Delivery pending", tone: "warn" },
+  DELIVERED: { label: "Delivered", tone: "good" },
+  CANCELLED: { label: "Cancelled", tone: "bad" },
+};
 
-const PAYMENT_LABEL = {
+const PAYMENT_STATUS = {
   PENDING: "Not paid yet",
   COMPLETED: "Paid",
   REFUNDED: "Refunded",
-} as const;
+};
 
 export const CANCELLED_BY_TEXT = {
   USER: "You cancelled this order.",
   ADMIN: "The store cancelled this order.",
-  SYSTEM:
-    "Cancelled automatically because the payment was not completed in time.",
-} as const;
-
-const STATUS: Record<OrderStatus, { label: string; tone: PillTone }> = {
-  PENDING: { label: "Payment pending", tone: "yellow" },
-  CONFIRMED: { label: "Order confirmed", tone: "blue" },
-  SHIPPED: { label: "Delivery pending", tone: "yellow" },
-  DELIVERED: { label: "Delivered", tone: "green" },
-  CANCELLED: { label: "Cancelled", tone: "red" },
+  SYSTEM: "Cancelled because the payment was not completed in time.",
 };
 
-// "Cash on Delivery" or "Online · Paid".
-export function paymentText(order: Order) {
-  return order.paymentMethod === "COD"
-    ? "Cash on Delivery"
-    : `Online · ${PAYMENT_LABEL[order.paymentStatus]}`;
+type OrderState = Pick<
+  Order,
+  | "status"
+  | "paymentStatus"
+  | "paymentMethod"
+  | "paymentExpiresAt"
+  | "needsReview"
+>;
+
+// Coloured status of an order.
+export function OrderStatusPill({ status }: { status: OrderStatus }) {
+  return <StatusPill {...STATUS[status]} />;
 }
 
-// Only an unshipped, unpaid order can be cancelled.
-export function canCancel(order: Order) {
+// "Cash on Delivery", "Online · Paid" and so on.
+export function paymentText(order: OrderState) {
+  if (order.paymentMethod === "COD") {
+    return order.paymentStatus === "COMPLETED"
+      ? "Cash on Delivery · Paid"
+      : "Cash on Delivery";
+  }
+  return `Online · ${PAYMENT_STATUS[order.paymentStatus]}`;
+}
+
+// Whether an unpaid online order can still be paid.
+export function canPay(order: OrderState) {
+  return (
+    order.paymentMethod === "ONLINE" &&
+    order.status === "PENDING" &&
+    order.paymentStatus === "PENDING" &&
+    !order.needsReview &&
+    order.paymentExpiresAt !== null &&
+    new Date(order.paymentExpiresAt).getTime() > Date.now()
+  );
+}
+
+// Whether the order can be cancelled (unpaid and not shipped).
+export function canCancel(order: OrderState) {
   return (
     (order.status === "PENDING" || order.status === "CONFIRMED") &&
     order.paymentStatus === "PENDING"
   );
 }
 
-// An unpaid online order can be paid until its deadline.
-export function canPay(order: Order) {
-  return (
-    order.paymentMethod === "ONLINE" &&
-    order.status === "PENDING" &&
-    order.paymentStatus === "PENDING" &&
-    order.paymentExpiresAt !== null &&
-    new Date(order.paymentExpiresAt).getTime() > Date.now()
-  );
-}
+// Opens Razorpay for an unpaid order and calls onDone when the window closes.
+export function usePayAgain(onDone: () => void) {
+  const [paying, setPaying] = useState(false);
 
-// Order status pill.
-export function OrderStatusPill({ status }: { status: OrderStatus }) {
-  return <StatusPill {...STATUS[status]} />;
-}
-
-// Order placed → confirmed → shipped → delivered, as a line with dots.
-export function OrderTimeline({ status }: { status: OrderStatus }) {
-  const reached = status === "CANCELLED" ? 1 : TRACK_STEPS.indexOf(status) + 2;
-
-  return (
-    <ol aria-label="Delivery status">
-      {TRACK_LABELS.map((label, index) => {
-        const done = index < reached;
-        return (
-          <li
-            key={label}
-            className={`relative ml-2.5 flex min-h-14 items-center gap-3.5 border-l-[3px] pl-[18px] ${done ? "border-accent" : "border-line"}`}
-          >
-            <span
-              className={`absolute -left-[11px] h-[19px] w-[19px] rounded-full border-[3px] ${done ? "border-accent bg-accent" : "border-line bg-white"}`}
-            />
-            <span className="flex-1 font-semibold">{label}</span>
-            <span className="text-muted">
-              {done ? "Done" : status === "CANCELLED" ? "Cancelled" : "Pending"}
-            </span>
-          </li>
-        );
-      })}
-    </ol>
-  );
-}
-
-// Cancel and pay-again actions shared by the orders list and the order page.
-export function useOrderActions({
-  onCancelled,
-  onPaid,
-}: {
-  onCancelled: (id: string) => void;
-  onPaid: () => void;
-}) {
-  const [cancellingId, setCancellingId] = useState("");
-  const [payingId, setPayingId] = useState("");
-
-  // Cancels an order after a confirm.
-  async function cancel(id: string) {
-    if (!window.confirm("Cancel this order? This action cannot be undone."))
-      return;
-    setCancellingId(id);
+  // Gets the payment details again and opens Razorpay.
+  async function pay(orderId: string) {
+    setPaying(true);
     try {
-      const response = await cancelOrder(id);
-      onCancelled(id);
-      toast.success(response.message);
-    } catch (error) {
-      toast.error(errorMessage(error, "Could not cancel this order"));
-    } finally {
-      setCancellingId("");
-    }
-  }
-
-  // Opens Razorpay again for an unpaid order.
-  async function pay(id: string) {
-    setPayingId(id);
-    try {
-      const payment = await retryPayment(id);
-      const opened = openRazorpay(payment, {
-        onPaid: () => {
-          toast.success("Payment received. Your order is confirmed.");
-          onPaid();
-        },
-        onClose: () => toast.error("Payment is not complete yet."),
+      const payment = await retryPayment(orderId);
+      const opened = openRazorpay(payment, () => {
+        setPaying(false);
+        onDone();
       });
-      if (!opened) toast.error("The payment window could not open. Try again.");
+      if (!opened) {
+        toast.error("The payment window could not open. Please try again.");
+        setPaying(false);
+      }
     } catch (error) {
       toast.error(errorMessage(error, "Could not start the payment"));
-    } finally {
-      setPayingId("");
+      setPaying(false);
     }
   }
 
-  return { cancel, pay, cancellingId, payingId };
+  return { paying, pay };
 }

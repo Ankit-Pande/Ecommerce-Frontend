@@ -1,34 +1,46 @@
-// Grey placeholder for one product card.
+// Grey placeholder of one product card.
 function CardSkeleton() {
   return (
-    <div className="card animate-pulse overflow-hidden">
+    <div className="animate-pulse overflow-hidden rounded-[22px] bg-white shadow-card">
       <div className="h-[162px] bg-soft" />
-      <div className="space-y-2 p-3">
+      <div className="flex flex-col gap-2 p-3">
         <div className="h-3 w-4/5 rounded bg-line" />
         <div className="h-3 w-3/5 rounded bg-line" />
-        <div className="h-4 w-2/5 rounded bg-line" />
+        <div className="h-5 w-2/5 rounded bg-line" />
+        <div className="mt-2 h-9 rounded-[10px] bg-soft" />
       </div>
     </div>
   );
 }
 
-// Placeholder grid while a product list loads.
+// Placeholder product grid while a list loads.
 export function GridSkeleton({ count = 8 }: { count?: number }) {
   return (
     <div className="product-grid">
-      {Array.from({ length: count }).map((_, i) => (
-        <CardSkeleton key={i} />
+      {Array.from({ length: count }, (_, index) => (
+        <CardSkeleton key={index} />
       ))}
     </div>
   );
 }
 
-// Placeholder rows while a page loads.
-export function ListSkeleton({ count = 4 }: { count?: number }) {
+// Placeholder product row while a row loads.
+export function RowSkeleton() {
   return (
-    <div className="space-y-3">
-      {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="card h-24 animate-pulse bg-soft" />
+    <div className="scroll-row">
+      {Array.from({ length: 6 }, (_, index) => (
+        <CardSkeleton key={index} />
+      ))}
+    </div>
+  );
+}
+
+// Placeholder cards while a page loads.
+export function ListSkeleton({ count = 3 }: { count?: number }) {
+  return (
+    <div className="flex flex-col gap-3.5">
+      {Array.from({ length: count }, (_, index) => (
+        <div key={index} className="card h-28 animate-pulse" />
       ))}
     </div>
   );

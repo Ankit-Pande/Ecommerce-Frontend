@@ -1,29 +1,33 @@
 "use client";
 
 import { useState } from "react";
-import { BadgePercent } from "lucide-react";
 import { applySale, listCategories } from "@/api/admin";
 import { errorMessage } from "@/api/http";
 import { Button } from "@/components/ui/button";
+import { AdminTitle } from "@/features/admin/admin-shell";
 import { useAdminData } from "@/features/admin/use-admin-data";
 import { toast } from "@/store/toast-store";
 
-// Festival sale: one discount on a whole category or the store, with an end date.
-export default function AdminSale() {
+// Starts or ends a sale on the whole store or one category.
+export function AdminSale() {
   const { data: categories } = useAdminData(listCategories);
   const [categoryId, setCategoryId] = useState("");
   const [discount, setDiscount] = useState("20");
   const [endsAt, setEndsAt] = useState("");
   const [busy, setBusy] = useState(false);
 
-  // Sends the sale to the backend; percent 0 removes the discount.
-  async function run(discountPercent: number) {
+  const percent = Number(discount);
+  const validPercent =
+    Number.isInteger(percent) && percent >= 1 && percent <= 90;
+
+  // Sets the discount (0 ends the sale) after a confirm.
+  async function applyDiscount(discountPercent: number) {
     const where = categoryId ? "this category" : "every product";
-    const action =
+    const question =
       discountPercent > 0
-        ? `Put ${discountPercent}% off on ${where}?`
+        ? `Put ${discountPercent}% off on ${where}? This replaces their current discount.`
         : `Remove the discount from ${where}?`;
-    if (!window.confirm(action)) return;
+    if (!window.confirm(question)) return;
 
     setBusy(true);
     try {
@@ -41,27 +45,12 @@ export default function AdminSale() {
     }
   }
 
-  const percent = Number(discount);
-  const validPercent =
-    Number.isInteger(percent) && percent >= 1 && percent <= 90;
-
   return (
-    <div className="max-w-xl card p-5">
-      <div className="flex items-center gap-3">
-        <span className="grid h-10 w-10 place-items-center rounded-xl bg-accent/10 text-accent">
-          <BadgePercent className="h-4 w-4" />
-        </span>
-        <div>
-          <h2 className="text-sm font-extrabold">Festival sale</h2>
-          <p className="text-xs text-muted">
-            Replaces the current discount on every selected product.
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-5 space-y-4">
-        <label className="block">
-          <span className="mb-1.5 block text-sm font-semibold">Products</span>
+    <>
+      <AdminTitle title="Sale" />
+      <div className="card flex max-w-xl flex-col gap-4 p-5">
+        <label className="label">
+          Products
           <select
             className="field"
             value={categoryId}
@@ -73,19 +62,16 @@ export default function AdminSale() {
                 <option value={category.id}>All {category.name}</option>
                 {category.children.map((child) => (
                   <option key={child.id} value={child.id}>
-                    {child.name}
+                    {category.name} › {child.name}
                   </option>
                 ))}
               </optgroup>
             ))}
           </select>
         </label>
-
         <div className="grid gap-4 sm:grid-cols-2">
-          <label className="block">
-            <span className="mb-1.5 block text-sm font-semibold">
-              Discount %
-            </span>
+          <label className="label">
+            Discount % (1 to 90)
             <input
               className="field"
               type="number"
@@ -95,11 +81,8 @@ export default function AdminSale() {
               onChange={(event) => setDiscount(event.target.value)}
             />
           </label>
-          <label className="block">
-            <span className="mb-1.5 block text-sm font-semibold">
-              Sale ends{" "}
-              <span className="font-medium text-muted">(optional)</span>
-            </span>
+          <label className="label">
+            Sale ends (optional)
             <input
               className="field"
               type="datetime-local"
@@ -108,20 +91,23 @@ export default function AdminSale() {
             />
           </label>
         </div>
-
         <div className="flex flex-wrap gap-3">
           <Button
-            onClick={() => run(percent)}
+            onClick={() => applyDiscount(percent)}
             loading={busy}
             disabled={!validPercent}
           >
             Start sale
           </Button>
-          <Button variant="outline" onClick={() => run(0)} disabled={busy}>
+          <Button
+            variant="line"
+            onClick={() => applyDiscount(0)}
+            disabled={busy}
+          >
             End sale
           </Button>
         </div>
       </div>
-    </div>
+    </>
   );
 }

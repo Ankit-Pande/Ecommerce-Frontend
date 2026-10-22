@@ -1,128 +1,157 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { OfflineNotice } from "@/components/ui/offline-notice";
-import { SafeImage } from "@/components/ui/safe-image";
-import { ListSkeleton } from "@/components/ui/skeletons";
-import { StatusPill } from "@/components/ui/status-pill";
-import { useAdminData } from "@/features/admin/use-admin-data";
 import {
   createBanner,
   deleteBanner,
   listBanners,
-  setBannerActive,
+  updateBanner,
 } from "@/api/admin";
 import { errorMessage } from "@/api/http";
-import { safeHttpUrl } from "@/lib/sanitize";
+import { Button } from "@/components/ui/button";
+import { OfflineNotice } from "@/components/ui/offline-notice";
+import { SafeImage } from "@/components/ui/safe-image";
+import { ListSkeleton } from "@/components/ui/skeletons";
+import { StatusPill } from "@/components/ui/status-pill";
+import { AdminTitle } from "@/features/admin/admin-shell";
+import { useAdminData } from "@/features/admin/use-admin-data";
+import { safeLink } from "@/lib/links";
 import { toast } from "@/store/toast-store";
 import type { AdminBanner } from "@/lib/types";
-import { Button } from "@/components/ui/button";
 
-// Admin banners list and add form.
-export default function AdminBanners() {
+// Home carousel slides: add, edit link and position, hide/show, delete.
+export function AdminBanners() {
   const { data, setData, loading, failed, load } = useAdminData(listBanners);
-  const banners = data ?? [];
+  const [editing, setEditing] = useState<AdminBanner | null>(null);
   const [image, setImage] = useState<File | null>(null);
   const [link, setLink] = useState("");
   const [position, setPosition] = useState("0");
   const [saving, setSaving] = useState(false);
   const [busyId, setBusyId] = useState("");
+  const linkInput = useRef<HTMLInputElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
+  const banners = data ?? [];
 
-  // Saves a new banner.
-  async function create(event: React.FormEvent<HTMLFormElement>) {
+  // Puts a slide in the form for editing (null clears the form for a new slide).
+  function fillForm(banner: AdminBanner | null) {
+    setEditing(banner);
+    setLink(banner?.link ?? "");
+    setPosition(String(banner?.position ?? 0));
+    setImage(null);
+    if (fileInput.current) fileInput.current.value = "";
+    if (banner) linkInput.current?.focus();
+  }
+
+  // Saves the edited slide, or adds a new one with its image.
+  async function save(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!image) {
-      toast.error("Choose a banner image first");
+    const opens = link.trim();
+    if (opens && !safeLink(opens)) {
+      toast.error("Use a link like /products?category=mobiles or https://…");
       return;
     }
-
     setSaving(true);
     try {
-      const form = new FormData();
-      form.append("image", image);
-      form.append("position", position || "0");
-      if (link.trim()) form.append("link", link.trim());
-
-      await createBanner(form);
-      setImage(null);
-      setLink("");
-      setPosition("0");
-      if (fileInput.current) fileInput.current.value = "";
+      if (editing) {
+        await updateBanner(editing.id, {
+          link: opens || null,
+          position: Number(position || 0),
+        });
+      } else if (image) {
+        const form = new FormData();
+        form.append("image", image);
+        form.append("position", position || "0");
+        if (opens) form.append("link", opens);
+        await createBanner(form);
+      }
+      toast.success(editing ? "Slide saved" : "Slide added");
+      fillForm(null);
       await load();
-      toast.success("Banner published");
     } catch (error) {
-      toast.error(errorMessage(error, "Could not publish this banner"));
+      toast.error(errorMessage(error, "Could not save this slide"));
     } finally {
       setSaving(false);
     }
   }
 
-  // Hides or shows a banner on the home page.
-  async function toggleActive(banner: AdminBanner) {
+  // Hides or shows a slide on the home page.
+  async function toggleVisible(banner: AdminBanner) {
     setBusyId(banner.id);
     try {
-      const { data: saved } = await setBannerActive(
-        banner.id,
-        !banner.isActive,
-      );
+      const saved = await updateBanner(banner.id, {
+        isActive: !banner.isActive,
+      });
       setData(
         (current) =>
           current?.map((item) => (item.id === saved.id ? saved : item)) ?? [],
       );
-      toast.success(saved.isActive ? "Banner visible" : "Banner hidden");
+      toast.success(saved.isActive ? "Slide is live" : "Slide hidden");
     } catch (error) {
-      toast.error(errorMessage(error, "Could not update this banner"));
+      toast.error(errorMessage(error, "Could not update this slide"));
     } finally {
       setBusyId("");
     }
   }
 
-  // Deletes a banner.
-  async function remove(id: string) {
-    if (!window.confirm("Delete this home banner?")) return;
-
-    setBusyId(id);
+  // Deletes a slide after a confirm.
+  async function remove(banner: AdminBanner) {
+    if (!window.confirm("Delete this slide?")) return;
+    setBusyId(banner.id);
     try {
-      await deleteBanner(id);
-      setData((current) => current?.filter((banner) => banner.id !== id) ?? []);
-      toast.success("Banner deleted");
+      await deleteBanner(banner.id);
+      setData(
+        (current) => current?.filter((item) => item.id !== banner.id) ?? [],
+      );
+      toast.success("Slide deleted");
     } catch (error) {
-      toast.error(errorMessage(error, "Could not delete this banner"));
+      toast.error(errorMessage(error, "Could not delete this slide"));
     } finally {
       setBusyId("");
     }
   }
 
   return (
-    <div className="flex flex-wrap items-start gap-6">
+    <>
+      <AdminTitle title="Carousel slides" />
+
       <form
-        onSubmit={create}
-        className="card flex flex-[1_1_280px] flex-col gap-3 p-5 xl:max-w-[380px]"
+        onSubmit={save}
+        className="flex flex-wrap items-end gap-3 rounded-[20px] bg-white p-4 shadow-card"
       >
-        <h2 className="text-xl font-extrabold">Add banner</h2>
-        <label className="flex flex-col gap-1.5 font-semibold">
-          Banner image
+        {editing ? (
+          <span className="relative block h-14 w-40 shrink-0 overflow-hidden rounded-xl bg-ground">
+            <SafeImage
+              src={editing.image}
+              alt="Slide being edited"
+              sizes="160px"
+              className="object-cover"
+            />
+          </span>
+        ) : (
+          <label className="label flex-[1_1_220px]">
+            Slide image
+            <input
+              ref={fileInput}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              required
+              className="field py-2.5"
+              onChange={(event) => setImage(event.target.files?.[0] ?? null)}
+            />
+          </label>
+        )}
+        <label className="label flex-[1_1_260px]">
+          Opens (optional)
           <input
-            ref={fileInput}
-            type="file"
-            accept="image/*"
-            required
-            className="field py-2.5"
-            onChange={(event) => setImage(event.target.files?.[0] ?? null)}
-          />
-        </label>
-        <label className="flex flex-col gap-1.5 font-semibold">
-          Opens (optional, full URL or /products?category=…)
-          <input
+            ref={linkInput}
             className="field"
-            placeholder="/products?category=laptops"
+            placeholder="/products?category=mobiles"
             value={link}
             onChange={(event) => setLink(event.target.value)}
           />
         </label>
-        <label className="flex flex-col gap-1.5 font-semibold">
-          Display order
+        <label className="label flex-[0_1_140px]">
+          Order
           <input
             className="field"
             inputMode="numeric"
@@ -133,74 +162,86 @@ export default function AdminBanners() {
           />
         </label>
         <Button type="submit" loading={saving}>
-          Add banner
+          {editing ? "Save slide" : "Add slide"}
         </Button>
+        {editing && (
+          <Button variant="line" onClick={() => fillForm(null)}>
+            Cancel
+          </Button>
+        )}
+        <p className="w-full text-muted">
+          The home page updates within a few minutes.
+        </p>
       </form>
 
-      <section className="flex min-w-0 flex-[2_1_480px] flex-col gap-3">
-        <p className="text-muted">
-          Home updates can take up to 10 minutes to appear.
+      {loading && !data ? (
+        <ListSkeleton />
+      ) : failed ? (
+        <OfflineNotice onRetry={load} />
+      ) : banners.length === 0 ? (
+        <p className="rounded-[20px] bg-white p-8 text-center font-semibold">
+          No slides yet
         </p>
-        {loading ? (
-          <ListSkeleton count={3} />
-        ) : failed ? (
-          <OfflineNotice onRetry={load} />
-        ) : banners.length === 0 ? (
-          <p className="card p-8 text-center font-semibold">No banners yet</p>
-        ) : (
-          <div className="table-box">
-            <div className="min-w-[820px]">
-              <div className="table-head">
-                <span>Banner</span>
-                <span>Order</span>
-                <span>Opens</span>
-                <span>Status</span>
-                <span>Actions</span>
-              </div>
-              {banners.map((banner, index) => (
-                <div key={banner.id} className="data-row">
-                  <span className="relative block h-14 overflow-hidden rounded-xl bg-ground">
-                    <SafeImage
-                      src={banner.image}
-                      alt={`Home banner ${index + 1}`}
-                      sizes="200px"
-                      className="object-cover"
-                    />
-                  </span>
-                  <span>{banner.position}</span>
-                  <span className="truncate text-muted">
-                    {safeHttpUrl(banner.link) ?? "No link"}
-                  </span>
-                  <span>
-                    <StatusPill
-                      tone={banner.isActive ? "green" : "red"}
-                      label={banner.isActive ? "Live" : "Hidden"}
-                    />
-                  </span>
-                  <span className="flex flex-wrap gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => toggleActive(banner)}
-                      disabled={busyId === banner.id}
-                      className="btn-table"
-                    >
-                      {banner.isActive ? "Hide" : "Unhide"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => remove(banner.id)}
-                      disabled={busyId === banner.id}
-                      className="btn-table text-danger"
-                    >
-                      Remove
-                    </button>
-                  </span>
-                </div>
-              ))}
+      ) : (
+        <div className="table-box">
+          <div className="min-w-[820px]">
+            <div className="table-head">
+              <span>Slide</span>
+              <span>Opens</span>
+              <span>Order</span>
+              <span>Status</span>
+              <span>Actions</span>
             </div>
+            {banners.map((banner, index) => (
+              <div key={banner.id} className="data-row">
+                <span className="relative block h-14 overflow-hidden rounded-xl bg-ground">
+                  <SafeImage
+                    src={banner.image}
+                    alt={`Slide ${index + 1}`}
+                    sizes="200px"
+                    className="object-cover"
+                  />
+                </span>
+                <span className="truncate text-muted">
+                  {banner.link ?? "Products page"}
+                </span>
+                <span>{banner.position}</span>
+                <span>
+                  <StatusPill
+                    tone={banner.isActive ? "good" : "bad"}
+                    label={banner.isActive ? "Live" : "Hidden"}
+                  />
+                </span>
+                <span className="flex flex-wrap gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => fillForm(banner)}
+                    className="btn-table"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => toggleVisible(banner)}
+                    disabled={busyId === banner.id}
+                    className="btn-table"
+                  >
+                    {banner.isActive ? "Hide" : "Unhide"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => remove(banner)}
+                    disabled={busyId === banner.id}
+                    className="btn-table text-danger"
+                  >
+                    Delete
+                  </button>
+                </span>
+              </div>
+            ))}
           </div>
-        )}
-      </section>
-    </div>
+        </div>
+      )}
+    </>
   );
 }

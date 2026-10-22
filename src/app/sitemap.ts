@@ -1,16 +1,17 @@
 import type { MetadataRoute } from "next";
 import { getHomeOnServer } from "@/api/catalog";
+import { categoryHref, subcategoryHref } from "@/lib/links";
 import { SITE_URL } from "@/lib/site";
 
-// Sitemap with home, categories and home page products.
+// sitemap.xml: home, categories, subcategories and the products shown on the home page.
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const home = await getHomeOnServer();
   const pages = ["/", "/products"];
 
   for (const category of home?.categories ?? []) {
-    pages.push(`/products?category=${category.slug}`);
+    pages.push(categoryHref(category.slug));
     for (const child of category.children) {
-      pages.push(`/products?subcategory=${child.slug}`);
+      pages.push(subcategoryHref(child.slug));
     }
   }
 

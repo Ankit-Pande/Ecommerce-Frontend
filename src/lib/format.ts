@@ -1,7 +1,7 @@
-import type { Address, StockStatus } from "@/lib/types";
+import type { Address, OrderDetail } from "@/lib/types";
 
-// Paise to rupees, like 49900 to "₹499".
-export function inr(paise: number): string {
+// Paise as rupees: 149900 -> "₹1,499", 149950 -> "₹1,499.50".
+export function inr(paise: number) {
   const digits = paise % 100 === 0 ? 0 : 2;
   return (
     "₹" +
@@ -12,24 +12,8 @@ export function inr(paise: number): string {
   );
 }
 
-export const STOCK_TEXT: Record<StockStatus, string> = {
-  IN_STOCK: "In stock",
-  LOW_STOCK: "Only a few left",
-  OUT_OF_STOCK: "Out of stock",
-};
-
-// "Galaxy S24" to "galaxy-s24".
-export function slugify(name: string): string {
-  return name
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/[\s-]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
-
-// Date like "1 Oct 2026".
-export function formatDate(iso: string): string {
+// "17 Oct 2026".
+export function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-IN", {
     day: "numeric",
     month: "short",
@@ -37,60 +21,79 @@ export function formatDate(iso: string): string {
   });
 }
 
-// Time like "3:45 pm".
-export function formatTime(iso: string): string {
+// "4:05 pm".
+export function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString("en-IN", {
     hour: "numeric",
     minute: "2-digit",
   });
 }
 
-// Address in one line.
-export function formatAddress(address: Address): string {
-  return [
-    address.line1,
-    address.line2,
-    address.city,
-    address.state,
-    address.pincode,
-  ]
-    .filter(Boolean)
-    .join(", ");
-}
-
-// Product list link for a category or subcategory.
-export function catalogHref(
-  entry: { slug: string },
-  level: "category" | "subcategory" = "category",
+// An address on one line.
+export function formatAddress(
+  address: Pick<Address, "line1" | "line2" | "city" | "state" | "pincode">,
 ) {
-  return `/products?${level}=${encodeURIComponent(entry.slug)}`;
+  return [address.line1, address.line2, address.city, address.state]
+    .filter(Boolean)
+    .join(", ")
+    .concat(` ${address.pincode}`);
 }
 
-// Soft background colours for category and product image tiles.
-export const TINTS = [
-  "#FFE1D6",
-  "#FFF0B8",
-  "#D6F0FF",
-  "#E6DDFF",
-  "#FFD9E6",
-  "#DDF5C9",
-  "#CFF3EA",
-  "#FFE6C2",
-];
-
-// Same tint every time for the same id.
-export function tintFor(id: string): string {
-  let hash = 0;
-  for (const char of id) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
-  return TINTS[hash % TINTS.length];
+// The address saved on an order, on one line.
+export function shippingAddress(
+  order: Pick<
+    OrderDetail,
+    "shipLine1" | "shipLine2" | "shipCity" | "shipState" | "shipPincode"
+  >,
+) {
+  return formatAddress({
+    line1: order.shipLine1,
+    line2: order.shipLine2,
+    city: order.shipCity,
+    state: order.shipState,
+    pincode: order.shipPincode,
+  });
 }
 
-// Chosen options in one line, like "Size M · Navy Blue"; empty when none.
+// "+91 98765 43210".
+export function phoneText(phone: string) {
+  return `+91 ${phone.slice(0, 5)} ${phone.slice(5)}`;
+}
+
+// "1 rating" or "1,234 ratings".
+export function ratingsText(count: number) {
+  return `${count.toLocaleString("en-IN")} ${count === 1 ? "rating" : "ratings"}`;
+}
+
+// The order number shoppers see: "#" and the first 8 characters of the id.
+export function orderNumber(id: string) {
+  return `#${id.slice(0, 8).toUpperCase()}`;
+}
+
+// "Size M · Black".
 export function optionText(item: {
   size?: string | null;
   color?: string | null;
-}): string {
+}) {
   return [item.size && `Size ${item.size}`, item.color]
     .filter(Boolean)
     .join(" · ");
+}
+
+// Seconds as "m:ss".
+export function minutesAndSeconds(totalSeconds: number) {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = String(totalSeconds % 60).padStart(2, "0");
+  return `${minutes}:${seconds}`;
+}
+
+// "Men's Shoes" -> "mens-shoes" (at most 120 characters, the API's limit).
+export function slugify(name: string) {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/[\s-]+/g, "-")
+    .slice(0, 120)
+    .replace(/^-|-$/g, "");
 }

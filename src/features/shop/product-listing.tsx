@@ -1,235 +1,257 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { getCatalog } from "@/api/catalog";
-import { usePaginatedList } from "@/hooks/use-paginated-list";
+import { catalogParams, getCatalog } from "@/api/catalog";
+import { ProductCard } from "@/components/product/product-card";
 import { LoadMoreButton } from "@/components/ui/load-more-button";
 import { OfflineNotice } from "@/components/ui/offline-notice";
+import { SafeImage } from "@/components/ui/safe-image";
 import { GridSkeleton } from "@/components/ui/skeletons";
-import { ProductCard } from "@/components/product/product-card";
-import type { Category, Product } from "@/lib/types";
-
-const PAGE_SIZE = 20;
-const MIN_SEARCH_LENGTH = 2;
+import { useActiveCategory } from "@/hooks/use-active-category";
+import { usePaginatedList } from "@/hooks/use-paginated-list";
+import { tintAt } from "@/lib/colors";
+import { categoryHref, subcategoryHref } from "@/lib/links";
+import type { Category, Paginated, Product } from "@/lib/types";
 
 const PRICE_OPTIONS = [
-  { label: "All", value: 0 },
-  { label: "Under ₹1,000", value: 1000 },
-  { label: "Under ₹5,000", value: 5000 },
-  { label: "Under ₹20,000", value: 20000 },
+  { label: "All", value: "" },
+  { label: "Under ₹1,000", value: "1000" },
+  { label: "Under ₹5,000", value: "5000" },
+  { label: "Under ₹20,000", value: "20000" },
 ];
 const RATING_OPTIONS = [
-  { label: "All", value: 0 },
-  { label: "3★ and up", value: 3 },
-  { label: "4★ and up", value: 4 },
+  { label: "All", value: "" },
+  { label: "4.3★ and up", value: "4.3" },
+  { label: "4.6★ and up", value: "4.6" },
 ];
 const SORT_OPTIONS = [
-  { label: "Newest", value: "latest" },
   { label: "Price: low to high", value: "price_asc" },
   { label: "Price: high to low", value: "price_desc" },
   { label: "Discount", value: "discount" },
-  { label: "Top rated", value: "rating" },
 ];
-
-// Product list page; filters start fresh whenever the URL changes.
-export function ProductListing({ categories }: { categories: Category[] }) {
-  const urlParams = useSearchParams();
-  return (
-    <Listing
-      key={urlParams.toString()}
-      categories={categories}
-      urlParams={urlParams}
-    />
-  );
+const LIST_SORTS = [{ label: "Newest", value: "" }, ...SORT_OPTIONS];
+const SEARCH_SORTS = [
+  { label: "Relevance", value: "" },
+  { label: "Newest", value: "latest" },
+  ...SORT_OPTIONS,
+];
+// The list title: the search words, a section name or "All products".
+function pageTitle(page: URLSearchParams) {
+  const search = (page.get("q") ?? "").trim();
+  if (search.length >= 2) return `Results for "${search}"`;
+  if (page.get("section") === "trending") return "Trending";
+  if (page.get("section") === "featured") return "Featured";
+  if (page.get("discount") === "true") return "Top discounts";
+  if (page.get("sort") === "latest") return "New arrivals";
+  return "All products";
 }
 
-function Listing({
+// Product list with subcategory pills, filters, sort and "Load more"; filters live in the URL.
+export function ProductListing({
   categories,
-  urlParams,
+  firstPage,
 }: {
   categories: Category[];
-  urlParams: URLSearchParams;
+  firstPage: Paginated<Product> | null;
 }) {
-  const query = urlParams.get("q")?.trim() ?? "";
-  const searchText = query.length >= MIN_SEARCH_LENGTH ? query : "";
-  const category = urlParams.get("category") ?? "";
-  const subcategory = urlParams.get("subcategory") ?? "";
-
-  const [maxPrice, setMaxPrice] = useState(0);
-  const [minStars, setMinStars] = useState(0);
-  const [sort, setSort] = useState(
-    () =>
-      SORT_OPTIONS.find((option) => option.value === urlParams.get("sort"))
-        ?.value ?? "latest",
+  const page = useSearchParams();
+  const pageQuery = page.toString();
+  const isSearch = (page.get("q") ?? "").trim().length >= 2;
+  const { categorySlug, subcategorySlug } = useActiveCategory(categories);
+  const categoryIndex = categories.findIndex(
+    (item) => item.slug === categorySlug,
   );
-  // null: shown on wide screens, hidden on narrow ones, until the user toggles it.
-  const [sideOpen, setSideOpen] = useState<boolean | null>(null);
+  const category = categories[categoryIndex];
 
+  // Loads one page of products for the current URL.
   const loadProducts = useCallback(
-    (cursor?: string) => {
-      const params = new URLSearchParams();
-      if (searchText) params.set("q", searchText);
-      for (const key of [
-        "category",
-        "subcategory",
-        "section",
-        "brand",
-        "color",
-      ]) {
-        const value = urlParams.get(key);
-        if (value) params.set(key, value);
-      }
-      if (urlParams.get("discount") === "true") params.set("discount", "true");
-      if (maxPrice) params.set("maxPricePaise", String(maxPrice * 100));
-      if (cursor) params.set("cursor", cursor);
-      params.set("sort", sort);
-      params.set("limit", String(PAGE_SIZE));
-      return getCatalog(params);
-    },
-    [maxPrice, searchText, sort, urlParams],
+    (cursor?: string) =>
+      getCatalog(catalogParams(new URLSearchParams(pageQuery), cursor)),
+    [pageQuery],
   );
-
   const { items, cursor, loading, loadingMore, failed, loadMore, reload } =
-    usePaginatedList<Product>(loadProducts);
-  // The catalog API has no rating filter, so it runs on the loaded products.
-  const products = minStars
-    ? items.filter((product) => product.rating.average >= minStars)
-    : items;
+    usePaginatedList<Product>(loadProducts, true, firstPage);
+
+  // Changes one filter in the URL (an empty value removes it).
+  function setFilter(key: string, value: string) {
+    const next = new URLSearchParams(pageQuery);
+    if (value) next.set(key, value);
+    else next.delete(key);
+    window.history.replaceState(null, "", `/products?${next}`);
+  }
+
+  const countText = loading
+    ? "…"
+    : `${items.length}${cursor ? "+" : ""} ${items.length === 1 ? "product" : "products"}`;
 
   return (
-    <div className="flex flex-wrap items-start gap-6">
-      {sideOpen !== false && (
-        <aside
-          aria-label="Subcategories"
-          className={`card flex-[1_1_260px] flex-col gap-1 p-4 max-w-[320px] ${sideOpen ? "flex" : "hidden min-[900px]:flex"}`}
-        >
-          <div className="flex items-center justify-between gap-2 border-b-2 border-ground px-2 pb-1.5">
-            <span className="text-xl font-extrabold text-accent">
-              Categories
-            </span>
-            <button
-              type="button"
-              onClick={() => setSideOpen(false)}
-              className="min-h-10 rounded-[10px] bg-ground px-3.5 text-sm font-semibold"
-            >
-              Hide
-            </button>
-          </div>
-          {categories.map((parent) => {
-            const active =
-              parent.slug === category ||
-              parent.children.some((child) => child.slug === subcategory);
-            return (
-              <div key={parent.id}>
-                <Link
-                  href={`/products?category=${encodeURIComponent(parent.slug)}`}
-                  className={`flex min-h-11 items-center px-2 font-extrabold ${active ? "text-accent" : ""}`}
-                >
-                  {parent.name}
-                </Link>
-                {active && (
-                  <div className="flex flex-col gap-1 pb-2">
-                    {parent.children.map((child) => (
-                      <Link
-                        key={child.id}
-                        href={`/products?subcategory=${encodeURIComponent(child.slug)}`}
-                        className={`flex min-h-11 items-center rounded-[10px] px-3.5 ${child.slug === subcategory ? "bg-soft font-extrabold text-accent" : ""}`}
-                      >
-                        {child.name}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </aside>
-      )}
-
-      <div className="flex min-w-0 flex-[999_1_560px] flex-col gap-7">
-        {sideOpen !== true && (
-          <button
-            type="button"
-            onClick={() => setSideOpen(true)}
-            className={`btn-primary self-start px-[18px] ${sideOpen === null ? "min-[900px]:hidden" : ""}`}
-          >
-            ☰ Categories
-          </button>
-        )}
-
-        <h1 className="text-[32px] font-extrabold leading-tight">
-          {searchText
-            ? `Results for "${searchText}"`
-            : pageTitle(categories, urlParams)}
-        </h1>
-
+    <>
+      {category ? (
         <section
-          aria-label="Filters"
-          className="card flex flex-wrap gap-x-6 gap-y-2 px-4 py-3"
+          className="flex flex-wrap items-center gap-5 rounded-[28px] px-6 py-5"
+          style={{ background: tintAt(categoryIndex) }}
         >
-          <ChipGroup
-            title="Price"
-            options={PRICE_OPTIONS}
-            value={maxPrice}
-            onPick={setMaxPrice}
-          />
-          <ChipGroup
-            title="Rating"
-            options={RATING_OPTIONS}
-            value={minStars}
-            onPick={setMinStars}
-          />
-          <ChipGroup
-            title="Sort by"
-            options={SORT_OPTIONS}
-            value={sort}
-            onPick={setSort}
-          />
-        </section>
-
-        {loading ? (
-          <GridSkeleton count={12} />
-        ) : failed ? (
-          <OfflineNotice onRetry={reload} />
-        ) : (
-          <>
-            {products.length === 0 ? (
-              <p className="card p-8 text-center font-semibold">
-                No products found
-              </p>
-            ) : (
-              <div className="product-grid">
-                {products.map((product) => (
-                  <ProductCard key={product.id} product={product} />
+          <span className="relative block h-28 w-28 shrink-0 overflow-hidden rounded-3xl bg-white">
+            <SafeImage
+              src={category.image}
+              alt=""
+              sizes="112px"
+              className="object-contain p-3"
+            />
+          </span>
+          <div className="flex min-w-0 flex-[1_1_240px] flex-col gap-2.5">
+            <nav
+              aria-label="Breadcrumb"
+              className="flex flex-wrap items-center gap-1.5 font-semibold"
+            >
+              <Link href="/" className="underline">
+                Home
+              </Link>
+              <span aria-hidden>›</span>
+              {subcategorySlug ? (
+                <Link href={categoryHref(category.slug)} className="underline">
+                  {category.name}
+                </Link>
+              ) : (
+                <span>{category.name}</span>
+              )}
+              {subcategorySlug && (
+                <>
+                  <span aria-hidden>›</span>
+                  <span>
+                    {
+                      category.children.find(
+                        (child) => child.slug === subcategorySlug,
+                      )?.name
+                    }
+                  </span>
+                </>
+              )}
+            </nav>
+            <h1 className="text-[36px] font-extrabold leading-[1.1]">
+              {category.name}
+            </h1>
+            {category.children.length > 0 && (
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                <SubcategoryPill
+                  href={categoryHref(category.slug)}
+                  active={!subcategorySlug}
+                >
+                  All
+                </SubcategoryPill>
+                {category.children.map((child) => (
+                  <SubcategoryPill
+                    key={child.id}
+                    href={subcategoryHref(child.slug)}
+                    active={child.slug === subcategorySlug}
+                  >
+                    {child.name}
+                  </SubcategoryPill>
                 ))}
               </div>
             )}
-            {cursor && (
-              <LoadMoreButton onClick={loadMore} loading={loadingMore} />
-            )}
-          </>
-        )}
-      </div>
-    </div>
+          </div>
+        </section>
+      ) : (
+        <h1 className="page-title">{pageTitle(page)}</h1>
+      )}
+
+      <section
+        aria-label="Filters"
+        className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-[20px] bg-white px-4 py-3 shadow-card"
+      >
+        <span className="rounded-full bg-ink px-3.5 py-1 font-semibold text-white">
+          {countText}
+        </span>
+        <ChipGroup
+          title="Price"
+          options={PRICE_OPTIONS}
+          value={page.get("maxPrice") ?? ""}
+          onPick={(value) => setFilter("maxPrice", value)}
+        />
+        <ChipGroup
+          title="Rating"
+          options={RATING_OPTIONS}
+          value={page.get("minRating") ?? ""}
+          onPick={(value) => setFilter("minRating", value)}
+        />
+        <ChipGroup
+          title="Sort by"
+          options={isSearch ? SEARCH_SORTS : LIST_SORTS}
+          value={
+            page.get("sort") === "latest" && !isSearch
+              ? ""
+              : (page.get("sort") ?? "")
+          }
+          onPick={(value) => setFilter("sort", value)}
+        />
+      </section>
+
+      {loading ? (
+        <GridSkeleton count={12} />
+      ) : failed ? (
+        <OfflineNotice onRetry={reload} />
+      ) : items.length === 0 ? (
+        <p className="rounded-[20px] bg-white p-8 text-center font-semibold">
+          No products found
+        </p>
+      ) : (
+        <>
+          <div className="product-grid">
+            {items.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+          {cursor && (
+            <LoadMoreButton onClick={loadMore} loading={loadingMore} />
+          )}
+        </>
+      )}
+    </>
   );
 }
 
-// One filter row: a title and chips, the picked chip filled.
-function ChipGroup<T extends string | number>({
+// A subcategory link pill.
+function SubcategoryPill({
+  href,
+  active,
+  children,
+}: {
+  href: string;
+  active: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      aria-current={active ? "page" : undefined}
+      className={`flex min-h-11 shrink-0 items-center rounded-full border-2 px-[18px] font-semibold ${active ? "border-accent bg-accent text-white" : "border-line bg-white"}`}
+    >
+      {children}
+    </Link>
+  );
+}
+
+// A titled group of filter chips; the chosen one is marked as pressed.
+function ChipGroup({
   title,
   options,
   value,
   onPick,
 }: {
   title: string;
-  options: { label: string; value: T }[];
-  value: T;
-  onPick: (value: T) => void;
+  options: { label: string; value: string }[];
+  value: string;
+  onPick: (value: string) => void;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
+    <div
+      className="flex flex-wrap items-center gap-1.5"
+      role="group"
+      aria-label={title}
+    >
       <span className="font-extrabold">{title}</span>
       {options.map((option) => (
         <button
@@ -244,19 +266,4 @@ function ChipGroup<T extends string | number>({
       ))}
     </div>
   );
-}
-
-// Page heading from the URL: "Category › Subcategory", category, section or offers.
-function pageTitle(categories: Category[], urlParams: URLSearchParams) {
-  const category = urlParams.get("category");
-  const subcategory = urlParams.get("subcategory");
-  for (const parent of categories) {
-    if (parent.slug === category && !subcategory) return parent.name;
-    const child = parent.children.find((item) => item.slug === subcategory);
-    if (child) return `${parent.name} › ${child.name}`;
-  }
-  if (urlParams.get("section") === "trending") return "Trending";
-  if (urlParams.get("section") === "featured") return "Featured";
-  if (urlParams.get("discount") === "true") return "Top discounts";
-  return "All products";
 }

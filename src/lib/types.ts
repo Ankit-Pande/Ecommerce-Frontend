@@ -3,14 +3,10 @@ export type Paginated<T> = { items: T[]; nextCursor: string | null };
 
 export type UserRole = "USER" | "ADMIN" | "SUPER_ADMIN";
 export type OrderStatus =
-  | "PENDING"
-  | "CONFIRMED"
-  | "SHIPPED"
-  | "DELIVERED"
-  | "CANCELLED";
-export type PaymentStatus = "PENDING" | "COMPLETED" | "REFUNDED";
+  "PENDING" | "CONFIRMED" | "SHIPPED" | "DELIVERED" | "CANCELLED";
+type PaymentStatus = "PENDING" | "COMPLETED" | "REFUNDED";
 export type PaymentMethod = "COD" | "ONLINE";
-export type StockStatus = "IN_STOCK" | "LOW_STOCK" | "OUT_OF_STOCK";
+type StockStatus = "IN_STOCK" | "LOW_STOCK" | "OUT_OF_STOCK";
 
 export type Product = {
   id: string;
@@ -22,14 +18,12 @@ export type Product = {
   discountPercent: number;
   stockStatus: StockStatus;
   rating: { average: number; count: number };
-  // Size or more than one colour: the buyer must choose on the product page.
   hasOptions: boolean;
 };
 
-// Chosen size and colour ("" when the product has none).
 export type Options = { size: string; color: string };
 
-type CategoryRef = { id: string; name: string; slug: string };
+type CategoryLink = { id: string; name: string; slug: string };
 
 export type ProductDetail = Product & {
   description: string;
@@ -37,16 +31,14 @@ export type ProductDetail = Product & {
   colors: string[];
   sizes: string[];
   specs: Record<string, string> | null;
-  category: CategoryRef & { parent: CategoryRef | null };
+  category: CategoryLink & { parent: CategoryLink | null };
   brand: { id: string; name: string; slug: string; logo: string | null } | null;
+  ratingBars: { stars: number; count: number }[];
 };
 
-export type Category = {
-  id: string;
-  name: string;
-  slug: string;
+export type Category = CategoryLink & {
   image: string | null;
-  children: { id: string; name: string; slug: string }[];
+  children: CategoryLink[];
 };
 
 export type Banner = {
@@ -72,14 +64,10 @@ export type HomeData = {
   offers: Product[];
 };
 
-type CartItem = Options & {
+export type CartItem = Options & {
   id: string;
   quantity: number;
-  product: Product & {
-    images: string[];
-    maxQuantity: number;
-    isAvailable: boolean;
-  };
+  product: Product & { maxQuantity: number; isAvailable: boolean };
 };
 
 export type Cart = {
@@ -114,6 +102,7 @@ export type Order = {
   status: OrderStatus;
   paymentStatus: PaymentStatus;
   paymentMethod: PaymentMethod;
+  needsReview: boolean;
   paymentExpiresAt: string | null;
   cancelledBy: "USER" | "ADMIN" | "SYSTEM" | null;
   createdAt: string;
@@ -121,11 +110,7 @@ export type Order = {
 };
 
 export type OrderDetail = Omit<Order, "items"> & {
-  updatedAt: string;
-  items: (OrderItem & {
-    productId: string;
-    product: { slug: string; description: string };
-  })[];
+  items: (OrderItem & { productId: string; product: { slug: string } })[];
   shipName: string;
   shipPhone: string;
   shipLine1: string;
@@ -211,17 +196,25 @@ export type AdminStats = {
   needsReview: number;
 };
 
-export type AdminOrder = {
-  id: string;
-  totalPaise: number;
-  status: OrderStatus;
-  paymentStatus: PaymentStatus;
-  paymentMethod: PaymentMethod;
-  needsReview: boolean;
-  cancelledBy: Order["cancelledBy"];
-  createdAt: string;
-  shipName: string;
-  shipPhone: string;
+export type AdminOrder = Pick<
+  OrderDetail,
+  | "id"
+  | "totalPaise"
+  | "status"
+  | "paymentStatus"
+  | "paymentMethod"
+  | "needsReview"
+  | "cancelledBy"
+  | "createdAt"
+  | "shipName"
+  | "shipPhone"
+  | "shipLine1"
+  | "shipLine2"
+  | "shipCity"
+  | "shipState"
+  | "shipPincode"
+> & {
+  items: Pick<OrderItem, "productName" | "quantity" | "size" | "color">[];
 };
 
 export type AdminUser = {

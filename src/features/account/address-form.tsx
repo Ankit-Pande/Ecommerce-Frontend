@@ -3,77 +3,114 @@
 import { useState } from "react";
 import { createAddress, updateAddress } from "@/api/account";
 import { errorMessage } from "@/api/http";
+import { Button } from "@/components/ui/button";
 import { toast } from "@/store/toast-store";
 import type { Address } from "@/lib/types";
-import { Button } from "@/components/ui/button";
 
 export const MAX_ADDRESSES = 5;
 
-export type AddressInput = {
-  fullName: string;
-  phone: string;
-  line1: string;
+type AddressFields = Omit<Address, "id" | "isDefault" | "line2"> & {
   line2: string;
-  city: string;
-  state: string;
-  pincode: string;
 };
 
-const emptyAddress: AddressInput = {
-  fullName: "",
-  phone: "",
-  line1: "",
-  line2: "",
-  city: "",
-  state: "",
-  pincode: "",
-};
+const FIELDS: {
+  name: keyof AddressFields;
+  label: string;
+  autoComplete: string;
+  minLength?: number;
+  maxLength: number;
+  pattern?: string;
+  placeholder?: string;
+  digitsOnly?: boolean;
+  wide?: boolean;
+}[] = [
+  {
+    name: "fullName",
+    label: "Full name",
+    autoComplete: "name",
+    minLength: 2,
+    maxLength: 80,
+  },
+  {
+    name: "phone",
+    label: "Mobile number",
+    autoComplete: "tel-national",
+    maxLength: 10,
+    pattern: "[6-9][0-9]{9}",
+    placeholder: "10-digit mobile number",
+    digitsOnly: true,
+  },
+  {
+    name: "line1",
+    label: "House / flat and street",
+    autoComplete: "address-line1",
+    minLength: 3,
+    maxLength: 150,
+    wide: true,
+  },
+  {
+    name: "line2",
+    label: "Landmark or area (optional)",
+    autoComplete: "address-line2",
+    maxLength: 150,
+    wide: true,
+  },
+  {
+    name: "city",
+    label: "City",
+    autoComplete: "address-level2",
+    minLength: 2,
+    maxLength: 60,
+  },
+  {
+    name: "state",
+    label: "State",
+    autoComplete: "address-level1",
+    minLength: 2,
+    maxLength: 60,
+  },
+  {
+    name: "pincode",
+    label: "Pincode",
+    autoComplete: "postal-code",
+    maxLength: 6,
+    pattern: "[1-9][0-9]{5}",
+    placeholder: "6-digit pincode",
+    digitsOnly: true,
+  },
+];
 
-// Form values to the API shape.
-export function toAddressInput(address: Address): AddressInput {
-  return {
-    fullName: address.fullName,
-    phone: address.phone,
-    line1: address.line1,
-    line2: address.line2 ?? "",
-    city: address.city,
-    state: address.state,
-    pincode: address.pincode,
-  };
-}
-
-type AddressFormProps = {
-  addressId?: string;
-  initial?: AddressInput;
-  onSaved: (address: Address) => void;
-  onCancel: () => void;
-};
-
-// Add or edit address form.
+// Form to add a new address or edit one (phone and pincode take digits only).
 export function AddressForm({
-  addressId,
-  initial = emptyAddress,
+  address,
   onSaved,
   onCancel,
-}: AddressFormProps) {
-  const [form, setForm] = useState(initial);
+}: {
+  address?: Address;
+  onSaved: (saved: Address) => void;
+  onCancel: () => void;
+}) {
+  const [form, setForm] = useState<AddressFields>({
+    fullName: address?.fullName ?? "",
+    phone: address?.phone ?? "",
+    line1: address?.line1 ?? "",
+    line2: address?.line2 ?? "",
+    city: address?.city ?? "",
+    state: address?.state ?? "",
+    pincode: address?.pincode ?? "",
+  });
   const [saving, setSaving] = useState(false);
 
-  // Updates one field.
-  function update(field: keyof AddressInput, value: string) {
-    setForm((current) => ({ ...current, [field]: value }));
-  }
-
-  // Saves the address.
+  // Saves the address and gives it back to the parent.
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSaving(true);
     try {
-      const payload = { ...form, line2: form.line2.trim() || null };
-      const saved = addressId
-        ? await updateAddress(addressId, payload)
-        : await createAddress(payload);
-      toast.success(addressId ? "Address updated" : "Address saved");
+      const data = { ...form, line2: form.line2.trim() || null };
+      const saved = address
+        ? await updateAddress(address.id, data)
+        : await createAddress(data);
+      toast.success(address ? "Address updated" : "Address saved");
       onSaved(saved);
     } catch (error) {
       toast.error(errorMessage(error, "Could not save this address"));
@@ -85,145 +122,45 @@ export function AddressForm({
   return (
     <form
       onSubmit={submit}
-      className="flex flex-col gap-3 rounded-[20px] bg-white p-4 shadow-card"
+      className="grid gap-3 rounded-[20px] bg-soft p-4 sm:grid-cols-2"
     >
-      <h3 className="text-lg font-extrabold">
-        {addressId ? "Edit address" : "Add address"}
+      <h3 className="text-lg font-extrabold sm:col-span-2">
+        {address ? "Edit address" : "Add address"}
       </h3>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <FormField label="Full name" required>
+      {FIELDS.map((field) => (
+        <label
+          key={field.name}
+          className={`label ${field.wide ? "sm:col-span-2" : ""}`}
+        >
+          {field.label}
           <input
             className="field"
-            name="name"
-            autoComplete="name"
-            required
-            minLength={2}
-            maxLength={80}
-            value={form.fullName}
-            onChange={(event) => update("fullName", event.target.value)}
+            name={field.name}
+            autoComplete={field.autoComplete}
+            required={field.name !== "line2"}
+            minLength={field.minLength}
+            maxLength={field.maxLength}
+            pattern={field.pattern}
+            placeholder={field.placeholder}
+            inputMode={field.digitsOnly ? "numeric" : undefined}
+            value={form[field.name]}
+            onChange={(event) => {
+              const value = field.digitsOnly
+                ? event.target.value.replace(/\D/g, "")
+                : event.target.value;
+              setForm((current) => ({ ...current, [field.name]: value }));
+            }}
           />
-        </FormField>
-        <FormField label="Mobile number" required>
-          <input
-            className="field"
-            name="tel"
-            autoComplete="tel"
-            required
-            inputMode="numeric"
-            pattern="[6-9][0-9]{9}"
-            maxLength={10}
-            placeholder="10-digit mobile number"
-            value={form.phone}
-            onChange={(event) =>
-              update(
-                "phone",
-                event.target.value.replace(/\D/g, "").slice(0, 10),
-              )
-            }
-          />
-        </FormField>
-        <div className="sm:col-span-2">
-          <FormField label="House / flat and street" required>
-            <input
-              className="field"
-              name="address-line1"
-              autoComplete="address-line1"
-              required
-              minLength={3}
-              maxLength={150}
-              value={form.line1}
-              onChange={(event) => update("line1", event.target.value)}
-            />
-          </FormField>
-        </div>
-        <div className="sm:col-span-2">
-          <FormField label="Landmark or area" hint="Optional">
-            <input
-              className="field"
-              name="address-line2"
-              autoComplete="address-line2"
-              maxLength={150}
-              value={form.line2}
-              onChange={(event) => update("line2", event.target.value)}
-            />
-          </FormField>
-        </div>
-        <FormField label="City" required>
-          <input
-            className="field"
-            name="city"
-            autoComplete="address-level2"
-            required
-            minLength={2}
-            maxLength={60}
-            value={form.city}
-            onChange={(event) => update("city", event.target.value)}
-          />
-        </FormField>
-        <FormField label="State" required>
-          <input
-            className="field"
-            name="state"
-            autoComplete="address-level1"
-            required
-            minLength={2}
-            maxLength={60}
-            value={form.state}
-            onChange={(event) => update("state", event.target.value)}
-          />
-        </FormField>
-        <FormField label="Pincode" required>
-          <input
-            className="field"
-            name="postal-code"
-            autoComplete="postal-code"
-            required
-            inputMode="numeric"
-            pattern="[1-9][0-9]{5}"
-            maxLength={6}
-            placeholder="6-digit pincode"
-            value={form.pincode}
-            onChange={(event) =>
-              update(
-                "pincode",
-                event.target.value.replace(/\D/g, "").slice(0, 6),
-              )
-            }
-          />
-        </FormField>
-
-        <div className="flex items-center gap-2 sm:col-span-2">
-          <Button type="submit" loading={saving} className="px-6">
-            {addressId ? "Update address" : "Save address"}
-          </Button>
-          <Button variant="outline" onClick={onCancel} disabled={saving}>
-            Cancel
-          </Button>
-        </div>
+        </label>
+      ))}
+      <div className="flex flex-wrap gap-2 sm:col-span-2">
+        <Button type="submit" loading={saving}>
+          {address ? "Update address" : "Save address"}
+        </Button>
+        <Button variant="line" onClick={onCancel} disabled={saving}>
+          Cancel
+        </Button>
       </div>
     </form>
-  );
-}
-
-// Label with an input.
-function FormField({
-  label,
-  hint,
-  required = false,
-  children,
-}: {
-  label: string;
-  hint?: string;
-  required?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="flex flex-col gap-1.5 font-semibold">
-      <span>
-        {label}
-        {required ? " *" : hint && ` (${hint.toLowerCase()})`}
-      </span>
-      {children}
-    </label>
   );
 }

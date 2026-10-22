@@ -1,3 +1,6 @@
-import AdminOrders from "@/features/admin/orders-page";
+import { AdminOrders } from "@/features/admin/orders-page";
 
-export default AdminOrders;
+// The /admin/orders page.
+export default function AdminOrdersRoute() {
+  return <AdminOrders />;
+}

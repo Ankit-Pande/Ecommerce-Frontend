@@ -4,22 +4,20 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { ImageIcon } from "lucide-react";
 
-type SafeImageProps = {
+// next/image that shows a placeholder icon when the image is missing or fails to load.
+export function SafeImage({
+  src,
+  alt,
+  sizes,
+  className = "object-contain",
+  priority = false,
+}: {
   src?: string | null;
   alt: string;
   sizes: string;
   className?: string;
   priority?: boolean;
-};
-
-// Image that falls back to an icon when the URL is missing or broken.
-export function SafeImage({
-  src,
-  alt,
-  sizes,
-  className,
-  priority = false,
-}: SafeImageProps) {
+}) {
   const [failed, setFailed] = useState(false);
   const imageRef = useRef<HTMLImageElement>(null);
 

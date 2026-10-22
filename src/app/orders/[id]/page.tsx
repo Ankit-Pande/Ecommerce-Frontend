@@ -6,11 +6,11 @@ export const metadata: Metadata = {
   robots: { index: false },
 };
 
-// One order with items, address and payment.
-export default function OrderDetailRoute({
+// The /orders/:id page.
+export default async function OrderDetailRoute({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  return <OrderDetailPage id={params.id} />;
+  return <OrderDetailPage id={(await params).id} />;
 }

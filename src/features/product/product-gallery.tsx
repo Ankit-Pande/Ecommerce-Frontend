@@ -2,58 +2,56 @@
 
 import { useState } from "react";
 import { SafeImage } from "@/components/ui/safe-image";
-import { tintFor, TINTS } from "@/lib/format";
+import { tintAt } from "@/lib/colors";
 
-const MAX_THUMBNAILS = 4;
-
-// Main image on a tinted tile with up to four thumbnails.
+// Big product image with thumbnails to switch it.
 export function ProductGallery({
-  id,
   images,
   name,
+  tintIndex,
+  discountPercent,
 }: {
-  id: string;
   images: string[];
   name: string;
+  tintIndex: number;
+  discountPercent: number;
 }) {
-  const thumbnails = images.slice(0, MAX_THUMBNAILS);
   const [active, setActive] = useState(0);
-  const tint = tintFor(id);
 
   return (
-    <div className="card flex flex-[1_1_300px] flex-col gap-3 rounded-[28px] p-4">
-      <div className="rounded-[20px] p-7" style={{ background: tint }}>
-        <span className="relative block h-[300px]">
+    <div className="flex min-w-0 flex-[1_1_300px] flex-col gap-3">
+      <div
+        className="relative rounded-[22px] p-6"
+        style={{ background: tintAt(tintIndex + active) }}
+      >
+        <span className="relative block h-[260px] sm:h-[320px]">
           <SafeImage
-            src={thumbnails[active]}
+            src={images[active]}
             alt={name}
             priority
-            sizes="(max-width: 768px) 100vw, 600px"
-            className="object-contain"
+            sizes="(max-width: 768px) 100vw, 560px"
           />
         </span>
+        {discountPercent > 0 && (
+          <span className="absolute left-3.5 top-3.5 rounded-full bg-discount px-3.5 py-1 font-semibold text-white">
+            {discountPercent}% off
+          </span>
+        )}
       </div>
-      {thumbnails.length > 1 && (
+      {images.length > 1 && (
         <div className="grid grid-cols-4 gap-2.5">
-          {thumbnails.map((image, index) => (
+          {images.map((image, index) => (
             <button
               key={image}
               type="button"
               onClick={() => setActive(index)}
-              aria-label={`Show image ${index + 1}`}
-              aria-pressed={active === index}
-              className={`rounded-xl p-2.5 ${active === index ? "outline outline-2 outline-accent" : ""}`}
-              style={{
-                background: TINTS[(TINTS.indexOf(tint) + index) % TINTS.length],
-              }}
+              aria-label={`Image ${index + 1}`}
+              aria-pressed={index === active}
+              className={`rounded-[14px] border-[3px] p-2 ${index === active ? "border-accent" : "border-transparent"}`}
+              style={{ background: tintAt(tintIndex + index) }}
             >
               <span className="relative block h-[52px]">
-                <SafeImage
-                  src={image}
-                  alt=""
-                  sizes="90px"
-                  className="object-contain"
-                />
+                <SafeImage src={image} alt="" sizes="96px" />
               </span>
             </button>
           ))}

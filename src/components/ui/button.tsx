@@ -3,8 +3,8 @@ import { Spinner } from "@/components/ui/spinner";
 const VARIANTS = {
   primary: "btn-primary",
   outline: "btn-outline",
-  ghost: "btn-ghost",
-  danger: "btn-ghost text-danger",
+  line: "btn-line",
+  danger: "btn-danger",
 };
 
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -12,7 +12,7 @@ type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   loading?: boolean;
 };
 
-// Shared button; shows a spinner and blocks clicks while loading.
+// Button with our styles that shows a spinner and is disabled while loading.
 export function Button({
   variant = "primary",
   loading = false,

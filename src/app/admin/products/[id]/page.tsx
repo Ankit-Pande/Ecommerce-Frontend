@@ -1,10 +1,10 @@
-import EditProductPage from "@/features/admin/edit-product-page";
+import { EditProductPage } from "@/features/admin/edit-product-page";
 
-// Admin edit product page.
-export default function EditProductRoute({
+// The /admin/products/:id page.
+export default async function EditProductRoute({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  return <EditProductPage productId={params.id} />;
+  return <EditProductPage productId={(await params).id} />;
 }

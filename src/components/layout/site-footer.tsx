@@ -1,115 +1,95 @@
 "use client";
 
 import Link from "next/link";
-import { catalogHref } from "@/lib/format";
-import { isAdmin, useAuthStore } from "@/store/auth-store";
+import { LogoIcon } from "@/components/ui/logo-icon";
+import { categoryHref } from "@/lib/links";
+import { SUPPORT_EMAIL, SUPPORT_PHONE } from "@/lib/site";
 import { useUiStore } from "@/store/ui-store";
-import { SearchBox } from "./search-box";
 import type { Category } from "@/lib/types";
 
-const SUPPORT_EMAIL = "support@apnakart.in";
-const SUPPORT_PHONE = "6392061026";
-
-const ACCOUNT_LINKS = [
-  { href: "/orders", label: "My orders" },
-  { href: "/account", label: "Profile and addresses" },
-  { href: "/cart", label: "Cart" },
-  { href: "/login", label: "Login" },
+const PAYMENT_CHIPS = [
+  "UPI",
+  "Google Pay",
+  "PhonePe",
+  "Paytm",
+  "Visa",
+  "Mastercard",
+  "RuPay",
+  "Net banking",
+  "Cash on Delivery",
 ];
 
-// Dark footer: logo, search, support contact and Shop / Account / Help links.
+const LINK = "flex min-h-10 items-center text-left";
+
+// Footer: customer care, top categories, help links and payment methods.
 export function SiteFooter({ categories }: { categories: Category[] }) {
   const setChatOpen = useUiStore((state) => state.setChatOpen);
-  const role = useAuthStore((state) => state.role);
-  const linkClass = "flex min-h-10 items-center text-left";
 
   return (
-    <footer className="mt-6 rounded-t-[32px] bg-ink px-6 py-9 text-white">
-      <div className="mx-auto flex max-w-page flex-wrap gap-7">
-        <div className="flex flex-[2_1_280px] flex-col gap-3">
-          <Link href="/" className="text-[32px] font-extrabold text-mint">
+    <footer className="mt-8 rounded-t-[36px] bg-ink px-5 pb-24 pt-9 text-white">
+      <div className="mx-auto flex max-w-page flex-wrap gap-8">
+        <div className="flex flex-[2_1_260px] flex-col items-start gap-3.5">
+          <Link
+            href="/"
+            className="flex items-center gap-2.5 text-[28px] font-extrabold"
+          >
+            <LogoIcon
+              size={44}
+              tile="fill-mint"
+              line="#0F2A2E"
+              wheels="#0F2A2E"
+            />
             ApnaKart
           </Link>
-          <SearchBox
-            label="Search"
-            placeholder="Search products"
-            className="max-w-[460px] bg-white"
-          />
-          <p>
-            <a href={`tel:+91${SUPPORT_PHONE}`} className="text-white">
-              +91 {SUPPORT_PHONE}
-            </a>
-            {" · "}
-            <a href={`mailto:${SUPPORT_EMAIL}`} className="text-white">
-              {SUPPORT_EMAIL}
-            </a>
-          </p>
+          <div className="flex flex-col gap-1 rounded-[18px] bg-ink-2 px-4 py-3.5">
+            <span className="font-extrabold text-mint">Customer care</span>
+            <a href={`tel:+91${SUPPORT_PHONE}`}>+91 {SUPPORT_PHONE}</a>
+            <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
+          </div>
         </div>
 
-        <FooterColumn title="Shop" color="text-mint">
-          {categories.slice(0, 5).map((category) => (
-            <Link
-              key={category.id}
-              href={catalogHref(category)}
-              className={linkClass}
-            >
-              {category.name}
-            </Link>
-          ))}
-        </FooterColumn>
+        {categories.length > 0 && (
+          <div className="flex flex-[1_1_150px] flex-col">
+            <p className="pb-1 text-lg font-extrabold text-mint">Categories</p>
+            {categories.slice(0, 5).map((category) => (
+              <Link
+                key={category.id}
+                href={categoryHref(category.slug)}
+                className={LINK}
+              >
+                {category.name}
+              </Link>
+            ))}
+          </div>
+        )}
 
-        <FooterColumn title="Account" color="text-sunny">
-          {ACCOUNT_LINKS.map((link) => (
-            <Link key={link.href} href={link.href} className={linkClass}>
-              {link.label}
-            </Link>
-          ))}
-        </FooterColumn>
-
-        <FooterColumn title="Help" color="text-[#FFB3C7]">
-          <Link href="/orders" className={linkClass}>
+        <div className="flex flex-[1_1_150px] flex-col">
+          <p className="pb-1 text-lg font-extrabold text-sunny">Help</p>
+          <Link href="/orders" className={LINK}>
             Track order
           </Link>
           <button
             type="button"
             onClick={() => setChatOpen(true)}
-            className={linkClass}
+            className={LINK}
           >
             Ask the assistant
           </button>
-          {isAdmin(role) && (
-            <Link href="/admin" className={linkClass}>
-              Admin panel
-            </Link>
-          )}
-        </FooterColumn>
+        </div>
       </div>
 
-      <div className="mx-auto mt-5 flex max-w-page flex-wrap justify-between gap-2 border-t border-[#35555A] pt-3.5">
-        <span>
-          UPI · Google Pay · PhonePe · Paytm · Cards · Net banking · Cash on
-          Delivery
-        </span>
-        <span>© 2026 ApnaKart</span>
+      <div className="mx-auto mt-6 flex max-w-page flex-wrap items-center gap-2 border-t border-[#35555A] pt-4">
+        <span className="mr-1 font-semibold">We accept</span>
+        {PAYMENT_CHIPS.map((name) => (
+          <span
+            key={name}
+            className="rounded-lg bg-white px-2.5 py-1 text-sm font-semibold text-ink"
+          >
+            {name}
+          </span>
+        ))}
+        <span className="ml-auto">© {new Date().getFullYear()} ApnaKart</span>
       </div>
     </footer>
-  );
-}
-
-// One titled column of footer links.
-function FooterColumn({
-  title,
-  color,
-  children,
-}: {
-  title: string;
-  color: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex flex-[1_1_150px] flex-col">
-      <p className={`text-lg font-extrabold ${color}`}>{title}</p>
-      {children}
-    </div>
   );
 }

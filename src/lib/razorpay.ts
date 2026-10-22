@@ -3,6 +3,8 @@ import type { PaymentDetails } from "@/lib/types";
 
 export const RAZORPAY_SCRIPT = "https://checkout.razorpay.com/v1/checkout.js";
 
+export type RazorpayMethod = "upi" | "card" | "netbanking";
+
 declare global {
   interface Window {
     Razorpay?: new (options: Record<string, unknown>) => { open: () => void };
@@ -11,17 +13,12 @@ declare global {
 
 type PaidResponse = { razorpay_payment_id: string; razorpay_signature: string };
 
-type PopupOptions = {
-  onPaid: () => void;
-  onClose: () => void;
-  display?: Record<string, unknown>;
-};
-
-// Opens the Razorpay popup; after payment the backend checks it and marks the order paid.
+// Opens the Razorpay window; returns false when the script or payment details are missing.
 export function openRazorpay(
   payment: PaymentDetails,
-  options: PopupOptions,
-): boolean {
+  onDone: () => void,
+  method?: RazorpayMethod,
+) {
   if (!window.Razorpay || !payment.razorpayOrderId || !payment.razorpayKeyId) {
     return false;
   }
@@ -31,16 +28,25 @@ export function openRazorpay(
     amount: payment.amount,
     currency: "INR",
     name: "ApnaKart",
-    description: "Secure order payment",
     order_id: payment.razorpayOrderId,
-    ...(options.display && { config: { display: options.display } }),
+    ...(method && {
+      config: {
+        display: {
+          blocks: {
+            chosen: { name: "Pay using", instruments: [{ method }] },
+          },
+          sequence: ["block.chosen"],
+          preferences: { show_default_blocks: true },
+        },
+      },
+    }),
     handler: (response: PaidResponse) =>
       verifyPayment(
         payment.orderId,
         response.razorpay_payment_id,
         response.razorpay_signature,
-      ).then(options.onPaid, options.onClose),
-    modal: { ondismiss: options.onClose },
+      ).then(onDone, onDone),
+    modal: { ondismiss: onDone },
     theme: { color: "#0B7A5C" },
   }).open();
   return true;

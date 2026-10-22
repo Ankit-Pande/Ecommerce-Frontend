@@ -6,9 +6,11 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-// Wraps every admin page in the admin shell.
+// Every /admin page sits inside the admin shell.
 export default function AdminLayout({
   children,
-}: Readonly<{ children: React.ReactNode }>) {
+}: {
+  children: React.ReactNode;
+}) {
   return <AdminShell>{children}</AdminShell>;
 }

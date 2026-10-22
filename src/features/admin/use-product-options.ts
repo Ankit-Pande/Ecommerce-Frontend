@@ -3,19 +3,20 @@
 import { listBrands, listCategories } from "@/api/admin";
 import { useAdminData } from "@/features/admin/use-admin-data";
 
-// Categories and brands for the product form.
+// Categories and brands for the product forms.
 export function useProductOptions() {
-  const categoryState = useAdminData(listCategories);
-  const brandState = useAdminData(listBrands);
+  const categories = useAdminData(listCategories);
+  const brands = useAdminData(listBrands);
 
   return {
-    categories: categoryState.data ?? [],
-    brands: brandState.data ?? [],
-    loading: categoryState.loading,
-    brandsLoading: brandState.loading,
-    failed: categoryState.failed,
-    brandsFailed: brandState.failed,
-    reloadCategories: categoryState.load,
-    reloadBrands: brandState.load,
+    categories: categories.data ?? [],
+    brands: brands.data ?? [],
+    loading: categories.loading || brands.loading,
+    failed: categories.failed,
+    // Loads categories and brands again.
+    reload: () => {
+      void categories.load();
+      void brands.load();
+    },
   };
 }

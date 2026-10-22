@@ -1,22 +1,21 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, RefreshCw, Trash2 } from "lucide-react";
-import { useProductOptions } from "@/features/admin/use-product-options";
 import { bulkCreateProducts, uploadImages } from "@/api/admin";
 import { errorMessage } from "@/api/http";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
+import { AdminTitle } from "@/features/admin/admin-shell";
+import { useProductOptions } from "@/features/admin/use-product-options";
 import { slugify } from "@/lib/format";
 import { toast } from "@/store/toast-store";
-import { Spinner } from "@/components/ui/spinner";
-import { Button } from "@/components/ui/button";
 
 const MAX_ROWS = 50;
-const MAX_IMAGES_PER_ROW = 6;
-const STARTING_ROWS = 1;
-const MIN_DESCRIPTION_LENGTH = 5;
 
 type Row = {
+  id: string;
   name: string;
   price: string;
   stock: string;
@@ -30,9 +29,10 @@ type Row = {
   uploading: boolean;
 };
 
-// Blank row for the bulk form.
+// A blank product row.
 function emptyRow(): Row {
   return {
+    id: crypto.randomUUID(),
     name: "",
     price: "",
     stock: "0",
@@ -47,79 +47,56 @@ function emptyRow(): Row {
   };
 }
 
-// Add many products at once.
-export default function BulkUpload() {
-  const [rows, setRows] = useState<Row[]>(() =>
-    Array.from({ length: STARTING_ROWS }, emptyRow),
-  );
-  const [saving, setSaving] = useState(false);
-  const {
-    categories,
-    brands,
-    loading,
-    brandsLoading,
-    failed,
-    brandsFailed,
-    reloadCategories,
-    reloadBrands,
-  } = useProductOptions();
+// Add up to 50 products at once, one row each, with images uploaded per row.
+export function BulkProductUpload() {
   const router = useRouter();
-  const anyUploading = rows.some((row) => row.uploading);
+  const options = useProductOptions();
+  const [rows, setRows] = useState<Row[]>(() => [emptyRow()]);
+  const [saving, setSaving] = useState(false);
+  const uploading = rows.some((row) => row.uploading);
 
-  // Changes one field of a row.
-  function updateRow(index: number, patch: Partial<Row>) {
-    setRows((prev) =>
-      prev.map((row, i) => (i === index ? { ...row, ...patch } : row)),
+  // Changes some fields of one row.
+  function updateRow(index: number, change: Partial<Row>) {
+    setRows((current) =>
+      current.map((row, position) =>
+        position === index ? { ...row, ...change } : row,
+      ),
     );
   }
 
-  // Uploads the images of one row.
+  // Uploads up to 6 images for a row and keeps their URLs.
   async function uploadRowImages(index: number, files: FileList | null) {
     if (!files?.length) return;
     updateRow(index, { uploading: true });
-
     try {
       const form = new FormData();
       Array.from(files)
-        .slice(0, MAX_IMAGES_PER_ROW)
+        .slice(0, 6)
         .forEach((file) => form.append("images", file));
-
-      const urls = await uploadImages(form);
-      updateRow(index, { images: urls, uploading: false });
-    } catch (err) {
+      updateRow(index, { images: await uploadImages(form), uploading: false });
+    } catch (error) {
       updateRow(index, { uploading: false });
-      toast.error(errorMessage(err, "Image upload failed"));
+      toast.error(errorMessage(error, "Image upload failed"));
     }
   }
 
-  // Uploads images, then creates all products.
+  // Checks the filled rows and creates them; existing slugs are skipped.
   async function createAll() {
-    if (anyUploading) {
-      toast.error("Wait for image uploads to finish");
-      return;
-    }
-
-    if (failed) {
-      toast.error("Load categories before creating products");
-      return;
-    }
-
     const filled = rows.filter((row) => row.name.trim());
     if (filled.length === 0) {
-      toast.error("Fill at least one product row");
+      toast.error("Fill at least one product");
       return;
     }
-
-    const invalid = filled.find(
+    const incomplete = filled.find(
       (row) =>
         !(Number(row.price) > 0) ||
         !row.categoryId ||
         row.images.length === 0 ||
-        row.description.trim().length < MIN_DESCRIPTION_LENGTH,
+        row.description.trim().length < 5,
     );
-    if (invalid) {
+    if (incomplete) {
       toast.error(
-        `"${invalid.name}" needs a price, a category, an image and a description of at least ${MIN_DESCRIPTION_LENGTH} characters`,
+        `"${incomplete.name}" needs a price, a category, an image and a description of 5+ letters`,
       );
       return;
     }
@@ -141,79 +118,176 @@ export default function BulkUpload() {
           sizes: row.sizes,
         })),
       );
-
       toast.success(
-        `${created} product(s) created` +
-          (skipped.length
-            ? ` - ${skipped.length} skipped because they already exist`
-            : ""),
+        skipped.length > 0
+          ? `${created} added, ${skipped.length} skipped (already exist)`
+          : `${created} products added`,
       );
       router.push("/admin/products");
-    } catch (err) {
-      toast.error(errorMessage(err, "Bulk create failed"));
-    } finally {
+    } catch (error) {
+      toast.error(errorMessage(error, "Could not add the products"));
       setSaving(false);
     }
   }
 
   return (
-    <div>
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <h2 className="font-display text-lg font-bold">Bulk upload</h2>
-          <p className="text-xs text-muted">
-            Up to {MAX_ROWS} products at once.
-          </p>
-        </div>
+    <>
+      <AdminTitle title="Bulk upload">
+        <Link href="/admin/products" className="btn-line">
+          ‹ Products
+        </Link>
         <Button
           variant="outline"
-          onClick={() =>
-            setRows((prev) =>
-              prev.length < MAX_ROWS ? [...prev, emptyRow()] : prev,
-            )
-          }
-          disabled={rows.length >= MAX_ROWS || anyUploading || saving}
-          className="px-4 py-2"
+          onClick={() => setRows((current) => [...current, emptyRow()])}
+          disabled={rows.length >= MAX_ROWS || saving}
         >
-          <Plus className="h-4 w-4" /> Add row
+          + Add row
         </Button>
-      </div>
+      </AdminTitle>
+      <p className="text-muted">
+        Up to {MAX_ROWS} products at once. Each needs at least one image.
+      </p>
 
-      {failed && (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[#FFD9D9] p-3 text-sm font-semibold text-[#8E1B1B]">
-          <span>Could not load categories.</span>
-          <Button
-            variant="danger"
-            onClick={reloadCategories}
-            className="min-h-9 py-1"
-          >
-            <RefreshCw className="h-3.5 w-3.5" /> Retry
-          </Button>
-        </div>
+      {options.failed && (
+        <p className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[#FFD9D9] p-3 font-semibold text-[#8E1B1B]">
+          Could not load categories.
+          <button type="button" onClick={options.reload} className="btn-table">
+            Retry
+          </button>
+        </p>
       )}
 
-      {brandsFailed && (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[#FFF0B8] p-3 text-sm font-semibold text-[#5C4300]">
-          <span>
-            Brands are unavailable. Products can still be created without a
-            brand.
-          </span>
-          <Button
-            variant="ghost"
-            onClick={reloadBrands}
-            className="min-h-9 py-1 text-[#5C4300]"
+      {rows.map((row, index) => (
+        <div
+          key={row.id}
+          className="card grid gap-2.5 p-4 sm:grid-cols-2 lg:grid-cols-4"
+        >
+          <input
+            className="field lg:col-span-2"
+            placeholder={`Product ${index + 1} name`}
+            aria-label={`Product ${index + 1} name`}
+            value={row.name}
+            onChange={(event) => updateRow(index, { name: event.target.value })}
+          />
+          <input
+            className="field"
+            placeholder="Price ₹"
+            aria-label="Price"
+            inputMode="decimal"
+            value={row.price}
+            onChange={(event) =>
+              updateRow(index, {
+                price: event.target.value.replace(/[^\d.]/g, ""),
+              })
+            }
+          />
+          <input
+            className="field"
+            placeholder="Stock"
+            aria-label="Stock"
+            inputMode="numeric"
+            value={row.stock}
+            onChange={(event) =>
+              updateRow(index, { stock: event.target.value.replace(/\D/g, "") })
+            }
+          />
+          <select
+            className="field"
+            aria-label="Category"
+            disabled={options.loading}
+            value={row.categoryId}
+            onChange={(event) =>
+              updateRow(index, { categoryId: event.target.value })
+            }
           >
-            <RefreshCw className="h-3.5 w-3.5" /> Retry
-          </Button>
-        </div>
-      )}
-
-      <div className="mt-4 space-y-3">
-        {rows.map((row, index) => (
-          <div
-            key={index}
-            className="card relative grid grid-cols-[minmax(0,1fr)] gap-2.5 p-3.5 sm:grid-cols-2 lg:grid-cols-4"
+            <option value="">Category</option>
+            {options.categories.map((category) => (
+              <optgroup key={category.id} label={category.name}>
+                <option value={category.id}>{category.name}</option>
+                {category.children.map((child) => (
+                  <option key={child.id} value={child.id}>
+                    {category.name} › {child.name}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+          <select
+            className="field"
+            aria-label="Brand"
+            disabled={options.loading}
+            value={row.brandId}
+            onChange={(event) =>
+              updateRow(index, { brandId: event.target.value })
+            }
           >
+            <option value="">No brand</option>
+            {options.brands.map((brand) => (
+              <option key={brand.id} value={brand.id}>
+                {brand.name}
+              </option>
+            ))}
+          </select>
+          <input
+            className="field"
+            placeholder="Colours (Black, Blue)"
+            aria-label="Colours"
+            value={row.colors}
+            onChange={(event) =>
+              updateRow(index, { colors: event.target.value })
+            }
+          />
+          <input
+            className="field"
+            placeholder="Sizes (S, M, L)"
+            aria-label="Sizes"
+            value={row.sizes}
+            onChange={(event) =>
+              updateRow(index, { sizes: event.target.value })
+            }
+          />
+          <input
+            className="field"
+            placeholder="Discount % (0 to 90)"
+            aria-label="Discount percent"
+            inputMode="numeric"
+            value={row.discountPercent}
+            onChange={(event) =>
+              updateRow(index, {
+                discountPercent: String(
+                  Math.min(
+                    90,
+                    Number(event.target.value.replace(/\D/g, "")) || 0,
+                  ),
+                ),
+              })
+            }
+          />
+          <input
+            className="field sm:col-span-2 lg:col-span-3"
+            placeholder="Description (5+ letters)"
+            aria-label="Description"
+            value={row.description}
+            onChange={(event) =>
+              updateRow(index, { description: event.target.value })
+            }
+          />
+          <div className="flex flex-wrap items-center gap-3 sm:col-span-2 lg:col-span-4">
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              multiple
+              aria-label={`Images for product ${index + 1}`}
+              disabled={row.uploading || saving}
+              onChange={(event) => uploadRowImages(index, event.target.files)}
+              className="text-sm"
+            />
+            {row.uploading && <Spinner />}
+            {row.images.length > 0 && (
+              <span className="text-sm font-extrabold text-accent">
+                {row.images.length} image(s) uploaded
+              </span>
+            )}
             {rows.length > 1 && (
               <button
                 type="button"
@@ -222,137 +296,24 @@ export default function BulkUpload() {
                     current.filter((_, position) => position !== index),
                   )
                 }
-                disabled={anyUploading || saving}
-                aria-label={`Remove product row ${index + 1}`}
-                className="icon-button absolute right-2 top-2 z-10 h-8 w-8 bg-white text-muted shadow-sm hover:text-discount"
+                disabled={uploading || saving}
+                className="btn-remove ml-auto"
               >
-                <Trash2 className="h-3.5 w-3.5" />
+                Remove row
               </button>
             )}
-            <input
-              className="field py-2 pr-10 lg:col-span-2"
-              placeholder={`Product ${index + 1} name`}
-              value={row.name}
-              onChange={(e) => updateRow(index, { name: e.target.value })}
-            />
-            <input
-              className="field py-2"
-              placeholder="Price ₹"
-              inputMode="decimal"
-              value={row.price}
-              onChange={(e) =>
-                updateRow(index, {
-                  price: e.target.value.replace(/[^\d.]/g, ""),
-                })
-              }
-            />
-            <input
-              className="field py-2"
-              placeholder="Stock"
-              inputMode="numeric"
-              value={row.stock}
-              onChange={(e) =>
-                updateRow(index, { stock: e.target.value.replace(/\D/g, "") })
-              }
-            />
-            <select
-              className="field py-2"
-              aria-label="Category"
-              disabled={loading || failed || saving}
-              value={row.categoryId}
-              onChange={(e) => updateRow(index, { categoryId: e.target.value })}
-            >
-              <option value="">Category *</option>
-              {categories.map((category) => (
-                <optgroup key={category.id} label={category.name}>
-                  <option value={category.id}>{category.name}</option>
-                  {category.children.map((child) => (
-                    <option key={child.id} value={child.id}>
-                      — {child.name}
-                    </option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
-            <select
-              className="field py-2"
-              aria-label="Brand"
-              disabled={brandsLoading || saving}
-              value={row.brandId}
-              onChange={(e) => updateRow(index, { brandId: e.target.value })}
-            >
-              <option value="">No brand</option>
-              {brands.map((brand) => (
-                <option key={brand.id} value={brand.id}>
-                  {brand.name}
-                </option>
-              ))}
-            </select>
-            <input
-              className="field py-2"
-              placeholder="Colours (Black, Blue)"
-              aria-label="Colours"
-              value={row.colors}
-              onChange={(e) => updateRow(index, { colors: e.target.value })}
-            />
-            <input
-              className="field py-2"
-              placeholder="Sizes (S, M, L)"
-              aria-label="Sizes"
-              value={row.sizes}
-              onChange={(e) => updateRow(index, { sizes: e.target.value })}
-            />
-            <input
-              className="field py-2"
-              placeholder="Discount %"
-              inputMode="numeric"
-              value={row.discountPercent}
-              onChange={(e) =>
-                updateRow(index, {
-                  discountPercent: e.target.value
-                    .replace(/\D/g, "")
-                    .slice(0, 2),
-                })
-              }
-            />
-            <input
-              className="field py-2 sm:col-span-2 lg:col-span-4"
-              placeholder={`Description (min ${MIN_DESCRIPTION_LENGTH} characters)`}
-              value={row.description}
-              onChange={(e) =>
-                updateRow(index, { description: e.target.value })
-              }
-            />
-
-            <div className="flex items-center gap-3 sm:col-span-2 lg:col-span-4">
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                aria-label={`Images for product ${index + 1}`}
-                className="text-sm"
-                disabled={row.uploading || saving}
-                onChange={(e) => uploadRowImages(index, e.target.files)}
-              />
-              {row.uploading && <Spinner />}
-              {row.images.length > 0 && (
-                <span className="text-xs font-bold text-accent">
-                  Uploaded: {row.images.length} image(s)
-                </span>
-              )}
-            </div>
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
 
       <Button
         onClick={createAll}
         loading={saving}
-        disabled={anyUploading || loading || failed}
-        className="mt-5 px-8 py-3"
+        disabled={uploading || options.loading || options.failed}
+        className="self-start px-8"
       >
-        {anyUploading ? "Uploading images..." : "Create all products"}
+        {uploading ? "Uploading images…" : "Add all products"}
       </Button>
-    </div>
+    </>
   );
 }

@@ -1,3 +1,6 @@
-import AdminHome from "@/features/admin/admin-home";
+import { AdminHome } from "@/features/admin/admin-home";
 
-export default AdminHome;
+// The /admin page.
+export default function AdminRoute() {
+  return <AdminHome />;
+}

@@ -2,38 +2,26 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { loginHref } from "@/lib/links";
 import { isAdmin, useAuthStore } from "@/store/auth-store";
 
-// Sends guests to login and tells the page when it can load data.
-export function useAuthGuard() {
+// Sends guests to login (and non-admins home on admin pages); ready is true when the page may show.
+export function useAuthGuard(adminOnly = false) {
   const router = useRouter();
-  const accessToken = useAuthStore((s) => s.accessToken);
-  const hydrated = useAuthStore((s) => s.hydrated);
-
-  useEffect(() => {
-    if (hydrated && !accessToken) {
-      const next = `${window.location.pathname}${window.location.search}`;
-      router.replace(`/login?next=${encodeURIComponent(next)}`);
-    }
-  }, [hydrated, accessToken, router]);
-
-  return { ready: hydrated && !!accessToken };
-}
-
-// Same as useAuthGuard, and sends non-admins to the home page.
-export function useAdminGuard() {
-  const router = useRouter();
-  const accessToken = useAuthStore((s) => s.accessToken);
-  const role = useAuthStore((s) => s.role);
-  const hydrated = useAuthStore((s) => s.hydrated);
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const role = useAuthStore((state) => state.role);
+  const hydrated = useAuthStore((state) => state.hydrated);
 
   useEffect(() => {
     if (!hydrated) return;
     if (!accessToken) {
-      const next = `${window.location.pathname}${window.location.search}`;
-      router.replace(`/login?next=${encodeURIComponent(next)}`);
-    } else if (!isAdmin(role)) router.replace("/");
-  }, [hydrated, accessToken, role, router]);
+      router.replace(
+        loginHref(window.location.pathname + window.location.search),
+      );
+    } else if (adminOnly && !isAdmin(role)) {
+      router.replace("/");
+    }
+  }, [hydrated, accessToken, role, adminOnly, router]);
 
-  return { ready: hydrated && !!accessToken && isAdmin(role) };
+  return { ready: hydrated && !!accessToken && (!adminOnly || isAdmin(role)) };
 }

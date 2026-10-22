@@ -1,3 +1,6 @@
-import AdminUsers from "@/features/admin/users-page";
+import { AdminUsers } from "@/features/admin/users-page";
 
-export default AdminUsers;
+// The /admin/users page.
+export default function AdminUsersRoute() {
+  return <AdminUsers />;
+}

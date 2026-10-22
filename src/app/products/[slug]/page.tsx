@@ -5,13 +5,13 @@ import { ProductDetails } from "@/features/product/product-details";
 import { ProductUnavailable } from "@/features/product/product-unavailable";
 import type { ProductDetail } from "@/lib/types";
 
-type ProductPageProps = { params: { slug: string } };
+type ProductPageProps = { params: Promise<{ slug: string }> };
 
-// Page title and description from the product.
+// Title, description, canonical link and share image of a product page.
 export async function generateMetadata({
   params,
 }: ProductPageProps): Promise<Metadata> {
-  const { data: product } = await getProductOnServer(params.slug);
+  const { data: product } = await getProductOnServer((await params).slug);
   if (!product) return { title: "Product not found" };
 
   const description = product.description.slice(0, 155);
@@ -22,7 +22,7 @@ export async function generateMetadata({
     openGraph: {
       title: product.name,
       description,
-      images: product.images[0] ? [product.images[0]] : [],
+      images: product.images.slice(0, 1),
     },
   };
 }
@@ -57,10 +57,12 @@ function productJsonLd(product: ProductDetail) {
   };
 }
 
-// Product page; a real 404 shows not found, an API failure shows retry.
+// Product page, rendered on the server; unknown slugs get 404.
 export default async function ProductPage({ params }: ProductPageProps) {
-  const { data: product, status } = await getProductOnServer(params.slug);
-  if (status === 404) notFound();
+  const { data: product, status } = await getProductOnServer(
+    (await params).slug,
+  );
+  if (status === 404 || status === 400) notFound();
   if (!product) return <ProductUnavailable />;
 
   return (

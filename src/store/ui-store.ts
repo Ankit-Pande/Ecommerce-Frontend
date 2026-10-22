@@ -2,8 +2,8 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import type { ChatMessage } from "@/api/assistant";
 
-// Theme colours: name -> "r g b" for the --color-accent variable.
 export const ACCENTS = {
   "#0B7A5C": "11 122 92",
   "#1D4ED8": "29 78 216",
@@ -12,28 +12,39 @@ export const ACCENTS = {
 } as const;
 
 export type Accent = keyof typeof ACCENTS;
-type Language = "en" | "hi";
 
 type UiState = {
   accent: Accent;
-  language: Language;
+  language: "en" | "hi";
+  menuOpen: boolean;
+  sideHidden: boolean;
   chatOpen: boolean;
+  chatMessages: ChatMessage[];
   setAccent: (accent: Accent) => void;
   toggleLanguage: () => void;
+  setMenuOpen: (menuOpen: boolean) => void;
+  setSideHidden: (sideHidden: boolean) => void;
   setChatOpen: (chatOpen: boolean) => void;
+  setChatMessages: (chatMessages: ChatMessage[]) => void;
 };
 
-// Accent colour and header language (saved), and whether the assistant is open.
+// Theme colour, language, open drawers and the assistant chat (colour and language are saved).
 export const useUiStore = create<UiState>()(
   persist(
     (set) => ({
       accent: "#0B7A5C",
       language: "en",
+      menuOpen: false,
+      sideHidden: false,
       chatOpen: false,
+      chatMessages: [],
       setAccent: (accent) => set({ accent }),
       toggleLanguage: () =>
         set((state) => ({ language: state.language === "en" ? "hi" : "en" })),
+      setMenuOpen: (menuOpen) => set({ menuOpen }),
+      setSideHidden: (sideHidden) => set({ sideHidden }),
       setChatOpen: (chatOpen) => set({ chatOpen }),
+      setChatMessages: (chatMessages) => set({ chatMessages }),
     }),
     {
       name: "apnakart-ui",

@@ -1,10 +1,6 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { OfflineNotice } from "@/components/ui/offline-notice";
-import { ListSkeleton } from "@/components/ui/skeletons";
-import { StatusPill } from "@/components/ui/status-pill";
-import { useAdminData } from "@/features/admin/use-admin-data";
 import {
   createCategory,
   deleteCategory,
@@ -12,72 +8,102 @@ import {
   updateCategory,
 } from "@/api/admin";
 import { errorMessage } from "@/api/http";
+import { Button } from "@/components/ui/button";
+import { OfflineNotice } from "@/components/ui/offline-notice";
+import { ListSkeleton } from "@/components/ui/skeletons";
+import { StatusPill } from "@/components/ui/status-pill";
+import { AdminTitle } from "@/features/admin/admin-shell";
+import { useAdminData } from "@/features/admin/use-admin-data";
 import { slugify } from "@/lib/format";
 import { toast } from "@/store/toast-store";
-import { Button } from "@/components/ui/button";
 
-// Admin category tree and add form.
-export default function AdminCategories() {
+type Row = {
+  id: string;
+  name: string;
+  isActive: boolean;
+  parentId: string;
+  parentName: string;
+  hasChildren: boolean;
+};
+
+// Categories and subcategories: add, rename, change image, hide/show, delete.
+export function AdminCategories() {
   const { data, loading, failed, load } = useAdminData(listCategories);
-  const categories = data ?? [];
+  const [editing, setEditing] = useState<Row | null>(null);
   const [name, setName] = useState("");
   const [parentId, setParentId] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [busyId, setBusyId] = useState("");
+  const nameInput = useRef<HTMLInputElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
-  // Saves a new category.
-  async function create(event: React.FormEvent<HTMLFormElement>) {
+  const categories = data ?? [];
+  const rows: Row[] = categories.flatMap((category) => [
+    {
+      id: category.id,
+      name: category.name,
+      isActive: category.isActive,
+      parentId: "",
+      parentName: "",
+      hasChildren: category.children.length > 0,
+    },
+    ...category.children.map((child) => ({
+      id: child.id,
+      name: child.name,
+      isActive: child.isActive,
+      parentId: category.id,
+      parentName: category.name,
+      hasChildren: false,
+    })),
+  ]);
+
+  // Puts a category in the form for editing, or prepares a new one under `parent`.
+  function fillForm(row: Row | null, parent: string) {
+    setEditing(row);
+    setName(row?.name ?? "");
+    setParentId(parent);
+    setImage(null);
+    if (fileInput.current) fileInput.current.value = "";
+    nameInput.current?.focus();
+  }
+
+  // Saves the edited category, or adds a new one.
+  async function save(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSaving(true);
-
     try {
       const form = new FormData();
       form.append("name", name.trim());
-      form.append("slug", slugify(name));
-      if (parentId) form.append("parentId", parentId);
       if (image) form.append("image", image);
-
-      await createCategory(form);
-      setName("");
-      setParentId("");
-      setImage(null);
-      if (fileInput.current) fileInput.current.value = "";
+      if (editing) {
+        await updateCategory(editing.id, form);
+      } else {
+        form.append("slug", slugify(name));
+        if (parentId) form.append("parentId", parentId);
+        await createCategory(form);
+      }
+      toast.success(editing ? "Category saved" : "Category added");
+      fillForm(null, "");
       await load();
-      toast.success("Category created");
     } catch (error) {
-      toast.error(errorMessage(error, "Could not create this category"));
+      toast.error(errorMessage(error, "Could not save this category"));
     } finally {
       setSaving(false);
     }
   }
 
-  // Deletes a category.
-  async function remove(id: string, label: string) {
-    if (!window.confirm(`Delete "${label}"?`)) return;
-
-    setBusyId(id);
-    try {
-      await deleteCategory(id);
-      await load();
-      toast.success("Category deleted");
-    } catch (error) {
-      toast.error(errorMessage(error, "Could not delete this category"));
-    } finally {
-      setBusyId("");
-    }
-  }
-
-  // Hides or shows a category with its products.
-  async function toggleVisible(id: string, isActive: boolean) {
-    setBusyId(id);
+  // Hides or shows a category in the store.
+  async function toggleVisible(row: Row) {
+    setBusyId(row.id);
     try {
       const form = new FormData();
-      form.append("isActive", String(!isActive));
-      await updateCategory(id, form);
+      form.append("isActive", String(!row.isActive));
+      await updateCategory(row.id, form);
+      toast.success(
+        row.isActive ? "Category hidden from the store" : "Category is live",
+      );
       await load();
-      toast.success(isActive ? "Category hidden" : "Category visible");
     } catch (error) {
       toast.error(errorMessage(error, "Could not update this category"));
     } finally {
@@ -85,34 +111,47 @@ export default function AdminCategories() {
     }
   }
 
-  const rows = categories.flatMap((category) => [
-    { ...category, parent: "" },
-    ...category.children.map((child) => ({ ...child, parent: category.name })),
-  ]);
+  // Deletes a category after a confirm.
+  async function remove(row: Row) {
+    if (!window.confirm(`Delete "${row.name}"?`)) return;
+    setBusyId(row.id);
+    try {
+      await deleteCategory(row.id);
+      toast.success("Category deleted");
+      await load();
+    } catch (error) {
+      toast.error(errorMessage(error, "Could not delete this category"));
+    } finally {
+      setBusyId("");
+    }
+  }
 
   return (
-    <div className="flex flex-wrap items-start gap-6">
+    <>
+      <AdminTitle title="Categories" />
+
       <form
-        onSubmit={create}
-        className="card flex flex-[1_1_280px] flex-col gap-3 p-5 xl:max-w-[360px]"
+        onSubmit={save}
+        className="flex flex-wrap items-end gap-3 rounded-[20px] bg-white p-4 shadow-card"
       >
-        <h2 className="text-xl font-extrabold">Add category</h2>
-        <label className="flex flex-col gap-1.5 font-semibold">
-          Category name
+        <label className="label flex-[1_1_240px]">
+          {editing ? `Rename "${editing.name}"` : "New category name"}
           <input
+            ref={nameInput}
             className="field"
             required
             minLength={2}
             maxLength={80}
+            placeholder="Category name"
             value={name}
             onChange={(event) => setName(event.target.value)}
-            placeholder="e.g. Laptops"
           />
         </label>
-        <label className="flex flex-col gap-1.5 font-semibold">
+        <label className="label flex-[1_1_200px]">
           Parent
           <select
             className="field"
+            disabled={Boolean(editing)}
             value={parentId}
             onChange={(event) => setParentId(event.target.value)}
           >
@@ -124,80 +163,102 @@ export default function AdminCategories() {
             ))}
           </select>
         </label>
-        <label className="flex flex-col gap-1.5 font-semibold">
+        <label className="label flex-[1_1_200px]">
           Image (optional)
           <input
             ref={fileInput}
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/png,image/webp"
             className="field py-2.5"
             onChange={(event) => setImage(event.target.files?.[0] ?? null)}
           />
         </label>
         <Button type="submit" loading={saving} disabled={failed}>
-          Add category
+          {editing ? "Save changes" : "Add category"}
         </Button>
+        {editing && (
+          <Button variant="line" onClick={() => fillForm(null, "")}>
+            Cancel
+          </Button>
+        )}
+        <p className="w-full text-muted">
+          The store shows only the visible categories in this list. A category
+          with products or subcategories cannot be deleted; hide it instead.
+        </p>
       </form>
 
-      <section className="flex min-w-0 flex-[2_1_480px] flex-col gap-3">
-        <p className="text-muted">
-          Delete is blocked while a category has products or subcategories.
+      {loading && !data ? (
+        <ListSkeleton />
+      ) : failed ? (
+        <OfflineNotice onRetry={load} />
+      ) : rows.length === 0 ? (
+        <p className="rounded-[20px] bg-white p-8 text-center font-semibold">
+          No categories yet
         </p>
-        {loading ? (
-          <ListSkeleton count={3} />
-        ) : failed ? (
-          <OfflineNotice onRetry={load} />
-        ) : rows.length === 0 ? (
-          <p className="card p-8 text-center font-semibold">
-            No categories yet
-          </p>
-        ) : (
-          <div className="table-box">
-            <div className="min-w-[820px]">
-              <div className="table-head">
-                <span>Category</span>
-                <span>Parent</span>
-                <span>Status</span>
-                <span>Actions</span>
-              </div>
-              {rows.map((row) => (
-                <div key={row.id} className="data-row">
-                  <span className={row.parent ? "" : "font-semibold"}>
-                    {row.parent ? `› ${row.name}` : row.name}
+      ) : (
+        <div className="table-box">
+          <div className="min-w-[820px]">
+            <div className="table-head">
+              <span>Category</span>
+              <span>Parent</span>
+              <span>Status</span>
+              <span className="flex-[2]">Actions</span>
+            </div>
+            {rows.map((row) => (
+              <div key={row.id} className="data-row">
+                <span>
+                  <span className={row.parentId ? "ml-4" : "font-semibold"}>
+                    {row.parentId ? `› ${row.name}` : row.name}
                   </span>
-                  <span className="text-muted">
-                    {row.parent || "Top level"}
-                  </span>
-                  <span>
-                    <StatusPill
-                      tone={row.isActive ? "green" : "red"}
-                      label={row.isActive ? "Visible" : "Hidden"}
-                    />
-                  </span>
-                  <span className="flex flex-wrap gap-1.5">
+                </span>
+                <span className="text-muted">
+                  {row.parentName || "Top level"}
+                </span>
+                <span>
+                  <StatusPill
+                    tone={row.isActive ? "good" : "bad"}
+                    label={row.isActive ? "Visible" : "Hidden"}
+                  />
+                </span>
+                <span className="flex flex-[2] flex-wrap gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => fillForm(row, row.parentId)}
+                    className="btn-table"
+                  >
+                    Edit
+                  </button>
+                  {!row.parentId && (
                     <button
                       type="button"
-                      onClick={() => toggleVisible(row.id, row.isActive)}
-                      disabled={busyId === row.id}
+                      onClick={() => fillForm(null, row.id)}
                       className="btn-table"
                     >
-                      {row.isActive ? "Hide" : "Unhide"}
+                      Add subcategory
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => remove(row.id, row.name)}
-                      disabled={busyId === row.id}
-                      className="btn-table text-danger"
-                    >
-                      Delete
-                    </button>
-                  </span>
-                </div>
-              ))}
-            </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => toggleVisible(row)}
+                    disabled={busyId === row.id}
+                    className="btn-table"
+                  >
+                    {row.isActive ? "Hide" : "Unhide"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => remove(row)}
+                    disabled={busyId === row.id || row.hasChildren}
+                    className="btn-table text-danger"
+                  >
+                    Delete
+                  </button>
+                </span>
+              </div>
+            ))}
           </div>
-        )}
-      </section>
-    </div>
+        </div>
+      )}
+    </>
   );
 }

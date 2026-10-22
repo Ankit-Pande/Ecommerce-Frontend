@@ -1,3 +1,6 @@
-import AdminBanners from "@/features/admin/banners-page";
+import { AdminBanners } from "@/features/admin/banners-page";
 
-export default AdminBanners;
+// The /admin/banners page.
+export default function AdminBannersRoute() {
+  return <AdminBanners />;
+}

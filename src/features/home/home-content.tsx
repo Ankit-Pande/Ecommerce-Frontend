@@ -1,84 +1,76 @@
 import Link from "next/link";
-import { SafeImage } from "@/components/ui/safe-image";
-import { SectionHeader } from "@/components/ui/section-header";
-import { BannerCarousel } from "@/features/home/banner-carousel";
-import { CategoryShowcase } from "@/features/home/category-showcase";
 import { ProductCard } from "@/components/product/product-card";
-import { catalogHref } from "@/lib/format";
+import { SafeImage } from "@/components/ui/safe-image";
+import { BannerCarousel } from "@/features/home/banner-carousel";
+import { tintAt } from "@/lib/colors";
+import { categoryHref } from "@/lib/links";
 import type { HomeData, Product } from "@/lib/types";
 
-const PRODUCTS_PER_SECTION = 8;
-const OFFER_COLORS = ["#C7421F", "#5B3FC4"];
-
-// Home page sections.
+// Home page: slides, categories and the product rows.
 export function HomeContent({ home }: { home: HomeData }) {
   return (
-    <div className="flex flex-col gap-7">
+    <>
       <BannerCarousel banners={home.banners} categories={home.categories} />
-      <CategoryShowcase categories={home.categories} />
 
       {home.categories.length > 0 && (
-        <section
-          aria-label="Banners"
-          className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-4"
-        >
-          {home.categories.slice(0, 2).map((category, index) => (
-            <Link
-              key={category.id}
-              href={catalogHref(category)}
-              className="flex items-center gap-4 rounded-[20px] px-6 py-5 text-white"
-              style={{ background: OFFER_COLORS[index] }}
-            >
-              <span className="min-w-0 flex-1">
-                <span className="block text-[26px] font-extrabold">
-                  {category.name}
+        <section className="flex flex-col gap-3">
+          <h2 className="section-title">Shop by category</h2>
+          <div className="flex snap-x snap-proximity gap-3.5 overflow-x-auto px-0.5 pb-2.5 pt-1">
+            {home.categories.map((category, index) => (
+              <Link
+                key={category.id}
+                href={categoryHref(category.slug)}
+                className="flex w-[116px] shrink-0 snap-start flex-col items-center gap-2 text-center font-semibold"
+              >
+                <span
+                  className="relative h-[104px] w-[104px] overflow-hidden rounded-full border-4 border-white shadow-[0_6px_16px_rgba(15,42,46,.12)]"
+                  style={{ background: tintAt(index) }}
+                >
+                  <SafeImage
+                    src={category.image}
+                    alt=""
+                    sizes="104px"
+                    className="object-contain p-4"
+                  />
                 </span>
-                <span className="block">
-                  {category.children
-                    .slice(0, 3)
-                    .map((child) => child.name)
-                    .join(", ")}
-                </span>
-              </span>
-              <span className="relative block h-[92px] w-[92px] shrink-0 overflow-hidden rounded-full bg-white">
-                <SafeImage
-                  src={category.image}
-                  alt=""
-                  sizes="92px"
-                  className="object-contain p-2.5"
-                />
-              </span>
-            </Link>
-          ))}
+                {category.name}
+              </Link>
+            ))}
+          </div>
         </section>
       )}
 
-      <ProductSection
+      <ProductRow
         title="Trending"
+        color="#C7421F"
         href="/products?section=trending"
         products={home.trendingProducts}
       />
-      <ProductSection
+      <ProductRow
         title="Top discounts"
-        href="/products?discount=true"
+        color="#5B3FC4"
+        href="/products?discount=true&sort=discount"
         products={home.offers}
       />
-      <ProductSection
+      <ProductRow
         title="New arrivals"
+        color="#E0A100"
         href="/products?sort=latest"
         products={home.latestProducts}
       />
-    </div>
+    </>
   );
 }
 
-// One titled grid of products.
-function ProductSection({
+// One titled row of products with a "View all" link.
+function ProductRow({
   title,
+  color,
   href,
   products,
 }: {
   title: string;
+  color: string;
   href: string;
   products: Product[];
 }) {
@@ -86,9 +78,24 @@ function ProductSection({
 
   return (
     <section className="flex flex-col gap-3">
-      <SectionHeader title={title} href={href} />
-      <div className="product-grid">
-        {products.slice(0, PRODUCTS_PER_SECTION).map((product) => (
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="section-title flex items-center gap-2.5">
+          <span
+            aria-hidden
+            className="h-7 w-2.5 rounded-full"
+            style={{ background: color }}
+          />
+          {title}
+        </h2>
+        <Link
+          href={href}
+          className="inline-flex min-h-11 items-center rounded-full bg-white px-4 font-extrabold text-accent"
+        >
+          View all ›
+        </Link>
+      </div>
+      <div className="scroll-row">
+        {products.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}
       </div>

@@ -2,9 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-const ROOT_MARGIN = "300px";
-
-// Becomes true once the element scrolls near the screen.
+// Becomes true once the element is near the screen (used to load reviews and related products late).
 export function useInViewOnce<T extends HTMLElement>() {
   const ref = useRef<T>(null);
   const [inView, setInView] = useState(false);
@@ -20,9 +18,8 @@ export function useInViewOnce<T extends HTMLElement>() {
           observer.disconnect();
         }
       },
-      { rootMargin: ROOT_MARGIN },
+      { rootMargin: "300px" },
     );
-
     observer.observe(element);
     return () => observer.disconnect();
   }, []);

@@ -5,53 +5,47 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { addToCart } from "@/api/cart";
 import { errorMessage } from "@/api/http";
+import { QuantityStepper } from "@/components/ui/quantity-stepper";
+import { buyNowHref, loginHref } from "@/lib/links";
 import { useAuthStore } from "@/store/auth-store";
 import { useCartStore } from "@/store/cart-store";
 import { toast } from "@/store/toast-store";
+import type { ProductDetail } from "@/lib/types";
 
-const BUTTON =
-  "inline-flex min-h-10 flex-[0_1_150px] items-center justify-center whitespace-nowrap rounded-[10px] px-3.5 text-[15px] font-semibold text-grey-ink transition disabled:opacity-50";
+const BUTTON = "btn-grey min-h-10 px-4 text-[15px]";
 
-// Colour and size chips, then Add to cart and Buy now (Buy now skips the cart).
-export function AddToCart({
-  productId,
-  slug,
-  colors,
-  sizes,
-}: {
-  productId: string;
-  slug: string;
-  colors: string[];
-  sizes: string[];
-}) {
-  const [color, setColor] = useState(colors.length === 1 ? colors[0] : "");
-  const [size, setSize] = useState("");
-  const [adding, setAdding] = useState(false);
-  const [added, setAdded] = useState(false);
+// Colour, size and quantity choice with Add to cart and Buy now.
+export function AddToCart({ product }: { product: ProductDetail }) {
   const router = useRouter();
+  const [color, setColor] = useState(
+    product.colors.length === 1 ? product.colors[0] : "",
+  );
+  const [size, setSize] = useState(
+    product.sizes.length === 1 ? product.sizes[0] : "",
+  );
+  const [quantity, setQuantity] = useState(1);
+  const [adding, setAdding] = useState(false);
   const loggedIn = useAuthStore((state) => Boolean(state.accessToken));
   const hydrated = useAuthStore((state) => state.hydrated);
-  const setCount = useCartStore((state) => state.setCount);
+  const updateCount = useCartStore((state) => state.updateCount);
 
   const missing =
-    colors.length > 0 && !color
+    product.colors.length > 0 && !color
       ? "colour"
-      : sizes.length > 0 && !size
+      : product.sizes.length > 0 && !size
         ? "size"
         : "";
-  const buyPage = `/checkout?${new URLSearchParams({ buy: slug, ...(size && { size }), ...(color && { color }) })}`;
+  const buyPage = buyNowHref(product.slug, { size, color, quantity });
 
-  // Adds one item to the cart, or sends a guest to login.
+  // Adds the chosen product to the cart; guests go to login first.
   async function add() {
     if (!loggedIn) {
-      router.push(`/login?next=${encodeURIComponent(`/products/${slug}`)}`);
+      router.push(loginHref(`/products/${product.slug}`));
       return;
     }
     setAdding(true);
     try {
-      const cart = await addToCart(productId, 1, { size, color });
-      setCount(cart.items.length);
-      setAdded(true);
+      updateCount(await addToCart(product.id, quantity, { size, color }));
       toast.success("Added to cart");
     } catch (error) {
       toast.error(errorMessage(error, "Could not add this product"));
@@ -62,42 +56,40 @@ export function AddToCart({
 
   return (
     <div className="flex w-full flex-col gap-3">
-      {colors.length > 0 && (
+      {product.colors.length > 0 && (
         <OptionChips
           label="Colour"
-          options={colors}
+          options={product.colors}
           value={color}
           onPick={setColor}
         />
       )}
-      {sizes.length > 0 && (
+      {product.sizes.length > 0 && (
         <OptionChips
           label="Size"
-          options={sizes}
+          options={product.sizes}
           value={size}
           onPick={setSize}
         />
       )}
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="font-semibold">Quantity</span>
+        <QuantityStepper value={quantity} max={10} onChange={setQuantity} />
         <button
           type="button"
           onClick={add}
           disabled={!hydrated || adding || Boolean(missing)}
-          className={`${BUTTON} bg-grey hover:bg-grey-strong`}
+          className={BUTTON}
         >
-          {adding ? "Adding…" : added ? "Added" : "Add to cart"}
+          {adding ? "Adding…" : "Add to cart"}
         </button>
         {missing ? (
-          <span
-            className={`${BUTTON} cursor-not-allowed bg-grey-strong opacity-50`}
-          >
+          <button type="button" disabled className={`${BUTTON} bg-grey-strong`}>
             Buy now
-          </span>
+          </button>
         ) : (
           <Link
-            href={
-              loggedIn ? buyPage : `/login?next=${encodeURIComponent(buyPage)}`
-            }
+            href={loggedIn ? buyPage : loginHref(buyPage)}
             className={`${BUTTON} bg-grey-strong`}
           >
             Buy now
@@ -113,7 +105,7 @@ export function AddToCart({
   );
 }
 
-// One row of option chips, the picked one filled.
+// Pickable chips for colours or sizes.
 function OptionChips({
   label,
   options,
@@ -127,9 +119,9 @@ function OptionChips({
 }) {
   return (
     <div
-      className="flex flex-wrap items-center gap-1.5"
       role="group"
       aria-label={label}
+      className="flex flex-wrap items-center gap-1.5"
     >
       <span className="mr-1 font-extrabold">{label}</span>
       {options.map((option) => (

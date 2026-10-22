@@ -1,16 +1,17 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-import { emptyProduct, ProductForm } from "@/features/admin/product-form";
+import { AdminTitle } from "@/features/admin/admin-shell";
+import { ProductForm } from "@/features/admin/product-form";
 
-// Create product page.
-export default function NewProductPage() {
+// Empty product form for a new product.
+export function NewProductPage() {
   return (
-    <div>
-      <Link href="/admin/products" className="btn-ghost -ml-3 mb-3">
-        <ArrowLeft className="h-4 w-4" /> Products
-      </Link>
-      <h2 className="mb-5 text-[26px] font-extrabold">Create product</h2>
-      <ProductForm initial={emptyProduct} />
-    </div>
+    <>
+      <AdminTitle title="Add product">
+        <Link href="/admin/products" className="btn-line">
+          ‹ Products
+        </Link>
+      </AdminTitle>
+      <ProductForm />
+    </>
   );
 }

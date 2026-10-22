@@ -2,19 +2,17 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { RefreshCw } from "lucide-react";
-import { useProductOptions } from "@/features/admin/use-product-options";
 import { createProduct, updateProduct } from "@/api/admin";
 import { errorMessage } from "@/api/http";
+import { Button } from "@/components/ui/button";
+import { useProductOptions } from "@/features/admin/use-product-options";
 import { slugify } from "@/lib/format";
 import { toast } from "@/store/toast-store";
-import { Button } from "@/components/ui/button";
+import type { AdminProductDetail } from "@/lib/types";
 
 const MAX_IMAGES = 6;
-const GENDERS = ["Men", "Women", "Unisex"];
-const AGE_GROUPS = ["Adult", "Kids"];
 
-export type ProductFormValues = {
+type FormValues = {
   name: string;
   slug: string;
   description: string;
@@ -34,121 +32,114 @@ export type ProductFormValues = {
   isActive: boolean;
 };
 
-export const emptyProduct: ProductFormValues = {
-  name: "",
-  slug: "",
-  description: "",
-  price: "",
-  discountPercent: "0",
-  offerEndsAt: "",
-  stock: "0",
-  categoryId: "",
-  brandId: "",
-  colors: "",
-  sizes: "",
-  gender: "",
-  ageGroup: "",
-  specs: "",
-  isTrending: false,
-  isFeatured: false,
-  isActive: true,
-};
+// An ISO date as a local "yyyy-mm-ddThh:mm" value for a datetime input.
+function toLocalInput(iso: string) {
+  const date = new Date(iso);
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60_000)
+    .toISOString()
+    .slice(0, 16);
+}
 
-type ProductFormProps = {
-  productId?: string;
-  initial: ProductFormValues;
-  existingImageCount?: number;
-};
+// The form's first values: the product's fields, or blanks for a new product.
+function startValues(product?: AdminProductDetail): FormValues {
+  return {
+    name: product?.name ?? "",
+    slug: product?.slug ?? "",
+    description: product?.description ?? "",
+    price: product ? String(product.pricePaise / 100) : "",
+    discountPercent: String(product?.discountPercent ?? 0),
+    offerEndsAt: product?.offerEndsAt ? toLocalInput(product.offerEndsAt) : "",
+    stock: String(product?.stock ?? 0),
+    categoryId: product?.categoryId ?? "",
+    brandId: product?.brandId ?? "",
+    colors: product?.colors.join(", ") ?? "",
+    sizes: product?.sizes.join(", ") ?? "",
+    gender: product?.gender ?? "",
+    ageGroup: product?.ageGroup ?? "",
+    specs: Object.entries(product?.specs ?? {})
+      .map(([key, value]) => `${key}: ${value}`)
+      .join("\n"),
+    isTrending: product?.isTrending ?? false,
+    isFeatured: product?.isFeatured ?? false,
+    isActive: product?.isActive ?? true,
+  };
+}
 
-// Create and edit product form.
-export function ProductForm({
-  productId,
-  initial,
-  existingImageCount = 0,
-}: ProductFormProps) {
-  const [values, setValues] = useState(initial);
-  const [images, setImages] = useState<FileList | null>(null);
-  const [slugEdited, setSlugEdited] = useState(Boolean(productId));
-  const [saving, setSaving] = useState(false);
-  const {
-    categories,
-    brands,
-    loading,
-    brandsLoading,
-    failed,
-    brandsFailed,
-    reloadCategories,
-    reloadBrands,
-  } = useProductOptions();
+// Form values as the text fields the API takes (price in paise).
+function toFields(
+  values: FormValues,
+  editing: boolean,
+): Record<string, string> {
+  return {
+    name: values.name.trim(),
+    slug: values.slug,
+    description: values.description.trim(),
+    pricePaise: String(Math.round(Number(values.price) * 100)),
+    discountPercent: values.discountPercent || "0",
+    stock: values.stock || "0",
+    categoryId: values.categoryId,
+    brandId: values.brandId,
+    colors: values.colors,
+    sizes: values.sizes,
+    gender: values.gender,
+    ageGroup: values.ageGroup,
+    specs: values.specs,
+    offerEndsAt: values.offerEndsAt
+      ? new Date(values.offerEndsAt).toISOString()
+      : "",
+    isTrending: String(values.isTrending),
+    isFeatured: String(values.isFeatured),
+    ...(editing && { isActive: String(values.isActive) }),
+  };
+}
+
+// Add or edit form for one product; on edit only the changed fields are sent.
+export function ProductForm({ product }: { product?: AdminProductDetail }) {
   const router = useRouter();
+  const options = useProductOptions();
+  const [values, setValues] = useState(() => startValues(product));
+  const [images, setImages] = useState<File[]>([]);
+  const [slugTouched, setSlugTouched] = useState(Boolean(product));
+  const [saving, setSaving] = useState(false);
 
-  // Updates one form field.
-  function setField<K extends keyof ProductFormValues>(
+  // Changes one form value.
+  function setField<K extends keyof FormValues>(
     field: K,
-    value: ProductFormValues[K],
+    value: FormValues[K],
   ) {
     setValues((current) => ({ ...current, [field]: value }));
   }
 
-  // Updates the name and the slug together.
-  function changeName(name: string) {
-    setValues((current) => ({
-      ...current,
-      name,
-      ...(!slugEdited && { slug: slugify(name) }),
-    }));
-  }
-
-  // Validates and saves the product.
+  // Sends the new product, or only the changed fields of an existing one.
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
-    if (failed) {
-      toast.error("Load categories before saving");
+    if (!product && images.length === 0) {
+      toast.error("Choose at least one product image");
       return;
     }
 
-    if (!productId && !images?.length) {
-      toast.error("Choose at least one product image");
+    const fields = toFields(values, Boolean(product));
+    const saved: Record<string, string> = product
+      ? toFields(startValues(product), true)
+      : {};
+    const form = new FormData();
+    for (const [key, value] of Object.entries(fields)) {
+      if (!product || saved[key] !== value) form.append(key, value);
+    }
+    images.forEach((file) => form.append("images", file));
+    if (product && [...form.keys()].length === 0) {
+      toast.error("Nothing changed");
       return;
     }
 
     setSaving(true);
     try {
-      const form = new FormData();
-      form.append("name", values.name.trim());
-      form.append("slug", values.slug);
-      form.append("description", values.description.trim());
-      form.append("pricePaise", String(Math.round(Number(values.price) * 100)));
-      form.append("discountPercent", values.discountPercent || "0");
-      form.append("stock", values.stock || "0");
-      form.append("categoryId", values.categoryId);
-      form.append("isTrending", String(values.isTrending));
-      form.append("isFeatured", String(values.isFeatured));
-      form.append("brandId", values.brandId);
-      form.append("colors", values.colors);
-      form.append("sizes", values.sizes);
-      form.append("gender", values.gender);
-      form.append("ageGroup", values.ageGroup);
-      form.append("specs", values.specs);
-      form.append(
-        "offerEndsAt",
-        values.offerEndsAt ? new Date(values.offerEndsAt).toISOString() : "",
-      );
-      if (productId) form.append("isActive", String(values.isActive));
-
-      Array.from(images ?? [])
-        .slice(0, MAX_IMAGES)
-        .forEach((file) => form.append("images", file));
-
-      if (productId) await updateProduct(productId, form);
+      if (product) await updateProduct(product.id, form);
       else await createProduct(form);
-
-      toast.success(productId ? "Product updated" : "Product created");
+      toast.success(product ? "Product saved" : "Product added");
       router.push("/admin/products");
     } catch (error) {
-      toast.error(errorMessage(error, "Could not save product"));
-    } finally {
+      toast.error(errorMessage(error, "Could not save the product"));
       setSaving(false);
     }
   }
@@ -156,87 +147,78 @@ export function ProductForm({
   return (
     <form
       onSubmit={submit}
-      className="card grid max-w-3xl grid-cols-[minmax(0,1fr)] gap-5 p-5 sm:grid-cols-2 sm:p-6"
+      className="card grid max-w-3xl gap-4 p-5 sm:grid-cols-2 sm:p-6"
     >
-      {failed && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[#FFD9D9] p-3 text-sm font-semibold text-[#8E1B1B] sm:col-span-2">
-          <span>Could not load categories.</span>
-          <Button
-            variant="danger"
-            onClick={reloadCategories}
-            className="min-h-9 py-1"
-          >
-            <RefreshCw className="h-3.5 w-3.5" /> Retry
-          </Button>
-        </div>
+      {options.failed && (
+        <p className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[#FFD9D9] p-3 font-semibold text-[#8E1B1B] sm:col-span-2">
+          Could not load categories.
+          <button type="button" onClick={options.reload} className="btn-table">
+            Retry
+          </button>
+        </p>
       )}
 
-      {brandsFailed && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[#FFF0B8] p-3 text-sm font-semibold text-[#5C4300] sm:col-span-2">
-          <span>Brands are unavailable. You can save without a brand.</span>
-          <Button
-            variant="ghost"
-            onClick={reloadBrands}
-            className="min-h-9 py-1 text-[#5C4300]"
-          >
-            <RefreshCw className="h-3.5 w-3.5" /> Retry
-          </Button>
-        </div>
-      )}
-
-      <label className="sm:col-span-2">
-        <span className="text-sm font-semibold">Product name</span>
+      <label className="label sm:col-span-2">
+        Product name
         <input
-          className="field mt-1"
+          className="field"
           required
           minLength={2}
+          maxLength={150}
           value={values.name}
-          onChange={(event) => changeName(event.target.value)}
+          onChange={(event) => {
+            const name = event.target.value;
+            setValues((current) => ({
+              ...current,
+              name,
+              ...(!slugTouched && { slug: slugify(name) }),
+            }));
+          }}
         />
       </label>
 
-      <label className="sm:col-span-2">
-        <span className="text-sm font-semibold">Slug (URL)</span>
+      <label className="label sm:col-span-2">
+        Link name (slug)
         <input
-          className="field mt-1"
+          className="field"
           required
+          maxLength={120}
           value={values.slug}
           onChange={(event) => {
-            setSlugEdited(true);
+            setSlugTouched(true);
             setField("slug", slugify(event.target.value));
           }}
         />
       </label>
 
-      <label className="sm:col-span-2">
-        <span className="text-sm font-semibold">Description</span>
+      <label className="label sm:col-span-2">
+        Description
         <textarea
-          className="field mt-1"
+          className="field py-2.5"
           rows={4}
           required
           minLength={5}
+          maxLength={5000}
           value={values.description}
           onChange={(event) => setField("description", event.target.value)}
         />
       </label>
 
-      <label className="sm:col-span-2">
-        <span className="text-sm font-semibold">
-          Specs (one per line, like RAM: 16GB)
-        </span>
+      <label className="label sm:col-span-2">
+        Specs (one per line, like RAM: 8GB)
         <textarea
-          className="field mt-1"
+          className="field py-2.5"
           rows={3}
-          placeholder={"RAM: 16GB\nBattery: 5000mAh"}
+          placeholder={"RAM: 8GB\nBattery: 5000mAh"}
           value={values.specs}
           onChange={(event) => setField("specs", event.target.value)}
         />
       </label>
 
-      <label>
-        <span className="text-sm font-semibold">Price (INR)</span>
+      <label className="label">
+        Price (₹)
         <input
-          className="field mt-1"
+          className="field"
           required
           inputMode="decimal"
           value={values.price}
@@ -246,116 +228,105 @@ export function ProductForm({
         />
       </label>
 
-      <label>
-        <span className="text-sm font-semibold">Discount %</span>
+      <label className="label">
+        Discount % (0 to 90)
         <input
-          className="field mt-1"
-          inputMode="numeric"
+          className="field"
+          type="number"
+          min={0}
+          max={90}
           value={values.discountPercent}
-          onChange={(event) => {
-            setField(
-              "discountPercent",
-              event.target.value.replace(/\D/g, "").slice(0, 2),
-            );
-          }}
+          onChange={(event) => setField("discountPercent", event.target.value)}
         />
       </label>
 
-      <label>
-        <span className="text-sm font-semibold">Offer ends (optional)</span>
+      <label className="label">
+        Offer ends (optional)
         <input
           type="datetime-local"
-          className="field mt-1"
+          className="field"
           value={values.offerEndsAt}
           onChange={(event) => setField("offerEndsAt", event.target.value)}
         />
       </label>
 
-      <label>
-        <span className="text-sm font-semibold">Stock</span>
+      <label className="label">
+        Stock
         <input
-          className="field mt-1"
-          inputMode="numeric"
+          className="field"
+          type="number"
+          min={0}
+          max={100000}
           value={values.stock}
-          onChange={(event) =>
-            setField("stock", event.target.value.replace(/\D/g, ""))
-          }
+          onChange={(event) => setField("stock", event.target.value)}
         />
       </label>
 
-      <label>
-        <span className="text-sm font-semibold">Colours</span>
+      <label className="label">
+        Colours (comma separated)
         <input
-          className="field mt-1"
-          placeholder="e.g. Black, Navy Blue"
+          className="field"
+          placeholder="Black, Navy Blue"
           value={values.colors}
           onChange={(event) => setField("colors", event.target.value)}
         />
       </label>
 
-      <label>
-        <span className="text-sm font-semibold">Sizes</span>
+      <label className="label">
+        Sizes (comma separated)
         <input
-          className="field mt-1"
-          placeholder="e.g. S, M, L, XL (empty if no sizes)"
+          className="field"
+          placeholder="S, M, L, XL"
           value={values.sizes}
           onChange={(event) => setField("sizes", event.target.value)}
         />
       </label>
 
-      <label>
-        <span className="text-sm font-semibold">Gender</span>
+      <label className="label">
+        Gender
         <select
-          className="field mt-1"
+          className="field"
           value={values.gender}
           onChange={(event) => setField("gender", event.target.value)}
         >
           <option value="">Not set</option>
-          {GENDERS.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
+          <option value="Men">Men</option>
+          <option value="Women">Women</option>
+          <option value="Unisex">Unisex</option>
         </select>
       </label>
 
-      <label>
-        <span className="text-sm font-semibold">Age group</span>
+      <label className="label">
+        Age group
         <select
-          className="field mt-1"
+          className="field"
           value={values.ageGroup}
           onChange={(event) => setField("ageGroup", event.target.value)}
         >
           <option value="">Not set</option>
-          {AGE_GROUPS.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
+          <option value="Adult">Adult</option>
+          <option value="Kids">Kids</option>
         </select>
       </label>
 
-      <label>
-        <span className="text-sm font-semibold">Category</span>
+      <label className="label">
+        Category
         <select
-          className="field mt-1"
+          className="field"
           required
-          disabled={loading}
+          disabled={options.loading}
           value={values.categoryId}
           onChange={(event) => setField("categoryId", event.target.value)}
         >
           <option value="">
-            {loading ? "Loading categories..." : "Select category"}
+            {options.loading ? "Loading…" : "Choose category"}
           </option>
-          {failed && values.categoryId && (
-            <option value={values.categoryId}>Current category</option>
-          )}
-          {categories.map((category) => (
+          {options.categories.map((category) => (
             <optgroup key={category.id} label={category.name}>
               <option value={category.id}>{category.name}</option>
               {category.children.map((child) => (
                 <option key={child.id} value={child.id}>
-                  - {child.name}
+                  {category.name} › {child.name}
                 </option>
               ))}
             </optgroup>
@@ -363,21 +334,16 @@ export function ProductForm({
         </select>
       </label>
 
-      <label>
-        <span className="text-sm font-semibold">Brand (optional)</span>
+      <label className="label">
+        Brand (optional)
         <select
-          className="field mt-1"
-          disabled={brandsLoading}
+          className="field"
+          disabled={options.loading}
           value={values.brandId}
           onChange={(event) => setField("brandId", event.target.value)}
         >
-          <option value="">
-            {brandsLoading ? "Loading brands..." : "No brand"}
-          </option>
-          {brandsFailed && values.brandId && (
-            <option value={values.brandId}>Current brand</option>
-          )}
-          {brands.map((brand) => (
+          <option value="">No brand</option>
+          {options.brands.map((brand) => (
             <option key={brand.id} value={brand.id}>
               {brand.name}
             </option>
@@ -385,66 +351,76 @@ export function ProductForm({
         </select>
       </label>
 
-      <label className="sm:col-span-2">
-        <span className="text-sm font-semibold">
-          Images (up to {MAX_IMAGES}, 2 MB each)
-        </span>
-        {existingImageCount > 0 && (
-          <span className="mt-1 block text-xs text-muted">
-            {existingImageCount} image(s) uploaded. New files will replace them.
+      <label className="label sm:col-span-2">
+        Images (up to {MAX_IMAGES}, 2 MB each)
+        {product && product.images.length > 0 && (
+          <span className="text-sm font-normal text-muted">
+            {product.images.length} image(s) saved. New files replace them.
           </span>
         )}
         <input
           type="file"
-          accept="image/*"
+          accept="image/jpeg,image/png,image/webp"
           multiple
-          className="field mt-1.5 py-2.5"
-          onChange={(event) => setImages(event.target.files)}
+          className="field py-2.5"
+          onChange={(event) =>
+            setImages(Array.from(event.target.files ?? []).slice(0, MAX_IMAGES))
+          }
         />
       </label>
 
-      <label className="flex min-h-10 items-center gap-2 text-sm font-semibold">
-        <input
-          type="checkbox"
-          className="accent-accent"
+      <div className="flex flex-wrap gap-x-6 gap-y-2 sm:col-span-2">
+        <Checkbox
+          label="Show in Trending"
           checked={values.isTrending}
-          onChange={(event) => setField("isTrending", event.target.checked)}
+          onChange={(checked) => setField("isTrending", checked)}
         />
-        Show in Trending
-      </label>
-
-      <label className="flex min-h-10 items-center gap-2 text-sm font-semibold">
-        <input
-          type="checkbox"
-          className="accent-accent"
+        <Checkbox
+          label="Show in Featured"
           checked={values.isFeatured}
-          onChange={(event) => setField("isFeatured", event.target.checked)}
+          onChange={(checked) => setField("isFeatured", checked)}
         />
-        Show in Featured
-      </label>
-
-      {productId && (
-        <label className="flex min-h-10 items-center gap-2 text-sm font-semibold">
-          <input
-            type="checkbox"
-            className="accent-accent"
+        {product && (
+          <Checkbox
+            label="Live on store"
             checked={values.isActive}
-            onChange={(event) => setField("isActive", event.target.checked)}
+            onChange={(checked) => setField("isActive", checked)}
           />
-          Live on store
-        </label>
-      )}
+        )}
+      </div>
 
       <div className="sm:col-span-2">
         <Button
           type="submit"
           loading={saving}
-          disabled={loading || failed}
-          className="px-7"
+          disabled={options.loading || options.failed}
         >
-          {productId ? "Save changes" : "Create product"}
+          {product ? "Save changes" : "Add product"}
         </Button>
       </div>
     </form>
+  );
+}
+
+// A labelled checkbox.
+function Checkbox({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <label className="flex min-h-11 items-center gap-2 font-semibold">
+      <input
+        type="checkbox"
+        className="h-5 w-5 accent-accent"
+        checked={checked}
+        onChange={(event) => onChange(event.target.checked)}
+      />
+      {label}
+    </label>
   );
 }

@@ -2,8 +2,6 @@
 
 import { create } from "zustand";
 
-const AUTO_DISMISS_MS = 3500;
-
 type Toast = { id: number; message: string; type: "success" | "error" };
 
 type ToastState = {
@@ -12,20 +10,28 @@ type ToastState = {
   remove: (id: number) => void;
 };
 
+// Small messages at the bottom of the screen.
 export const useToastStore = create<ToastState>((set) => ({
   toasts: [],
+  // Shows a message and hides it after 3.5 seconds.
   push: (message, type) => {
     const id = Date.now() + Math.random();
-    set((s) => ({ toasts: [...s.toasts, { id, message, type }] }));
+    set((state) => ({ toasts: [...state.toasts, { id, message, type }] }));
     setTimeout(
-      () => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
-      AUTO_DISMISS_MS,
+      () =>
+        set((state) => ({
+          toasts: state.toasts.filter((toast) => toast.id !== id),
+        })),
+      3500,
     );
   },
-  remove: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
+  remove: (id) =>
+    set((state) => ({
+      toasts: state.toasts.filter((toast) => toast.id !== id),
+    })),
 }));
 
-// Shows a success or error toast.
+// Shows a green (success) or red (error) message from anywhere.
 export const toast = {
   success: (message: string) =>
     useToastStore.getState().push(message, "success"),

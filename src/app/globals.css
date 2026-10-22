@@ -3,17 +3,12 @@
 @tailwind utilities;
 
 @layer base {
-  /* Accent colour; the theme picker changes only this. */
   :root {
     --color-accent: 11 122 92;
   }
 
-  html {
-    scroll-behavior: smooth;
-  }
-
   body {
-    @apply min-h-screen bg-ground text-base leading-[1.45] text-ink;
+    @apply bg-ground font-body text-base leading-[1.45] text-ink antialiased;
   }
 
   button,
@@ -24,55 +19,74 @@
     @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2;
   }
 
-  button,
-  select {
-    @apply disabled:cursor-not-allowed;
+  button:disabled {
+    @apply cursor-not-allowed;
   }
 }
 
 @layer components {
   .card {
-    @apply rounded-[20px] bg-white shadow-card;
+    @apply rounded-3xl bg-white shadow-card;
+  }
+
+  .page-title {
+    @apply text-[32px] font-extrabold leading-tight;
+  }
+
+  .section-title {
+    @apply text-[26px] font-extrabold leading-tight;
   }
 
   .field {
-    @apply min-h-12 w-full rounded-xl border border-field bg-white px-3.5 text-base text-ink outline-none placeholder:text-muted focus:border-accent;
+    @apply min-h-12 w-full rounded-xl border border-field bg-white px-3.5 text-ink outline-none placeholder:text-muted focus:border-accent;
+  }
+
+  .label {
+    @apply flex flex-col gap-1.5 font-semibold;
   }
 
   .btn-primary {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-accent px-5 font-extrabold text-white transition hover:opacity-90 disabled:opacity-50;
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-accent px-6 font-extrabold text-white transition hover:opacity-90 disabled:opacity-50;
+  }
+
+  .btn-big {
+    @apply min-h-[52px] rounded-[14px] text-[17px];
   }
 
   .btn-outline {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border-2 border-accent bg-white px-5 font-extrabold text-accent transition hover:bg-ground disabled:opacity-50;
-  }
-
-  .btn-grey {
-    @apply inline-flex min-h-9 items-center justify-center whitespace-nowrap rounded-[10px] bg-grey px-2.5 text-sm font-semibold text-grey-ink transition hover:bg-grey-strong disabled:opacity-50;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border-2 border-accent bg-white px-[18px] font-extrabold text-accent transition hover:bg-soft disabled:opacity-50;
   }
 
   .btn-line {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-field bg-white px-4 font-semibold text-ink transition hover:border-accent disabled:opacity-50;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-field bg-white px-4 font-semibold transition hover:border-accent disabled:opacity-50;
   }
 
-  .btn-ghost {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-3 font-semibold text-ink transition hover:bg-ground;
+  .btn-grey {
+    @apply inline-flex min-h-9 items-center justify-center whitespace-nowrap rounded-[10px] bg-grey px-2 text-sm font-semibold text-grey-ink transition hover:bg-grey-strong disabled:opacity-50;
   }
 
-  .icon-button {
-    @apply inline-grid h-11 w-11 shrink-0 place-items-center rounded-xl transition hover:bg-ground;
+  .btn-danger {
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border-2 border-danger bg-white px-5 font-extrabold text-danger transition hover:bg-[#FFF4F4] disabled:opacity-50;
   }
 
-  .status-pill {
-    @apply inline-flex items-center rounded-full px-3.5 py-1.5 text-sm font-semibold;
-  }
-
-  .product-grid {
-    @apply grid grid-cols-[repeat(auto-fill,minmax(190px,1fr))] gap-4;
+  .btn-remove {
+    @apply inline-flex min-h-11 items-center font-semibold text-danger disabled:opacity-50;
   }
 
   .chip {
-    @apply min-h-9 rounded-full border border-line bg-white px-3 text-sm font-semibold aria-pressed:border-accent aria-pressed:bg-accent aria-pressed:text-white aria-selected:border-accent aria-selected:bg-accent aria-selected:text-white;
+    @apply inline-flex min-h-9 items-center whitespace-nowrap rounded-full border border-line bg-white px-3 text-sm font-semibold transition aria-pressed:border-accent aria-pressed:bg-accent aria-pressed:text-white;
+  }
+
+  .status-pill {
+    @apply inline-flex items-center whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-semibold;
+  }
+
+  .product-grid {
+    @apply grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4;
+  }
+
+  .scroll-row {
+    @apply flex snap-x snap-proximity gap-4 overflow-x-auto px-0.5 pb-3 pt-1 [&>*]:w-[212px] [&>*]:shrink-0 [&>*]:snap-start;
   }
 
   .table-box {
@@ -89,10 +103,6 @@
 
   .btn-table {
     @apply inline-flex min-h-11 items-center justify-center rounded-[10px] border border-field bg-white px-3 text-sm font-semibold transition hover:border-accent disabled:opacity-50;
-  }
-
-  .page {
-    @apply mx-auto w-full max-w-page p-6;
   }
 }
 

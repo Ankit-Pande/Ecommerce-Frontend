@@ -11,16 +11,75 @@ import type {
   ApiData,
   OrderStatus,
   Paginated,
-  UserRole,
 } from "@/lib/types";
 
-const PAGE_SIZE = "20";
-
-// Builds cursor and filter query params for admin lists.
-function listParams(cursor?: string, extra: Record<string, string> = {}) {
-  const params = new URLSearchParams({ limit: PAGE_SIZE, ...extra });
+// Query for one admin list page: 20 rows, the filters and the cursor.
+function pageParams(cursor?: string, filters: Record<string, string> = {}) {
+  const params = new URLSearchParams({ limit: "20", ...filters });
   if (cursor) params.set("cursor", cursor);
   return params;
+}
+
+// Today's numbers for the admin home.
+export async function getStats() {
+  return (await http.get<ApiData<AdminStats>>("/api/admin/stats")).data;
+}
+
+// One page of all orders, filtered by status or "needs review".
+export function listOrders(
+  cursor: string | undefined,
+  filters: { status?: OrderStatus; needsReview?: boolean },
+) {
+  const params = pageParams(cursor, {
+    ...(filters.status && { status: filters.status }),
+    ...(filters.needsReview && { needsReview: "true" }),
+  });
+  return http.get<Paginated<AdminOrder>>(`/api/admin/orders?${params}`);
+}
+
+// Ships, delivers or cancels an order.
+export function updateOrderStatus(
+  id: string,
+  status: "SHIPPED" | "DELIVERED" | "CANCELLED",
+) {
+  return http.patch(`/api/admin/orders/${encodeURIComponent(id)}/status`, {
+    status,
+  });
+}
+
+// Records that a payment under review was refunded.
+export function markOrderRefunded(id: string) {
+  return http.patch(`/api/admin/orders/${encodeURIComponent(id)}/refunded`);
+}
+
+// One page of all products, searchable by name.
+export function listProducts(cursor: string | undefined, search: string) {
+  const params = pageParams(cursor, search ? { q: search } : {});
+  return http.get<Paginated<AdminProduct>>(`/api/admin/products?${params}`);
+}
+
+// One product with every field for the edit form.
+export async function getProduct(id: string) {
+  return (
+    await http.get<ApiData<AdminProductDetail>>(
+      `/api/admin/products/${encodeURIComponent(id)}`,
+    )
+  ).data;
+}
+
+// Creates a product from the form (with images).
+export function createProduct(form: FormData) {
+  return http.postForm("/api/admin/products", form);
+}
+
+// Saves the edit form of a product.
+export function updateProduct(id: string, form: FormData) {
+  return http.patchForm(`/api/admin/products/${encodeURIComponent(id)}`, form);
+}
+
+// Hides a product from the store.
+export function hideProduct(id: string) {
+  return http.delete(`/api/admin/products/${encodeURIComponent(id)}`);
 }
 
 // Uploads images and returns their URLs.
@@ -29,75 +88,17 @@ export async function uploadImages(form: FormData) {
     .data;
 }
 
-// Admin product list, including hidden products.
-export function listProducts(cursor: string | undefined, q: string) {
-  const params = listParams(cursor, q ? { q } : {});
-  return http.get<Paginated<AdminProduct>>(`/api/admin/products?${params}`);
-}
-
-// One product for the edit form.
-export async function getProduct(id: string) {
+// Creates many products at once.
+export async function bulkCreateProducts(products: unknown[]) {
   return (
-    await http.get<ApiData<AdminProductDetail>>(`/api/admin/products/${id}`)
+    await http.post<ApiData<{ created: number; skipped: string[] }>>(
+      "/api/admin/products/bulk",
+      { products },
+    )
   ).data;
 }
 
-// Creates a product with images.
-export function createProduct(form: FormData) {
-  return http.postForm("/api/admin/products", form);
-}
-
-// Updates a product; new images are optional.
-export function updateProduct(id: string, form: FormData) {
-  return http.patchForm(`/api/admin/products/${id}`, form);
-}
-
-// Hides a product from the store.
-export function hideProduct(id: string) {
-  return http.delete(`/api/admin/products/${id}`);
-}
-
-// Creates many products in one request.
-export async function bulkCreateProducts(products: unknown[]) {
-  const res = await http.post<ApiData<{ created: number; skipped: string[] }>>(
-    "/api/admin/products/bulk",
-    { products },
-  );
-  return res.data;
-}
-
-// All categories, including hidden ones.
-export async function listCategories() {
-  return (await http.get<ApiData<AdminCategory[]>>("/api/admin/categories"))
-    .data;
-}
-
-// Creates a category or subcategory.
-export function createCategory(form: FormData) {
-  return http.postForm("/api/admin/categories", form);
-}
-
-// Updates a category.
-export function updateCategory(id: string, form: FormData) {
-  return http.patchForm(`/api/admin/categories/${id}`, form);
-}
-
-// Deletes a category.
-export function deleteCategory(id: string) {
-  return http.delete(`/api/admin/categories/${id}`);
-}
-
-// All brands.
-export async function listBrands() {
-  return (await http.get<ApiData<AdminBrand[]>>("/api/admin/brands")).data;
-}
-
-// Creates a brand with an optional logo.
-export function createBrand(form: FormData) {
-  return http.postForm("/api/admin/brands", form);
-}
-
-// Puts one discount on every product of a category (or the whole store); 0 ends the sale.
+// Sets one discount on all products or on one category.
 export async function applySale(data: {
   categoryId?: string;
   discountPercent: number;
@@ -111,88 +112,107 @@ export async function applySale(data: {
   ).data;
 }
 
-// Shows or hides a brand on the store.
-export function setBrandActive(id: string, isActive: boolean) {
-  return http.patch<ApiData<AdminBrand>>(`/api/admin/brands/${id}`, {
-    isActive,
-  });
+// All categories with their subcategories.
+export async function listCategories() {
+  return (await http.get<ApiData<AdminCategory[]>>("/api/admin/categories"))
+    .data;
 }
 
-// Deletes a brand.
+// Creates a category from the form.
+export function createCategory(form: FormData) {
+  return http.postForm("/api/admin/categories", form);
+}
+
+// Saves a category form.
+export function updateCategory(id: string, form: FormData) {
+  return http.patchForm(
+    `/api/admin/categories/${encodeURIComponent(id)}`,
+    form,
+  );
+}
+
+// Deletes an empty category.
+export function deleteCategory(id: string) {
+  return http.delete(`/api/admin/categories/${encodeURIComponent(id)}`);
+}
+
+// All brands.
+export async function listBrands() {
+  return (await http.get<ApiData<AdminBrand[]>>("/api/admin/brands")).data;
+}
+
+// Creates a brand from the form.
+export function createBrand(form: FormData) {
+  return http.postForm("/api/admin/brands", form);
+}
+
+// Renames, hides or shows a brand.
+export async function updateBrand(
+  id: string,
+  data: { name?: string; isActive?: boolean },
+) {
+  return (
+    await http.patch<ApiData<AdminBrand>>(
+      `/api/admin/brands/${encodeURIComponent(id)}`,
+      data,
+    )
+  ).data;
+}
+
+// Deletes a brand that has no products.
 export function deleteBrand(id: string) {
-  return http.delete(`/api/admin/brands/${id}`);
+  return http.delete(`/api/admin/brands/${encodeURIComponent(id)}`);
 }
 
-// All home banners.
+// All home page banners.
 export async function listBanners() {
   return (await http.get<ApiData<AdminBanner[]>>("/api/admin/banners")).data;
 }
 
-// Creates a home banner.
+// Creates a banner from the form.
 export function createBanner(form: FormData) {
   return http.postForm("/api/admin/banners", form);
 }
 
-// Shows or hides a home banner.
-export function setBannerActive(id: string, isActive: boolean) {
-  return http.patch<ApiData<AdminBanner>>(`/api/admin/banners/${id}`, {
-    isActive,
-  });
+// Changes a banner's link, position or visibility.
+export async function updateBanner(
+  id: string,
+  data: { link?: string | null; position?: number; isActive?: boolean },
+) {
+  return (
+    await http.patch<ApiData<AdminBanner>>(
+      `/api/admin/banners/${encodeURIComponent(id)}`,
+      data,
+    )
+  ).data;
 }
 
 // Deletes a banner.
 export function deleteBanner(id: string) {
-  return http.delete(`/api/admin/banners/${id}`);
+  return http.delete(`/api/admin/banners/${encodeURIComponent(id)}`);
 }
 
-// Numbers for the admin dashboard.
-export async function getStats() {
-  return (await http.get<ApiData<AdminStats>>("/api/admin/stats")).data;
-}
-
-// Orders by status, or only the ones that need a refund.
-export function listOrders(
-  cursor: string | undefined,
-  status: string,
-  needsReview = false,
-) {
-  const params = listParams(cursor, {
-    ...(status && { status }),
-    ...(needsReview && { needsReview: "true" }),
-  });
-  return http.get<Paginated<AdminOrder>>(`/api/admin/orders?${params}`);
-}
-
-// Moves an order to its next status.
-export function updateOrderStatus(id: string, status: OrderStatus) {
-  return http.patch(`/api/admin/orders/${id}/status`, { status });
-}
-
-// Records a refund done from the Razorpay dashboard.
-export function markOrderRefunded(id: string) {
-  return http.patch(`/api/admin/orders/${id}/refunded`);
-}
-
-// Removes a customer review.
+// Deletes a review.
 export function deleteReview(id: string) {
-  return http.delete(`/api/admin/reviews/${id}`);
+  return http.delete(`/api/admin/reviews/${encodeURIComponent(id)}`);
 }
 
-// Customer list.
-export function listUsers(cursor: string | undefined, q: string) {
-  const params = listParams(cursor, q ? { q } : {});
+// One page of customers, searchable by phone.
+export function listUsers(cursor: string | undefined, phone: string) {
+  const params = pageParams(cursor, phone ? { q: phone } : {});
   return http.get<Paginated<AdminUser>>(`/api/admin/users?${params}`);
 }
 
-// Blocks or unblocks a customer.
+// Blocks or unblocks a user.
 export function setUserBlocked(id: string, isBlocked: boolean) {
-  return http.patch(`/api/admin/users/${id}/block`, { isBlocked });
+  return http.patch(`/api/admin/users/${encodeURIComponent(id)}/block`, {
+    isBlocked,
+  });
 }
 
-// Makes a user admin or customer (super admin only).
-export function setUserRole(
-  id: string,
-  role: Exclude<UserRole, "SUPER_ADMIN">,
-) {
-  return http.patch(`/api/admin/users/${id}/role`, { role });
+// Makes a user an admin or a normal user.
+export function setUserRole(id: string, role: "USER" | "ADMIN") {
+  return http.patch(`/api/admin/users/${encodeURIComponent(id)}/role`, {
+    role,
+  });
 }

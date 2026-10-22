@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 
-// Loads the next page of a list.
+// "Load more" button under lists.
 export function LoadMoreButton({
   onClick,
   loading,
@@ -13,7 +13,7 @@ export function LoadMoreButton({
       variant="outline"
       onClick={onClick}
       loading={loading}
-      className="mx-auto flex px-7"
+      className="self-center px-7"
     >
       Load more
     </Button>

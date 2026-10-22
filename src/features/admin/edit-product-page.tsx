@@ -2,70 +2,33 @@
 
 import { useCallback } from "react";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { getProduct } from "@/api/admin";
 import { OfflineNotice } from "@/components/ui/offline-notice";
 import { ListSkeleton } from "@/components/ui/skeletons";
-import {
-  ProductForm,
-  type ProductFormValues,
-} from "@/features/admin/product-form";
+import { AdminTitle } from "@/features/admin/admin-shell";
+import { ProductForm } from "@/features/admin/product-form";
 import { useAdminData } from "@/features/admin/use-admin-data";
-import { getProduct } from "@/api/admin";
-import type { AdminProductDetail } from "@/lib/types";
 
-// Turns a product into form values.
-function formValues(product: AdminProductDetail): ProductFormValues {
-  return {
-    name: product.name,
-    slug: product.slug,
-    description: product.description,
-    price: String(product.pricePaise / 100),
-    discountPercent: String(product.discountPercent),
-    offerEndsAt: product.offerEndsAt ? toLocalInput(product.offerEndsAt) : "",
-    stock: String(product.stock),
-    categoryId: product.categoryId,
-    brandId: product.brandId ?? "",
-    colors: product.colors.join(", "),
-    sizes: product.sizes.join(", "),
-    gender: product.gender ?? "",
-    ageGroup: product.ageGroup ?? "",
-    specs: Object.entries(product.specs ?? {})
-      .map(([key, value]) => `${key}: ${value}`)
-      .join("\n"),
-    isTrending: product.isTrending,
-    isFeatured: product.isFeatured,
-    isActive: product.isActive,
-  };
-}
-
-// ISO time to a datetime-local value.
-function toLocalInput(iso: string) {
-  const date = new Date(iso);
-  return new Date(date.getTime() - date.getTimezoneOffset() * 60_000)
-    .toISOString()
-    .slice(0, 16);
-}
-
-// Loads a product and shows the edit form.
-export default function EditProductPage({ productId }: { productId: string }) {
+// Loads one product and shows the product form for it.
+export function EditProductPage({ productId }: { productId: string }) {
+  // Loads the product being edited.
   const fetchProduct = useCallback(() => getProduct(productId), [productId]);
-
   const { data: product, loading, failed, load } = useAdminData(fetchProduct);
 
-  if (loading) return <ListSkeleton count={2} />;
-  if (failed || !product) return <OfflineNotice onRetry={load} />;
-
   return (
-    <div>
-      <Link href="/admin/products" className="btn-ghost -ml-3 mb-3">
-        <ArrowLeft className="h-4 w-4" /> Products
-      </Link>
-      <h2 className="mb-5 text-[26px] font-extrabold">Edit product</h2>
-      <ProductForm
-        productId={productId}
-        initial={formValues(product)}
-        existingImageCount={product.images.length}
-      />
-    </div>
+    <>
+      <AdminTitle title="Edit product">
+        <Link href="/admin/products" className="btn-line">
+          ‹ Products
+        </Link>
+      </AdminTitle>
+      {loading ? (
+        <ListSkeleton count={2} />
+      ) : failed || !product ? (
+        <OfflineNotice onRetry={load} />
+      ) : (
+        <ProductForm key={product.id} product={product} />
+      )}
+    </>
   );
 }

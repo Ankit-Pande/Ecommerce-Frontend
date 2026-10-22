@@ -1,28 +1,27 @@
 import Link from "next/link";
-import { inr, tintFor } from "@/lib/format";
-import { SafeImage } from "@/components/ui/safe-image";
 import { CardButtons } from "@/components/product/card-buttons";
+import { SafeImage } from "@/components/ui/safe-image";
+import { tintFor } from "@/lib/colors";
+import { inr, ratingsText } from "@/lib/format";
 import type { Product } from "@/lib/types";
 
-// Product tile with image, discount, rating, price and two small buttons.
+// The one product card used in every list.
 export function ProductCard({ product }: { product: Product }) {
   const href = `/products/${product.slug}`;
-  const soldOut = product.stockStatus === "OUT_OF_STOCK";
 
   return (
-    <article className="card flex flex-col overflow-hidden">
+    <article className="flex flex-col overflow-hidden rounded-[22px] bg-white shadow-card">
       <Link
         href={href}
         aria-label={product.name}
-        className="relative block h-[162px] p-4"
+        className="relative block p-4"
         style={{ background: tintFor(product.id) }}
       >
-        <span className="relative block h-full">
+        <span className="relative block h-[130px]">
           <SafeImage
             src={product.image}
             alt=""
-            sizes="240px"
-            className={`object-contain ${soldOut ? "opacity-50" : ""}`}
+            sizes="(max-width: 640px) 50vw, 220px"
           />
         </span>
         {product.discountPercent > 0 && (
@@ -41,11 +40,10 @@ export function ProductCard({ product }: { product: Product }) {
             <span className="rounded-full bg-accent px-2 py-px font-semibold text-white">
               ★ {product.rating.average.toFixed(1)}
             </span>
-            {product.rating.count.toLocaleString("en-IN")}{" "}
-            {product.rating.count === 1 ? "rating" : "ratings"}
+            {ratingsText(product.rating.count)}
           </p>
         )}
-        <p className="mt-auto flex flex-wrap items-center gap-2">
+        <p className="flex flex-wrap items-baseline gap-2">
           <span className="text-xl font-extrabold">
             {inr(product.finalPricePaise)}
           </span>
@@ -53,15 +51,9 @@ export function ProductCard({ product }: { product: Product }) {
             <s className="text-sm text-muted">{inr(product.pricePaise)}</s>
           )}
         </p>
-        {soldOut ? (
-          <p className="btn-grey cursor-default text-danger">Out of stock</p>
-        ) : product.hasOptions ? (
-          <Link href={href} className="btn-grey">
-            Choose size / colour
-          </Link>
-        ) : (
-          <CardButtons productId={product.id} slug={product.slug} />
-        )}
+        <div className="mt-auto">
+          <CardButtons product={product} />
+        </div>
       </div>
     </article>
   );

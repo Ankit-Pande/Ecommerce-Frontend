@@ -1,3 +1,6 @@
-import AdminBrands from "@/features/admin/brands-page";
+import { AdminBrands } from "@/features/admin/brands-page";
 
-export default AdminBrands;
+// The /admin/brands page.
+export default function AdminBrandsRoute() {
+  return <AdminBrands />;
+}

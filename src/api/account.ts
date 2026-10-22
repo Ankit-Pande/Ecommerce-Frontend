@@ -1,44 +1,47 @@
 import { http } from "@/api/http";
 import type { Address, ApiData, UserProfile } from "@/lib/types";
 
-type AddressPayload = Omit<Address, "id" | "isDefault" | "line2"> & {
-  line2: string | null;
-};
+type AddressInput = Omit<Address, "id" | "isDefault">;
 
-// Logged-in user's profile.
+// The logged-in user's profile.
 export async function getProfile() {
   return (await http.get<ApiData<UserProfile>>("/api/user/me")).data;
 }
 
-// Updates the user's name and email.
-export function updateProfile(data: { name?: string; email?: string }) {
-  return http.patch("/api/user/me", data);
+// Saves a new name or email.
+export async function updateProfile(data: { name?: string; email?: string }) {
+  return (await http.patch<ApiData<UserProfile>>("/api/user/me", data)).data;
 }
 
-// Deletes the account; past orders stay for the store's records.
+// Deletes the account for good.
 export function deleteAccount() {
   return http.delete("/api/user/me");
 }
 
-// Saved addresses.
+// The user's saved addresses, default first.
 export async function listAddresses() {
   return (await http.get<ApiData<Address[]>>("/api/address")).data;
 }
 
-// Adds an address.
-export async function createAddress(data: AddressPayload) {
+// Saves a new address.
+export async function createAddress(data: AddressInput) {
   return (await http.post<ApiData<Address>>("/api/address", data)).data;
 }
 
-// Edits an address.
+// Changes an address or makes it the default.
 export async function updateAddress(
   id: string,
-  data: Partial<AddressPayload> & { isDefault?: boolean },
+  data: Partial<AddressInput> & { isDefault?: boolean },
 ) {
-  return (await http.patch<ApiData<Address>>(`/api/address/${id}`, data)).data;
+  return (
+    await http.patch<ApiData<Address>>(
+      `/api/address/${encodeURIComponent(id)}`,
+      data,
+    )
+  ).data;
 }
 
 // Deletes an address.
 export function deleteAddress(id: string) {
-  return http.delete(`/api/address/${id}`);
+  return http.delete(`/api/address/${encodeURIComponent(id)}`);
 }

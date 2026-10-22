@@ -1,3 +1,6 @@
-import AdminSale from "@/features/admin/sale-page";
+import { AdminSale } from "@/features/admin/sale-page";
 
-export default AdminSale;
+// The /admin/sale page.
+export default function AdminSaleRoute() {
+  return <AdminSale />;
+}

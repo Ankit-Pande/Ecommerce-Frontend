@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 
-// Returns the value only after it stops changing for the given time.
-export function useDebouncedValue<T>(value: T, delay = 400): T {
+// The value, but only after it stopped changing for `delay` ms.
+export function useDebouncedValue<T>(value: T, delay = 400) {
   const [debounced, setDebounced] = useState(value);
 
   useEffect(() => {

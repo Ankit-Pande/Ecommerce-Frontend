@@ -1,3 +1,6 @@
-import BulkProductUpload from "@/features/admin/bulk-product-upload";
+import { BulkProductUpload } from "@/features/admin/bulk-product-upload";
 
-export default BulkProductUpload;
+// The /admin/products/bulk page.
+export default function BulkProductRoute() {
+  return <BulkProductUpload />;
+}

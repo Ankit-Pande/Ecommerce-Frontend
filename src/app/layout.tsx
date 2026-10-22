@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
-import { AppShell } from "@/components/layout/app-shell";
-import { Providers } from "@/components/layout/providers";
 import { getHomeOnServer } from "@/api/catalog";
-import "./globals.css";
+import { AppSetup } from "@/components/layout/app-setup";
+import { AppShell } from "@/components/layout/app-shell";
 import { SITE_URL } from "@/lib/site";
+import "./globals.css";
 
 const font = Plus_Jakarta_Sans({
   weight: ["400", "600", "800"],
@@ -15,44 +15,25 @@ const font = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: {
-    default: "ApnaKart — Shopping made simple",
-    template: "%s | ApnaKart",
-  },
+  title: { default: "ApnaKart — Online shopping", template: "%s | ApnaKart" },
   description:
-    "Discover trusted products, fair prices and reliable delivery across India.",
-  keywords: [
-    "online shopping",
-    "India",
-    "ecommerce",
-    "mobiles",
-    "laptops",
-    "fashion",
-  ],
-  openGraph: {
-    siteName: "ApnaKart",
-    type: "website",
-    title: "ApnaKart — Shopping made simple",
-    description:
-      "Trusted products, fair prices and reliable delivery across India.",
-  },
+    "Shop mobiles, fashion, electronics and more with Cash on Delivery and UPI.",
+  openGraph: { siteName: "ApnaKart", type: "website" },
 };
 
 export const revalidate = 60;
 
-// Root layout; loads categories for the menu.
+// Root layout: font, app setup and the page frame with categories from the server.
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const home = await getHomeOnServer();
-  const categories = home?.categories ?? [];
 
   return (
-    <html lang="en">
-      <body className={`${font.variable} font-body antialiased`}>
-        <Providers>
-          <AppShell categories={categories}>{children}</AppShell>
-        </Providers>
+    <html lang="en" className={font.variable}>
+      <body>
+        <AppSetup />
+        <AppShell categories={home?.categories ?? []}>{children}</AppShell>
       </body>
     </html>
   );
