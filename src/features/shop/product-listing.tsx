@@ -82,9 +82,35 @@ export function ProductListing({
     window.history.replaceState(null, "", `/products?${next}`);
   }
 
-  const countText = loading
-    ? "…"
-    : `${items.length}${cursor ? "+" : ""} ${items.length === 1 ? "product" : "products"}`;
+  let countText = "…";
+  if (!loading) {
+    const noun = items.length === 1 ? "product" : "products";
+    countText = `${items.length}${cursor ? "+" : ""} ${noun}`;
+  }
+
+  let productsSection;
+  if (loading) {
+    productsSection = <GridSkeleton count={12} />;
+  } else if (failed) {
+    productsSection = <OfflineNotice onRetry={reload} />;
+  } else if (items.length === 0) {
+    productsSection = (
+      <p className="rounded-[20px] bg-white p-8 text-center font-semibold">
+        No products found
+      </p>
+    );
+  } else {
+    productsSection = (
+      <>
+        <div className="product-grid">
+          {items.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+        {cursor && <LoadMoreButton onClick={loadMore} loading={loadingMore} />}
+      </>
+    );
+  }
 
   return (
     <>
@@ -189,26 +215,7 @@ export function ProductListing({
         />
       </section>
 
-      {loading ? (
-        <GridSkeleton count={12} />
-      ) : failed ? (
-        <OfflineNotice onRetry={reload} />
-      ) : items.length === 0 ? (
-        <p className="rounded-[20px] bg-white p-8 text-center font-semibold">
-          No products found
-        </p>
-      ) : (
-        <>
-          <div className="product-grid">
-            {items.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-          {cursor && (
-            <LoadMoreButton onClick={loadMore} loading={loadingMore} />
-          )}
-        </>
-      )}
+      {productsSection}
     </>
   );
 }

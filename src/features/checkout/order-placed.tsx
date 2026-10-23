@@ -131,12 +131,11 @@ export function OrderPlaced() {
   );
 
   if (waitingForPayment) {
-    const secondsLeft = order.paymentExpiresAt
-      ? Math.max(
-          0,
-          Math.floor((new Date(order.paymentExpiresAt).getTime() - now) / 1000),
-        )
-      : 0;
+    let secondsLeft = 0;
+    if (order.paymentExpiresAt) {
+      const msLeft = new Date(order.paymentExpiresAt).getTime() - now;
+      secondsLeft = Math.max(0, Math.floor(msLeft / 1000));
+    }
     return (
       <>
         <Script src={RAZORPAY_SCRIPT} strategy="lazyOnload" />

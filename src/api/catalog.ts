@@ -50,11 +50,13 @@ export function catalogParams(page: URLSearchParams, cursor?: string) {
     if (value) api.set(key, value.slice(0, 200));
   }
   const section = page.get("section");
-  if (section === "trending" || section === "featured")
+  if (section === "trending" || section === "featured") {
     api.set("section", section);
+  }
   if (page.get("discount") === "true") api.set("discount", "true");
-  if (maxPrice > 0)
+  if (maxPrice > 0) {
     api.set("maxPricePaise", String(Math.round(maxPrice * 100)));
+  }
   if (minRating > 0 && minRating <= 5) api.set("minRating", String(minRating));
   if (API_SORTS.includes(sort)) api.set("sort", sort);
   if (cursor) api.set("cursor", cursor);

@@ -65,6 +65,81 @@ export function AdminProducts() {
     }
   }
 
+  let listSection;
+  if (loading) {
+    listSection = <ListSkeleton />;
+  } else if (failed) {
+    listSection = <OfflineNotice onRetry={reload} />;
+  } else if (items.length === 0) {
+    listSection = (
+      <p className="rounded-[20px] bg-white p-8 text-center font-semibold">
+        No products found
+      </p>
+    );
+  } else {
+    listSection = (
+      <div className="table-box">
+        <div className="min-w-[820px]">
+          <div className="table-head">
+            <span>Product</span>
+            <span>Price</span>
+            <span>Stock</span>
+            <span>Status</span>
+            <span>Actions</span>
+          </div>
+          {items.map((product) => (
+            <div key={product.id} className="data-row">
+              <span className="font-semibold">
+                {product.name}
+                {(product.isTrending || product.isFeatured) && (
+                  <span className="block text-sm font-normal text-muted">
+                    {[
+                      product.isTrending && "Trending",
+                      product.isFeatured && "Featured",
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </span>
+                )}
+              </span>
+              <span>{inr(product.pricePaise)}</span>
+              <span>
+                {product.stock}
+                {product.reservedQuantity > 0 && (
+                  <span className="block text-sm text-muted">
+                    {product.reservedQuantity} waiting for payment
+                  </span>
+                )}
+              </span>
+              <span>
+                <StatusPill
+                  tone={product.isActive ? "good" : "bad"}
+                  label={product.isActive ? "Visible" : "Hidden"}
+                />
+              </span>
+              <span className="flex flex-wrap gap-1.5">
+                <Link
+                  href={`/admin/products/${product.id}`}
+                  className="btn-table"
+                >
+                  Edit
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => toggleVisible(product)}
+                  disabled={busyId === product.id}
+                  className="btn-table"
+                >
+                  {product.isActive ? "Hide" : "Unhide"}
+                </button>
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <AdminTitle title="Products">
@@ -86,75 +161,7 @@ export function AdminProducts() {
         className="field max-w-md"
       />
 
-      {loading ? (
-        <ListSkeleton />
-      ) : failed ? (
-        <OfflineNotice onRetry={reload} />
-      ) : items.length === 0 ? (
-        <p className="rounded-[20px] bg-white p-8 text-center font-semibold">
-          No products found
-        </p>
-      ) : (
-        <div className="table-box">
-          <div className="min-w-[820px]">
-            <div className="table-head">
-              <span>Product</span>
-              <span>Price</span>
-              <span>Stock</span>
-              <span>Status</span>
-              <span>Actions</span>
-            </div>
-            {items.map((product) => (
-              <div key={product.id} className="data-row">
-                <span className="font-semibold">
-                  {product.name}
-                  {(product.isTrending || product.isFeatured) && (
-                    <span className="block text-sm font-normal text-muted">
-                      {[
-                        product.isTrending && "Trending",
-                        product.isFeatured && "Featured",
-                      ]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </span>
-                  )}
-                </span>
-                <span>{inr(product.pricePaise)}</span>
-                <span>
-                  {product.stock}
-                  {product.reservedQuantity > 0 && (
-                    <span className="block text-sm text-muted">
-                      {product.reservedQuantity} waiting for payment
-                    </span>
-                  )}
-                </span>
-                <span>
-                  <StatusPill
-                    tone={product.isActive ? "good" : "bad"}
-                    label={product.isActive ? "Visible" : "Hidden"}
-                  />
-                </span>
-                <span className="flex flex-wrap gap-1.5">
-                  <Link
-                    href={`/admin/products/${product.id}`}
-                    className="btn-table"
-                  >
-                    Edit
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={() => toggleVisible(product)}
-                    disabled={busyId === product.id}
-                    className="btn-table"
-                  >
-                    {product.isActive ? "Hide" : "Unhide"}
-                  </button>
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {listSection}
       {cursor && <LoadMoreButton onClick={loadMore} loading={loadingMore} />}
     </>
   );

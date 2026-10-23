@@ -121,6 +121,108 @@ export function OrdersTable() {
     }
   }
 
+  let listSection;
+  if (loading) {
+    listSection = <ListSkeleton />;
+  } else if (failed) {
+    listSection = <OfflineNotice onRetry={reload} />;
+  } else if (items.length === 0) {
+    listSection = (
+      <p className="rounded-[20px] bg-white p-8 text-center font-semibold">
+        No orders here
+      </p>
+    );
+  } else {
+    listSection = (
+      <div className="table-box">
+        <div className="min-w-[820px]">
+          <div className="table-head">
+            <span>Order</span>
+            <span>Customer</span>
+            <span>Total</span>
+            <span>Payment</span>
+            <span>Status</span>
+            <span>Actions</span>
+          </div>
+          {items.map((order) => (
+            <div
+              key={order.id}
+              className="border-b border-line last:border-b-0"
+            >
+              <div className="data-row border-b-0">
+                <span>
+                  <span className="block font-semibold">
+                    {orderNumber(order.id)}
+                  </span>
+                  <span className="text-sm text-muted">
+                    {formatDate(order.createdAt)}, {formatTime(order.createdAt)}
+                  </span>
+                </span>
+                <span>
+                  <span className="block truncate">{order.shipName}</span>
+                  <span className="text-sm text-muted">
+                    {phoneText(order.shipPhone)}
+                  </span>
+                </span>
+                <span className="font-semibold">{inr(order.totalPaise)}</span>
+                <span className="flex flex-wrap items-center gap-1.5">
+                  {order.paymentMethod === "COD" ? "COD" : "Online"}
+                  <StatusPill {...PAYMENT_PILL[order.paymentStatus]} />
+                </span>
+                <span>
+                  <OrderStatusPill status={order.status} />
+                  {order.cancelledBy && (
+                    <span className="block text-sm text-muted">
+                      by {order.cancelledBy.toLowerCase()}
+                    </span>
+                  )}
+                </span>
+                <span className="flex flex-wrap gap-1.5">
+                  {orderActions(order).map((action) => (
+                    <button
+                      key={action.status}
+                      type="button"
+                      onClick={() => changeStatus(order, action.status)}
+                      disabled={busyId === order.id}
+                      className={`btn-table ${action.status === "CANCELLED" ? "text-danger" : ""}`}
+                    >
+                      {action.label}
+                    </button>
+                  ))}
+                </span>
+              </div>
+              <p className="flex flex-wrap gap-x-4 pb-2.5 text-sm text-muted">
+                {order.items.map((item, index) => (
+                  <span key={index}>
+                    {item.productName} × {item.quantity}
+                    {optionText(item) && ` (${optionText(item)})`}
+                  </span>
+                ))}
+                <span>Ship to {shippingAddress(order)}</span>
+              </p>
+              {order.needsReview && (
+                <div className="mb-2.5 flex flex-wrap items-center gap-2 rounded-xl bg-[#FFD9D9] px-3 py-2 font-semibold text-[#8E1B1B]">
+                  <span className="flex-1">
+                    Extra or late payment received. Refund it from the Razorpay
+                    dashboard, then mark it refunded.
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => markRefunded(order)}
+                    disabled={busyId === order.id}
+                    className="btn-table"
+                  >
+                    Mark refunded
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <div
@@ -141,103 +243,7 @@ export function OrdersTable() {
         ))}
       </div>
 
-      {loading ? (
-        <ListSkeleton />
-      ) : failed ? (
-        <OfflineNotice onRetry={reload} />
-      ) : items.length === 0 ? (
-        <p className="rounded-[20px] bg-white p-8 text-center font-semibold">
-          No orders here
-        </p>
-      ) : (
-        <div className="table-box">
-          <div className="min-w-[820px]">
-            <div className="table-head">
-              <span>Order</span>
-              <span>Customer</span>
-              <span>Total</span>
-              <span>Payment</span>
-              <span>Status</span>
-              <span>Actions</span>
-            </div>
-            {items.map((order) => (
-              <div
-                key={order.id}
-                className="border-b border-line last:border-b-0"
-              >
-                <div className="data-row border-b-0">
-                  <span>
-                    <span className="block font-semibold">
-                      {orderNumber(order.id)}
-                    </span>
-                    <span className="text-sm text-muted">
-                      {formatDate(order.createdAt)},{" "}
-                      {formatTime(order.createdAt)}
-                    </span>
-                  </span>
-                  <span>
-                    <span className="block truncate">{order.shipName}</span>
-                    <span className="text-sm text-muted">
-                      {phoneText(order.shipPhone)}
-                    </span>
-                  </span>
-                  <span className="font-semibold">{inr(order.totalPaise)}</span>
-                  <span className="flex flex-wrap items-center gap-1.5">
-                    {order.paymentMethod === "COD" ? "COD" : "Online"}
-                    <StatusPill {...PAYMENT_PILL[order.paymentStatus]} />
-                  </span>
-                  <span>
-                    <OrderStatusPill status={order.status} />
-                    {order.cancelledBy && (
-                      <span className="block text-sm text-muted">
-                        by {order.cancelledBy.toLowerCase()}
-                      </span>
-                    )}
-                  </span>
-                  <span className="flex flex-wrap gap-1.5">
-                    {orderActions(order).map((action) => (
-                      <button
-                        key={action.status}
-                        type="button"
-                        onClick={() => changeStatus(order, action.status)}
-                        disabled={busyId === order.id}
-                        className={`btn-table ${action.status === "CANCELLED" ? "text-danger" : ""}`}
-                      >
-                        {action.label}
-                      </button>
-                    ))}
-                  </span>
-                </div>
-                <p className="flex flex-wrap gap-x-4 pb-2.5 text-sm text-muted">
-                  {order.items.map((item, index) => (
-                    <span key={index}>
-                      {item.productName} × {item.quantity}
-                      {optionText(item) && ` (${optionText(item)})`}
-                    </span>
-                  ))}
-                  <span>Ship to {shippingAddress(order)}</span>
-                </p>
-                {order.needsReview && (
-                  <div className="mb-2.5 flex flex-wrap items-center gap-2 rounded-xl bg-[#FFD9D9] px-3 py-2 font-semibold text-[#8E1B1B]">
-                    <span className="flex-1">
-                      Extra or late payment received. Refund it from the
-                      Razorpay dashboard, then mark it refunded.
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => markRefunded(order)}
-                      disabled={busyId === order.id}
-                      className="btn-table"
-                    >
-                      Mark refunded
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {listSection}
       {cursor && <LoadMoreButton onClick={loadMore} loading={loadingMore} />}
     </>
   );

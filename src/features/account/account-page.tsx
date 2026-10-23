@@ -193,13 +193,12 @@ export function AccountPage() {
               key={editing === "new" ? "new" : editing.id}
               address={editing === "new" ? undefined : editing}
               onSaved={(saved) => {
-                setAddresses((current) =>
-                  editing === "new"
-                    ? [...current, saved]
-                    : current.map((address) =>
-                        address.id === saved.id ? saved : address,
-                      ),
-                );
+                setAddresses((current) => {
+                  if (editing === "new") return [...current, saved];
+                  return current.map((address) =>
+                    address.id === saved.id ? saved : address,
+                  );
+                });
                 setEditing(null);
               }}
               onCancel={() => setEditing(null)}

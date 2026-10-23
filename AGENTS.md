@@ -35,6 +35,7 @@ A file used by only one feature lives in that feature's folder.
 - Components use named exports (`export function CartPage`). Files in `app/` use `export default function CartRoute`.
 - In `app/` pages and `generateMetadata`, `params` and `searchParams` are Promises: `await` them.
 - A helper is fine only when two or more places use it or it makes the caller clearly shorter.
+- `if` or ternary: a ternary only picks one of two simple values or one of two pieces of JSX (`{loggedIn ? <Account /> : <LoginLink />}`). Use `if` for actions (saving, removing, choosing which API to call) and for three or more states: set a variable before `return` (`let listSection; if (loading) ... else if (failed) ... else ...`) and put `{listSection}` in the JSX. Never nest ternaries. An `if` whose body goes onto its own line gets braces.
 - Money from the API is integer paise. Show it with `inr()`.
 - `lib/types.ts` must match what the backend sends. Do not add fields the backend does not send.
 - Format with Prettier defaults: `npm run format` (Prettier is pinned in `package.json`).

@@ -125,12 +125,15 @@ export function CheckoutPage() {
   useEffect(() => {
     if (!ready) return;
     setFailed(false);
-    const loadLines = buySlug
-      ? buyNowLines(buySlug, buySize, buyColor, buyQuantity)
-      : getCart().then((cart) => {
-          updateCount(cart);
-          return cartLines(cart);
-        });
+    let loadLines;
+    if (buySlug) {
+      loadLines = buyNowLines(buySlug, buySize, buyColor, buyQuantity);
+    } else {
+      loadLines = getCart().then((cart) => {
+        updateCount(cart);
+        return cartLines(cart);
+      });
+    }
 
     Promise.all([listAddresses(), loadLines])
       .then(([saved, fresh]) => {
@@ -182,11 +185,10 @@ export function CheckoutPage() {
     }
     setBusyKey(line.key);
     try {
-      showCart(
-        quantity < 1
-          ? await removeCartItem(line.key)
-          : await updateCartItem(line.key, quantity),
-      );
+      let fresh;
+      if (quantity < 1) fresh = await removeCartItem(line.key);
+      else fresh = await updateCartItem(line.key, quantity);
+      showCart(fresh);
     } catch (error) {
       toast.error(errorMessage(error, "Could not update your cart"));
     } finally {
@@ -217,10 +219,12 @@ export function CheckoutPage() {
   const items = lines ?? [];
   const address = addresses.find((entry) => entry.id === addressId);
   const blocked = items.some((line) => line.problem);
-  const itemCount = items.reduce((sum, line) => sum + line.quantity, 0);
-  const totalPaise = items
-    .filter((line) => !line.problem)
-    .reduce((sum, line) => sum + line.pricePaise * line.quantity, 0);
+  let itemCount = 0;
+  let totalPaise = 0;
+  for (const line of items) {
+    itemCount += line.quantity;
+    if (!line.problem) totalPaise += line.pricePaise * line.quantity;
+  }
   const inCart = new Set(items.map((line) => line.productId));
   const shownSuggestions = suggestions
     .filter(

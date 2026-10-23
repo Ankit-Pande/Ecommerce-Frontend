@@ -107,9 +107,9 @@ export function AddressForm({
     setSaving(true);
     try {
       const data = { ...form, line2: form.line2.trim() || null };
-      const saved = address
-        ? await updateAddress(address.id, data)
-        : await createAddress(data);
+      let saved;
+      if (address) saved = await updateAddress(address.id, data);
+      else saved = await createAddress(data);
       toast.success(address ? "Address updated" : "Address saved");
       onSaved(saved);
     } catch (error) {

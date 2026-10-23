@@ -22,14 +22,18 @@ function slideText(link: string, categories: Category[]) {
     if (child) return { title: child.name, line: category.name };
   }
   if (params.get("q")) return { title: params.get("q") ?? "", line: "" };
-  if (params.get("section") === "trending")
+  if (params.get("section") === "trending") {
     return { title: "Trending", line: "" };
-  if (params.get("section") === "featured")
+  }
+  if (params.get("section") === "featured") {
     return { title: "Featured", line: "" };
-  if (params.get("discount") === "true")
+  }
+  if (params.get("discount") === "true") {
     return { title: "Top discounts", line: "" };
-  if (params.get("sort") === "latest")
+  }
+  if (params.get("sort") === "latest") {
     return { title: "New arrivals", line: "" };
+  }
   return { title: "Today's offers", line: "" };
 }
 

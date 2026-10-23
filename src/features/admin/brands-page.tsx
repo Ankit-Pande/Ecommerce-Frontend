@@ -93,6 +93,79 @@ export function AdminBrands() {
     }
   }
 
+  let listSection;
+  if (loading && !data) {
+    listSection = <ListSkeleton />;
+  } else if (failed) {
+    listSection = <OfflineNotice onRetry={load} />;
+  } else if (brands.length === 0) {
+    listSection = (
+      <p className="rounded-[20px] bg-white p-8 text-center font-semibold">
+        No brands yet
+      </p>
+    );
+  } else {
+    listSection = (
+      <div className="table-box">
+        <div className="min-w-[820px]">
+          <div className="table-head">
+            <span>Brand</span>
+            <span>Link name</span>
+            <span>Status</span>
+            <span>Actions</span>
+          </div>
+          {brands.map((brand) => (
+            <div key={brand.id} className="data-row">
+              <span className="flex items-center gap-2.5 font-semibold">
+                <span className="relative h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-ground">
+                  <SafeImage
+                    src={brand.logo}
+                    alt=""
+                    sizes="40px"
+                    className="object-contain p-1"
+                  />
+                </span>
+                <span className="truncate">{brand.name}</span>
+              </span>
+              <span className="truncate text-muted">{brand.slug}</span>
+              <span>
+                <StatusPill
+                  tone={brand.isActive ? "good" : "bad"}
+                  label={brand.isActive ? "Visible" : "Hidden"}
+                />
+              </span>
+              <span className="flex flex-wrap gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => fillForm(brand)}
+                  className="btn-table"
+                >
+                  Rename
+                </button>
+                <button
+                  type="button"
+                  onClick={() => toggleVisible(brand)}
+                  disabled={busyId === brand.id}
+                  className="btn-table"
+                >
+                  {brand.isActive ? "Hide" : "Unhide"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => remove(brand)}
+                  disabled={busyId === brand.id}
+                  className="btn-table text-danger"
+                >
+                  Delete
+                </button>
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <AdminTitle title="Brands" />
@@ -136,73 +209,7 @@ export function AdminBrands() {
         )}
       </form>
 
-      {loading && !data ? (
-        <ListSkeleton />
-      ) : failed ? (
-        <OfflineNotice onRetry={load} />
-      ) : brands.length === 0 ? (
-        <p className="rounded-[20px] bg-white p-8 text-center font-semibold">
-          No brands yet
-        </p>
-      ) : (
-        <div className="table-box">
-          <div className="min-w-[820px]">
-            <div className="table-head">
-              <span>Brand</span>
-              <span>Link name</span>
-              <span>Status</span>
-              <span>Actions</span>
-            </div>
-            {brands.map((brand) => (
-              <div key={brand.id} className="data-row">
-                <span className="flex items-center gap-2.5 font-semibold">
-                  <span className="relative h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-ground">
-                    <SafeImage
-                      src={brand.logo}
-                      alt=""
-                      sizes="40px"
-                      className="object-contain p-1"
-                    />
-                  </span>
-                  <span className="truncate">{brand.name}</span>
-                </span>
-                <span className="truncate text-muted">{brand.slug}</span>
-                <span>
-                  <StatusPill
-                    tone={brand.isActive ? "good" : "bad"}
-                    label={brand.isActive ? "Visible" : "Hidden"}
-                  />
-                </span>
-                <span className="flex flex-wrap gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => fillForm(brand)}
-                    className="btn-table"
-                  >
-                    Rename
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => toggleVisible(brand)}
-                    disabled={busyId === brand.id}
-                    className="btn-table"
-                  >
-                    {brand.isActive ? "Hide" : "Unhide"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => remove(brand)}
-                    disabled={busyId === brand.id}
-                    className="btn-table text-danger"
-                  >
-                    Delete
-                  </button>
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {listSection}
     </>
   );
 }

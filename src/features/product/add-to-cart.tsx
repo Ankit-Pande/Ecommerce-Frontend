@@ -29,12 +29,9 @@ export function AddToCart({ product }: { product: ProductDetail }) {
   const hydrated = useAuthStore((state) => state.hydrated);
   const updateCount = useCartStore((state) => state.updateCount);
 
-  const missing =
-    product.colors.length > 0 && !color
-      ? "colour"
-      : product.sizes.length > 0 && !size
-        ? "size"
-        : "";
+  let missing = "";
+  if (product.colors.length > 0 && !color) missing = "colour";
+  else if (product.sizes.length > 0 && !size) missing = "size";
   const buyPage = buyNowHref(product.slug, { size, color, quantity });
 
   // Adds the chosen product to the cart; guests go to login first.

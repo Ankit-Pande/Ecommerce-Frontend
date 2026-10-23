@@ -54,12 +54,8 @@ export function AdminUsers() {
   // Blocks or unblocks a user after a confirm.
   async function toggleBlock(user: AdminUser) {
     const block = !user.isBlocked;
-    if (
-      !window.confirm(
-        `${block ? "Block" : "Unblock"} ${phoneText(user.phone)}?`,
-      )
-    )
-      return;
+    const question = `${block ? "Block" : "Unblock"} ${phoneText(user.phone)}?`;
+    if (!window.confirm(question)) return;
     setBusyId(user.id);
     try {
       await setUserBlocked(user.id, block);
@@ -98,6 +94,75 @@ export function AdminUsers() {
     }
   }
 
+  let listSection;
+  if (loading) {
+    listSection = <ListSkeleton />;
+  } else if (failed) {
+    listSection = <OfflineNotice onRetry={reload} />;
+  } else if (items.length === 0) {
+    listSection = (
+      <p className="rounded-[20px] bg-white p-8 text-center font-semibold">
+        No users found
+      </p>
+    );
+  } else {
+    listSection = (
+      <div className="table-box">
+        <div className="min-w-[820px]">
+          <div className="table-head">
+            <span>Name</span>
+            <span>Mobile</span>
+            <span>Joined</span>
+            <span>Role</span>
+            <span>Status</span>
+            <span>Actions</span>
+          </div>
+          {items.map((user) => (
+            <div key={user.id} className="data-row">
+              <span className="font-semibold">
+                <span className="block truncate">{user.name ?? "No name"}</span>
+                <span className="block truncate text-sm font-normal text-muted">
+                  {user.email ?? "No email"}
+                </span>
+              </span>
+              <span>{phoneText(user.phone)}</span>
+              <span>{formatDate(user.createdAt)}</span>
+              <span>{ROLE_TEXT[user.role]}</span>
+              <span>
+                <StatusPill
+                  tone={user.isBlocked ? "bad" : "good"}
+                  label={user.isBlocked ? "Blocked" : "Active"}
+                />
+              </span>
+              <span className="flex flex-wrap gap-1.5">
+                {canManage(user) && (
+                  <button
+                    type="button"
+                    onClick={() => toggleBlock(user)}
+                    disabled={busyId === user.id}
+                    className="btn-table"
+                  >
+                    {user.isBlocked ? "Unblock" : "Block"}
+                  </button>
+                )}
+                {canManage(user) && myRole === "SUPER_ADMIN" && (
+                  <button
+                    type="button"
+                    onClick={() => toggleAdmin(user)}
+                    disabled={busyId === user.id}
+                    className="btn-table"
+                  >
+                    {user.role === "ADMIN" ? "Remove admin" : "Make admin"}
+                  </button>
+                )}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <AdminTitle title="Users" />
@@ -113,71 +178,7 @@ export function AdminUsers() {
         className="field max-w-md"
       />
 
-      {loading ? (
-        <ListSkeleton />
-      ) : failed ? (
-        <OfflineNotice onRetry={reload} />
-      ) : items.length === 0 ? (
-        <p className="rounded-[20px] bg-white p-8 text-center font-semibold">
-          No users found
-        </p>
-      ) : (
-        <div className="table-box">
-          <div className="min-w-[820px]">
-            <div className="table-head">
-              <span>Name</span>
-              <span>Mobile</span>
-              <span>Joined</span>
-              <span>Role</span>
-              <span>Status</span>
-              <span>Actions</span>
-            </div>
-            {items.map((user) => (
-              <div key={user.id} className="data-row">
-                <span className="font-semibold">
-                  <span className="block truncate">
-                    {user.name ?? "No name"}
-                  </span>
-                  <span className="block truncate text-sm font-normal text-muted">
-                    {user.email ?? "No email"}
-                  </span>
-                </span>
-                <span>{phoneText(user.phone)}</span>
-                <span>{formatDate(user.createdAt)}</span>
-                <span>{ROLE_TEXT[user.role]}</span>
-                <span>
-                  <StatusPill
-                    tone={user.isBlocked ? "bad" : "good"}
-                    label={user.isBlocked ? "Blocked" : "Active"}
-                  />
-                </span>
-                <span className="flex flex-wrap gap-1.5">
-                  {canManage(user) && (
-                    <button
-                      type="button"
-                      onClick={() => toggleBlock(user)}
-                      disabled={busyId === user.id}
-                      className="btn-table"
-                    >
-                      {user.isBlocked ? "Unblock" : "Block"}
-                    </button>
-                  )}
-                  {canManage(user) && myRole === "SUPER_ADMIN" && (
-                    <button
-                      type="button"
-                      onClick={() => toggleAdmin(user)}
-                      disabled={busyId === user.id}
-                      className="btn-table"
-                    >
-                      {user.role === "ADMIN" ? "Remove admin" : "Make admin"}
-                    </button>
-                  )}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {listSection}
       {cursor && <LoadMoreButton onClick={loadMore} loading={loadingMore} />}
     </>
   );

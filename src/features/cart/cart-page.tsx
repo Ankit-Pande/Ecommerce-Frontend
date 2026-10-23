@@ -41,10 +41,9 @@ export function CartPage() {
   async function changeQuantity(itemId: string, quantity: number) {
     setBusyId(itemId);
     try {
-      const fresh =
-        quantity < 1
-          ? await removeCartItem(itemId)
-          : await updateCartItem(itemId, quantity);
+      let fresh;
+      if (quantity < 1) fresh = await removeCartItem(itemId);
+      else fresh = await updateCartItem(itemId, quantity);
       setCart(fresh);
       updateCount(fresh);
     } catch (error) {

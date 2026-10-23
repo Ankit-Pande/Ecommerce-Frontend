@@ -76,6 +76,91 @@ export function ProductReviews({ product }: { product: ProductDetail }) {
     }
   }
 
+  let reviewsSection;
+  if (!inView || loading) {
+    reviewsSection = <ListSkeleton count={2} />;
+  } else if (failed) {
+    reviewsSection = (
+      <p className="font-semibold">
+        Could not load reviews.{" "}
+        <button
+          type="button"
+          onClick={reload}
+          className="font-extrabold text-accent"
+        >
+          Retry
+        </button>
+      </p>
+    );
+  } else if (items.length === 0) {
+    reviewsSection = (
+      <p className="rounded-[20px] bg-white p-6 font-semibold text-muted">
+        No reviews yet. Buyers can review after delivery.
+      </p>
+    );
+  } else {
+    reviewsSection = (
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
+        {items.map((review, index) => {
+          const name = review.user.name || "ApnaKart customer";
+          return (
+            <article
+              key={review.id}
+              className="flex flex-col gap-3 rounded-[26px] p-[18px]"
+              style={{ background: tintAt(index + 2) }}
+            >
+              <div className="flex items-center gap-3">
+                <span className="grid h-[52px] w-[52px] shrink-0 place-items-center rounded-full bg-white text-[22px] font-extrabold">
+                  {name.charAt(0).toUpperCase()}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-lg font-extrabold">{name}</p>
+                  <p className="text-sm">
+                    Verified purchase · {formatDate(review.createdAt)}
+                  </p>
+                </div>
+              </div>
+              <p
+                aria-label={`${review.rating} out of 5 stars`}
+                className="text-2xl leading-none tracking-[2px]"
+              >
+                <span className="text-discount">
+                  {"★".repeat(review.rating)}
+                </span>
+                <span className="text-white">
+                  {"★".repeat(5 - review.rating)}
+                </span>
+              </p>
+              {review.comment && (
+                <p className="flex-1 text-lg font-semibold">{review.comment}</p>
+              )}
+              <div className="flex items-center justify-between gap-3">
+                <span className="relative h-[76px] w-[76px] rounded-2xl bg-white">
+                  <SafeImage
+                    src={product.images[0]}
+                    alt=""
+                    sizes="76px"
+                    className="object-contain p-1.5"
+                  />
+                </span>
+                {isAdmin(role) && (
+                  <button
+                    type="button"
+                    onClick={() => removeReview(review.id)}
+                    disabled={removingId === review.id}
+                    className="min-h-11 rounded-full bg-white px-4 font-semibold text-danger"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
     <section ref={ref} className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -150,85 +235,7 @@ export function ProductReviews({ product }: { product: ProductDetail }) {
         />
       )}
 
-      {!inView || loading ? (
-        <ListSkeleton count={2} />
-      ) : failed ? (
-        <p className="font-semibold">
-          Could not load reviews.{" "}
-          <button
-            type="button"
-            onClick={reload}
-            className="font-extrabold text-accent"
-          >
-            Retry
-          </button>
-        </p>
-      ) : items.length === 0 ? (
-        <p className="rounded-[20px] bg-white p-6 font-semibold text-muted">
-          No reviews yet. Buyers can review after delivery.
-        </p>
-      ) : (
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
-          {items.map((review, index) => {
-            const name = review.user.name || "ApnaKart customer";
-            return (
-              <article
-                key={review.id}
-                className="flex flex-col gap-3 rounded-[26px] p-[18px]"
-                style={{ background: tintAt(index + 2) }}
-              >
-                <div className="flex items-center gap-3">
-                  <span className="grid h-[52px] w-[52px] shrink-0 place-items-center rounded-full bg-white text-[22px] font-extrabold">
-                    {name.charAt(0).toUpperCase()}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-lg font-extrabold">{name}</p>
-                    <p className="text-sm">
-                      Verified purchase · {formatDate(review.createdAt)}
-                    </p>
-                  </div>
-                </div>
-                <p
-                  aria-label={`${review.rating} out of 5 stars`}
-                  className="text-2xl leading-none tracking-[2px]"
-                >
-                  <span className="text-discount">
-                    {"★".repeat(review.rating)}
-                  </span>
-                  <span className="text-white">
-                    {"★".repeat(5 - review.rating)}
-                  </span>
-                </p>
-                {review.comment && (
-                  <p className="flex-1 text-lg font-semibold">
-                    {review.comment}
-                  </p>
-                )}
-                <div className="flex items-center justify-between gap-3">
-                  <span className="relative h-[76px] w-[76px] rounded-2xl bg-white">
-                    <SafeImage
-                      src={product.images[0]}
-                      alt=""
-                      sizes="76px"
-                      className="object-contain p-1.5"
-                    />
-                  </span>
-                  {isAdmin(role) && (
-                    <button
-                      type="button"
-                      onClick={() => removeReview(review.id)}
-                      disabled={removingId === review.id}
-                      className="min-h-11 rounded-full bg-white px-4 font-semibold text-danger"
-                    >
-                      Remove
-                    </button>
-                  )}
-                </div>
-              </article>
-            );
-          })}
-        </div>
-      )}
+      {reviewsSection}
       {cursor && <LoadMoreButton onClick={loadMore} loading={loadingMore} />}
     </section>
   );

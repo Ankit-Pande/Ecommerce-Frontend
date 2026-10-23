@@ -15,6 +15,15 @@ export function EditProductPage({ productId }: { productId: string }) {
   const fetchProduct = useCallback(() => getProduct(productId), [productId]);
   const { data: product, loading, failed, load } = useAdminData(fetchProduct);
 
+  let formSection;
+  if (loading) {
+    formSection = <ListSkeleton count={2} />;
+  } else if (failed || !product) {
+    formSection = <OfflineNotice onRetry={load} />;
+  } else {
+    formSection = <ProductForm key={product.id} product={product} />;
+  }
+
   return (
     <>
       <AdminTitle title="Edit product">
@@ -22,13 +31,7 @@ export function EditProductPage({ productId }: { productId: string }) {
           ‹ Products
         </Link>
       </AdminTitle>
-      {loading ? (
-        <ListSkeleton count={2} />
-      ) : failed || !product ? (
-        <OfflineNotice onRetry={load} />
-      ) : (
-        <ProductForm key={product.id} product={product} />
-      )}
+      {formSection}
     </>
   );
 }

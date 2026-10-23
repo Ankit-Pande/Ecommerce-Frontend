@@ -14,7 +14,10 @@ export function AppSetup() {
   useEffect(() => {
     void useUiStore.persist.rehydrate();
     Promise.resolve(useAuthStore.persist.rehydrate())
-      .then(() => (useAuthStore.getState().phone ? restoreSession() : false))
+      .then(() => {
+        if (!useAuthStore.getState().phone) return false;
+        return restoreSession();
+      })
       .then(async (loggedIn) => {
         const auth = useAuthStore.getState();
         if (!loggedIn) return auth.logout();

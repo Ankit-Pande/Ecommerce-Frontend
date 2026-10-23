@@ -126,6 +126,84 @@ export function AdminCategories() {
     }
   }
 
+  let listSection;
+  if (loading && !data) {
+    listSection = <ListSkeleton />;
+  } else if (failed) {
+    listSection = <OfflineNotice onRetry={load} />;
+  } else if (rows.length === 0) {
+    listSection = (
+      <p className="rounded-[20px] bg-white p-8 text-center font-semibold">
+        No categories yet
+      </p>
+    );
+  } else {
+    listSection = (
+      <div className="table-box">
+        <div className="min-w-[820px]">
+          <div className="table-head">
+            <span>Category</span>
+            <span>Parent</span>
+            <span>Status</span>
+            <span className="flex-[2]">Actions</span>
+          </div>
+          {rows.map((row) => (
+            <div key={row.id} className="data-row">
+              <span>
+                <span className={row.parentId ? "ml-4" : "font-semibold"}>
+                  {row.parentId ? `› ${row.name}` : row.name}
+                </span>
+              </span>
+              <span className="text-muted">
+                {row.parentName || "Top level"}
+              </span>
+              <span>
+                <StatusPill
+                  tone={row.isActive ? "good" : "bad"}
+                  label={row.isActive ? "Visible" : "Hidden"}
+                />
+              </span>
+              <span className="flex flex-[2] flex-wrap gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => fillForm(row, row.parentId)}
+                  className="btn-table"
+                >
+                  Edit
+                </button>
+                {!row.parentId && (
+                  <button
+                    type="button"
+                    onClick={() => fillForm(null, row.id)}
+                    className="btn-table"
+                  >
+                    Add subcategory
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => toggleVisible(row)}
+                  disabled={busyId === row.id}
+                  className="btn-table"
+                >
+                  {row.isActive ? "Hide" : "Unhide"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => remove(row)}
+                  disabled={busyId === row.id || row.hasChildren}
+                  className="btn-table text-danger"
+                >
+                  Delete
+                </button>
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <AdminTitle title="Categories" />
@@ -187,78 +265,7 @@ export function AdminCategories() {
         </p>
       </form>
 
-      {loading && !data ? (
-        <ListSkeleton />
-      ) : failed ? (
-        <OfflineNotice onRetry={load} />
-      ) : rows.length === 0 ? (
-        <p className="rounded-[20px] bg-white p-8 text-center font-semibold">
-          No categories yet
-        </p>
-      ) : (
-        <div className="table-box">
-          <div className="min-w-[820px]">
-            <div className="table-head">
-              <span>Category</span>
-              <span>Parent</span>
-              <span>Status</span>
-              <span className="flex-[2]">Actions</span>
-            </div>
-            {rows.map((row) => (
-              <div key={row.id} className="data-row">
-                <span>
-                  <span className={row.parentId ? "ml-4" : "font-semibold"}>
-                    {row.parentId ? `› ${row.name}` : row.name}
-                  </span>
-                </span>
-                <span className="text-muted">
-                  {row.parentName || "Top level"}
-                </span>
-                <span>
-                  <StatusPill
-                    tone={row.isActive ? "good" : "bad"}
-                    label={row.isActive ? "Visible" : "Hidden"}
-                  />
-                </span>
-                <span className="flex flex-[2] flex-wrap gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => fillForm(row, row.parentId)}
-                    className="btn-table"
-                  >
-                    Edit
-                  </button>
-                  {!row.parentId && (
-                    <button
-                      type="button"
-                      onClick={() => fillForm(null, row.id)}
-                      className="btn-table"
-                    >
-                      Add subcategory
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => toggleVisible(row)}
-                    disabled={busyId === row.id}
-                    className="btn-table"
-                  >
-                    {row.isActive ? "Hide" : "Unhide"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => remove(row)}
-                    disabled={busyId === row.id || row.hasChildren}
-                    className="btn-table text-danger"
-                  >
-                    Delete
-                  </button>
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {listSection}
     </>
   );
 }

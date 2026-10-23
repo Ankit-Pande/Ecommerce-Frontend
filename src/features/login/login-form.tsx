@@ -119,10 +119,12 @@ export function LoginForm({ categories }: { categories: Category[] }) {
     if (event.key === "Backspace" && !otp[index] && index > 0) {
       boxes.current[index - 1]?.focus();
     }
-    if (event.key === "ArrowLeft" && index > 0)
+    if (event.key === "ArrowLeft" && index > 0) {
       boxes.current[index - 1]?.focus();
-    if (event.key === "ArrowRight" && index < 5)
+    }
+    if (event.key === "ArrowRight" && index < 5) {
       boxes.current[index + 1]?.focus();
+    }
   }
 
   // Goes back to the mobile number step.

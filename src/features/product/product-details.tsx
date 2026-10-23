@@ -20,19 +20,18 @@ export function ProductDetails({ product }: { product: ProductDetail }) {
   const categoryLink = category.parent
     ? subcategoryHref(category.slug)
     : categoryHref(category.slug);
-  const details = [
-    ["Category", category.name],
-    ...(product.brand ? [["Brand", product.brand.name]] : []),
-    [
-      "Rating",
-      product.rating.count > 0
-        ? `${product.rating.average.toFixed(1)} out of 5`
-        : "No ratings yet",
-    ],
+  const details = [["Category", category.name]];
+  if (product.brand) details.push(["Brand", product.brand.name]);
+  const ratingText =
+    product.rating.count > 0
+      ? `${product.rating.average.toFixed(1)} out of 5`
+      : "No ratings yet";
+  details.push(
+    ["Rating", ratingText],
     ["Availability", STOCK_TEXT[product.stockStatus]],
     ["Payment", "UPI, cards, net banking, Cash on Delivery"],
     ...Object.entries(product.specs ?? {}),
-  ];
+  );
 
   return (
     <>

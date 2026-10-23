@@ -110,6 +110,80 @@ export function AdminBanners() {
     }
   }
 
+  let listSection;
+  if (loading && !data) {
+    listSection = <ListSkeleton />;
+  } else if (failed) {
+    listSection = <OfflineNotice onRetry={load} />;
+  } else if (banners.length === 0) {
+    listSection = (
+      <p className="rounded-[20px] bg-white p-8 text-center font-semibold">
+        No slides yet
+      </p>
+    );
+  } else {
+    listSection = (
+      <div className="table-box">
+        <div className="min-w-[820px]">
+          <div className="table-head">
+            <span>Slide</span>
+            <span>Opens</span>
+            <span>Order</span>
+            <span>Status</span>
+            <span>Actions</span>
+          </div>
+          {banners.map((banner, index) => (
+            <div key={banner.id} className="data-row">
+              <span className="relative block h-14 overflow-hidden rounded-xl bg-ground">
+                <SafeImage
+                  src={banner.image}
+                  alt={`Slide ${index + 1}`}
+                  sizes="200px"
+                  className="object-cover"
+                />
+              </span>
+              <span className="truncate text-muted">
+                {banner.link ?? "Products page"}
+              </span>
+              <span>{banner.position}</span>
+              <span>
+                <StatusPill
+                  tone={banner.isActive ? "good" : "bad"}
+                  label={banner.isActive ? "Live" : "Hidden"}
+                />
+              </span>
+              <span className="flex flex-wrap gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => fillForm(banner)}
+                  className="btn-table"
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => toggleVisible(banner)}
+                  disabled={busyId === banner.id}
+                  className="btn-table"
+                >
+                  {banner.isActive ? "Hide" : "Unhide"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => remove(banner)}
+                  disabled={busyId === banner.id}
+                  className="btn-table text-danger"
+                >
+                  Delete
+                </button>
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <AdminTitle title="Carousel slides" />
@@ -174,74 +248,7 @@ export function AdminBanners() {
         </p>
       </form>
 
-      {loading && !data ? (
-        <ListSkeleton />
-      ) : failed ? (
-        <OfflineNotice onRetry={load} />
-      ) : banners.length === 0 ? (
-        <p className="rounded-[20px] bg-white p-8 text-center font-semibold">
-          No slides yet
-        </p>
-      ) : (
-        <div className="table-box">
-          <div className="min-w-[820px]">
-            <div className="table-head">
-              <span>Slide</span>
-              <span>Opens</span>
-              <span>Order</span>
-              <span>Status</span>
-              <span>Actions</span>
-            </div>
-            {banners.map((banner, index) => (
-              <div key={banner.id} className="data-row">
-                <span className="relative block h-14 overflow-hidden rounded-xl bg-ground">
-                  <SafeImage
-                    src={banner.image}
-                    alt={`Slide ${index + 1}`}
-                    sizes="200px"
-                    className="object-cover"
-                  />
-                </span>
-                <span className="truncate text-muted">
-                  {banner.link ?? "Products page"}
-                </span>
-                <span>{banner.position}</span>
-                <span>
-                  <StatusPill
-                    tone={banner.isActive ? "good" : "bad"}
-                    label={banner.isActive ? "Live" : "Hidden"}
-                  />
-                </span>
-                <span className="flex flex-wrap gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => fillForm(banner)}
-                    className="btn-table"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => toggleVisible(banner)}
-                    disabled={busyId === banner.id}
-                    className="btn-table"
-                  >
-                    {banner.isActive ? "Hide" : "Unhide"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => remove(banner)}
-                    disabled={busyId === banner.id}
-                    className="btn-table text-danger"
-                  >
-                    Delete
-                  </button>
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {listSection}
     </>
   );
 }

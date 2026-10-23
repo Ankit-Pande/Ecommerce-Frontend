@@ -15,10 +15,12 @@ export function useActiveCategory(categories: Category[]) {
       const child =
         category.children.find((item) => item.slug === subcategorySlug) ??
         category.children.find((item) => item.slug === categorySlug);
-      if (child)
+      if (child) {
         return { categorySlug: category.slug, subcategorySlug: child.slug };
-      if (category.slug === categorySlug)
+      }
+      if (category.slug === categorySlug) {
         return { categorySlug, subcategorySlug: null };
+      }
     }
   }
   return { categorySlug: null, subcategorySlug: null };

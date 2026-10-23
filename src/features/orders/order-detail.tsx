@@ -96,6 +96,172 @@ export function OrderDetailPage({ id }: { id: string }) {
     }
   }
 
+  let orderSection;
+  if (failed) {
+    orderSection = <OfflineNotice onRetry={loadOrder} />;
+  } else if (!order) {
+    orderSection = <ListSkeleton count={2} />;
+  } else {
+    orderSection = (
+      <>
+        {canPay(order) && (
+          <div className="flex flex-wrap items-center gap-3 rounded-[20px] bg-sunny-light p-4">
+            <Script src={RAZORPAY_SCRIPT} strategy="lazyOnload" />
+            <p className="flex-[1_1_220px]">
+              <span className="block text-lg font-extrabold">
+                Payment of {inr(order.totalPaise)} is pending
+              </span>
+              {order.paymentExpiresAt && (
+                <span>
+                  Pay by {formatTime(order.paymentExpiresAt)} or the order is
+                  cancelled.
+                </span>
+              )}
+            </p>
+            <Button onClick={() => pay(order.id)} loading={paying}>
+              Pay now
+            </Button>
+          </div>
+        )}
+
+        <div className="flex flex-wrap items-start gap-6">
+          <section className="card flex flex-[1_1_280px] flex-col p-5">
+            <h2 className="pb-2 text-[22px] font-extrabold">Delivery status</h2>
+            <ol aria-label="Delivery status">
+              {TRACK_STEPS.map((step) => {
+                const done = step.reachedAt.includes(order.status);
+                let stepText = "Pending";
+                if (done) stepText = "Done";
+                else if (order.status === "CANCELLED") stepText = "Cancelled";
+                return (
+                  <li
+                    key={step.label}
+                    className={`relative ml-2.5 flex min-h-14 items-center gap-3.5 border-l-[3px] pl-[18px] ${done ? "border-accent" : "border-line"}`}
+                  >
+                    <span
+                      className={`absolute -left-[11px] h-[19px] w-[19px] rounded-full border-[3px] ${done ? "border-accent bg-accent" : "border-line bg-white"}`}
+                    />
+                    <span className="flex-1 font-semibold">{step.label}</span>
+                    <span className="text-muted">{stepText}</span>
+                  </li>
+                );
+              })}
+            </ol>
+            {order.status === "CANCELLED" && order.cancelledBy && (
+              <p className="mt-3 font-semibold text-danger">
+                {CANCELLED_BY_TEXT[order.cancelledBy]}
+              </p>
+            )}
+            {order.needsReview && (
+              <p className="mt-3 font-semibold">
+                We are checking a payment on this order. Any extra or late
+                payment will be refunded.
+              </p>
+            )}
+            {order.status === "CONFIRMED" &&
+              order.paymentStatus === "COMPLETED" && (
+                <p className="mt-3 text-muted">
+                  To cancel a paid order, call customer care at +91{" "}
+                  {SUPPORT_PHONE}.
+                </p>
+              )}
+            {canCancel(order) && (
+              <Button
+                variant="danger"
+                onClick={cancel}
+                loading={cancelling}
+                className="mt-3"
+              >
+                Cancel order
+              </Button>
+            )}
+          </section>
+
+          <section className="flex min-w-0 flex-[2_1_340px] flex-col gap-4">
+            <div className="card flex flex-col gap-2.5 p-4">
+              <h2 className="text-lg font-extrabold">
+                Items in this order · {formatDate(order.createdAt)}
+              </h2>
+              {order.items.map((item, index) => {
+                const href = `/products/${item.product.slug}`;
+                return (
+                  <div
+                    key={index}
+                    className="flex flex-wrap items-center gap-3"
+                  >
+                    <Link
+                      href={href}
+                      aria-label={item.productName}
+                      className="shrink-0 rounded-[14px] p-2"
+                      style={{ background: tintFor(item.productId) }}
+                    >
+                      <span className="relative block h-16 w-16 sm:h-20 sm:w-20">
+                        <SafeImage
+                          src={item.productImage}
+                          alt=""
+                          sizes="80px"
+                        />
+                      </span>
+                    </Link>
+                    <Link
+                      href={href}
+                      className="flex min-h-11 min-w-0 flex-[1_1_160px] flex-col justify-center text-lg font-semibold"
+                    >
+                      {item.productName} × {item.quantity}
+                      {optionText(item) && (
+                        <span className="text-base text-muted">
+                          {optionText(item)}
+                        </span>
+                      )}
+                    </Link>
+                    <span className="font-extrabold">
+                      {inr(item.pricePaise * item.quantity)}
+                    </span>
+                    <Link
+                      href={buyNowHref(item.product.slug, {
+                        size: item.size ?? "",
+                        color: item.color ?? "",
+                      })}
+                      className="btn-grey px-3.5"
+                    >
+                      Buy again
+                    </Link>
+                  </div>
+                );
+              })}
+              <p className="flex justify-between border-t border-line pt-2">
+                <span>Subtotal</span>
+                <span>{inr(order.totalPaise)}</span>
+              </p>
+              <p className="flex justify-between">
+                <span>Delivery</span>
+                <span>Free</span>
+              </p>
+              <p className="flex justify-between text-lg font-extrabold">
+                <span>Total</span>
+                <span>{inr(order.totalPaise)}</span>
+              </p>
+            </div>
+
+            <div className="card grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 p-5">
+              <div>
+                <h2 className="font-extrabold">Delivery address</h2>
+                <p>{order.shipName}</p>
+                <p>{shippingAddress(order)}</p>
+                <p>{phoneText(order.shipPhone)}</p>
+              </div>
+              <div>
+                <h2 className="font-extrabold">Payment</h2>
+                <p>{paymentText(order)}</p>
+                <p>Total {inr(order.totalPaise)}</p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <div className="flex flex-wrap items-center gap-3">
@@ -106,173 +272,7 @@ export function OrderDetailPage({ id }: { id: string }) {
         {order && <OrderStatusPill status={order.status} />}
       </div>
 
-      {failed ? (
-        <OfflineNotice onRetry={loadOrder} />
-      ) : !order ? (
-        <ListSkeleton count={2} />
-      ) : (
-        <>
-          {canPay(order) && (
-            <div className="flex flex-wrap items-center gap-3 rounded-[20px] bg-sunny-light p-4">
-              <Script src={RAZORPAY_SCRIPT} strategy="lazyOnload" />
-              <p className="flex-[1_1_220px]">
-                <span className="block text-lg font-extrabold">
-                  Payment of {inr(order.totalPaise)} is pending
-                </span>
-                {order.paymentExpiresAt && (
-                  <span>
-                    Pay by {formatTime(order.paymentExpiresAt)} or the order is
-                    cancelled.
-                  </span>
-                )}
-              </p>
-              <Button onClick={() => pay(order.id)} loading={paying}>
-                Pay now
-              </Button>
-            </div>
-          )}
-
-          <div className="flex flex-wrap items-start gap-6">
-            <section className="card flex flex-[1_1_280px] flex-col p-5">
-              <h2 className="pb-2 text-[22px] font-extrabold">
-                Delivery status
-              </h2>
-              <ol aria-label="Delivery status">
-                {TRACK_STEPS.map((step) => {
-                  const done = step.reachedAt.includes(order.status);
-                  return (
-                    <li
-                      key={step.label}
-                      className={`relative ml-2.5 flex min-h-14 items-center gap-3.5 border-l-[3px] pl-[18px] ${done ? "border-accent" : "border-line"}`}
-                    >
-                      <span
-                        className={`absolute -left-[11px] h-[19px] w-[19px] rounded-full border-[3px] ${done ? "border-accent bg-accent" : "border-line bg-white"}`}
-                      />
-                      <span className="flex-1 font-semibold">{step.label}</span>
-                      <span className="text-muted">
-                        {done
-                          ? "Done"
-                          : order.status === "CANCELLED"
-                            ? "Cancelled"
-                            : "Pending"}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ol>
-              {order.status === "CANCELLED" && order.cancelledBy && (
-                <p className="mt-3 font-semibold text-danger">
-                  {CANCELLED_BY_TEXT[order.cancelledBy]}
-                </p>
-              )}
-              {order.needsReview && (
-                <p className="mt-3 font-semibold">
-                  We are checking a payment on this order. Any extra or late
-                  payment will be refunded.
-                </p>
-              )}
-              {order.status === "CONFIRMED" &&
-                order.paymentStatus === "COMPLETED" && (
-                  <p className="mt-3 text-muted">
-                    To cancel a paid order, call customer care at +91{" "}
-                    {SUPPORT_PHONE}.
-                  </p>
-                )}
-              {canCancel(order) && (
-                <Button
-                  variant="danger"
-                  onClick={cancel}
-                  loading={cancelling}
-                  className="mt-3"
-                >
-                  Cancel order
-                </Button>
-              )}
-            </section>
-
-            <section className="flex min-w-0 flex-[2_1_340px] flex-col gap-4">
-              <div className="card flex flex-col gap-2.5 p-4">
-                <h2 className="text-lg font-extrabold">
-                  Items in this order · {formatDate(order.createdAt)}
-                </h2>
-                {order.items.map((item, index) => {
-                  const href = `/products/${item.product.slug}`;
-                  return (
-                    <div
-                      key={index}
-                      className="flex flex-wrap items-center gap-3"
-                    >
-                      <Link
-                        href={href}
-                        aria-label={item.productName}
-                        className="shrink-0 rounded-[14px] p-2"
-                        style={{ background: tintFor(item.productId) }}
-                      >
-                        <span className="relative block h-16 w-16 sm:h-20 sm:w-20">
-                          <SafeImage
-                            src={item.productImage}
-                            alt=""
-                            sizes="80px"
-                          />
-                        </span>
-                      </Link>
-                      <Link
-                        href={href}
-                        className="flex min-h-11 min-w-0 flex-[1_1_160px] flex-col justify-center text-lg font-semibold"
-                      >
-                        {item.productName} × {item.quantity}
-                        {optionText(item) && (
-                          <span className="text-base text-muted">
-                            {optionText(item)}
-                          </span>
-                        )}
-                      </Link>
-                      <span className="font-extrabold">
-                        {inr(item.pricePaise * item.quantity)}
-                      </span>
-                      <Link
-                        href={buyNowHref(item.product.slug, {
-                          size: item.size ?? "",
-                          color: item.color ?? "",
-                        })}
-                        className="btn-grey px-3.5"
-                      >
-                        Buy again
-                      </Link>
-                    </div>
-                  );
-                })}
-                <p className="flex justify-between border-t border-line pt-2">
-                  <span>Subtotal</span>
-                  <span>{inr(order.totalPaise)}</span>
-                </p>
-                <p className="flex justify-between">
-                  <span>Delivery</span>
-                  <span>Free</span>
-                </p>
-                <p className="flex justify-between text-lg font-extrabold">
-                  <span>Total</span>
-                  <span>{inr(order.totalPaise)}</span>
-                </p>
-              </div>
-
-              <div className="card grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 p-5">
-                <div>
-                  <h2 className="font-extrabold">Delivery address</h2>
-                  <p>{order.shipName}</p>
-                  <p>{shippingAddress(order)}</p>
-                  <p>{phoneText(order.shipPhone)}</p>
-                </div>
-                <div>
-                  <h2 className="font-extrabold">Payment</h2>
-                  <p>{paymentText(order)}</p>
-                  <p>Total {inr(order.totalPaise)}</p>
-                </div>
-              </div>
-            </section>
-          </div>
-        </>
-      )}
+      {orderSection}
     </>
   );
 }
